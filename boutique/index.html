@@ -511,13 +511,10 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
       const s = state();
       const btn = $('sendBtn'), err = $('sendErr');
       let prev = null; try { prev = JSON.parse(store.get('commande') || 'null'); } catch(x){}
-      if (prev && prev.numero && !oui(R('Nouvelle commande permise si la précédente est livrée (OUI/NON)'))){
-        dejaCommande(prev.numero, (pays.whatsapp || R('WhatsApp des commandes')).replace(/\D/g,'')); return;
-      }
       form.__markOrdered();
       sending = true; btn.disabled = true; btn.textContent = 'Envoi en cours…'; err.style.display = 'none';
       const payload = {produit: P.id, pays: pays.code, offre: s.o.key, nom, tel, ville, adresse: adr,
-        jour: s.today ? 'today' : 'tomorrow', moment: $('slot').value, page: location.href.split('#')[0], attrib: attribution()};
+        jour: s.today ? 'today' : 'tomorrow', moment: $('slot').value, page: location.href.split('#')[0], attrib: attribution(), deja: prev && prev.numero ? prev.numero : ''};
       let r = null;
       for (let tries = 0; tries < 2 && !(r && r.ok); tries++){
         try {
