@@ -459,7 +459,7 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
       return {type:'abandon', produit: P.id, pays: pays.code, offre: s.o.key, nom: $('nom').value.trim(),
         tel: $('tel').value.trim(), ville: villeVal(), adresse: $('adr').value.trim(), page: location.href.split('#')[0], attrib: attribution()};
     };
-    const abReady = () => !ordered && !store.get('commande') && $('tel').value.replace(/\D/g,'').length >= 8;
+    const abReady = () => !ordered && !dejaPour(P.id) && $('tel').value.replace(/\D/g,'').length >= 8;
     const abSend = (beacon) => {
       if (!abReady()) return;
       const body = JSON.stringify(abData());
@@ -510,7 +510,7 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
       if (b.some(Boolean)){ document.querySelector('.field.bad').scrollIntoView({behavior:'smooth', block:'center'}); return; }
       const s = state();
       const btn = $('sendBtn'), err = $('sendErr');
-      let prev = null; try { prev = JSON.parse(store.get('commande') || 'null'); } catch(x){}
+      let prev = null; try { prev = (JSON.parse(store.get('commandes') || '{}') || {})[P.id] || null; } catch(x){}
       form.__markOrdered();
       sending = true; btn.disabled = true; btn.textContent = 'Envoi en cours…'; err.style.display = 'none';
       const payload = {produit: P.id, pays: pays.code, offre: s.o.key, nom, tel, ville, adresse: adr,
@@ -523,7 +523,7 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
         } catch(x){ r = null; }
       }
       sending = false; btn.disabled = false; btn.textContent = 'Je commande maintenant';
-      if (r && r.doublon){ store.set('commande', JSON.stringify({numero: r.numero})); dejaCommande(r.numero, r.whatsapp); return; }
+      if (r && r.doublon){ memo(P.id, r.numero); dejaCommande(r.numero, r.whatsapp); return; }
       if (r && r.bloque){ err.textContent = r.erreur; err.style.display = 'block'; return; }
       if (!r || !r.ok){
         form.__unmarkOrdered();
@@ -554,7 +554,7 @@ Heure de la livraison : ${r.livraison}`;
         sha256('+' + digits).then(h => { try { if (h) ttq.identify({phone_number: h}); } catch(e){}
           ttq.track('CompletePayment', {value: r.total, currency: cur, contents: [{content_id: P.id, quantity: r.qte}], content_type: 'product'}, {event_id: evId}); });
       } } catch(x){}
-      store.set('commande', JSON.stringify({numero: r.numero}));
+      memo(P.id, r.numero);
       if (!/whatsapp/i.test(R('Après la commande (MERCI = page de remerciement / WHATSAPP = le client envoie sur WhatsApp)'))){
         merci(r, P); return;
       }
@@ -591,10 +591,12 @@ Heure de la livraison : ${r.livraison}`;
   }
 
   function oui(v){ return /^(oui|yes|o|1|true|vrai)$/i.test(String(v || '').trim()); }
+  function memo(id, num){ try { const m = JSON.parse(store.get('commandes') || '{}') || {}; m[id] = {numero: num}; store.set('commandes', JSON.stringify(m)); } catch(e){} }
+  function dejaPour(id){ try { return !!(JSON.parse(store.get('commandes') || '{}') || {})[id]; } catch(e){ return false; } }
   function dejaCommande(num, wa){
     const msg = `Bonjour, j'ai déjà passé la commande n°${num}. `;
     $('form').innerHTML = `<div class="done"><div class="big">📦</div><h3>Vous avez déjà une commande (n°${esc(num)})</h3>
-      <p>Une seule commande par personne. Notre équipe va vous appeler pour la confirmer : gardez votre téléphone près de vous.</p>
+      <p>Vous avez déjà commandé ce produit. Notre équipe va vous appeler pour la confirmer : gardez votre téléphone près de vous.</p>
       <a class="wa" href="https://wa.me/${esc(wa)}?text=${encodeURIComponent(msg)}">Une question ? Écrivez-nous</a></div>`;
     $('commande').scrollIntoView({behavior:'smooth', block:'start'});
   }
