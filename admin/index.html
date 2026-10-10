@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0E1F63">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ABROMARKET">
+<title>ABROMARKET Gestion</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>
+const API = "https://script.google.com/macros/s/AKfycbxMiEkA1C6NWCarUM113Z4cEegevDjFkNSgfJY05BJ2XmqHoUftEBw5BIRUkJ8DBFQp/exec";
+const SITE = "https://abraham596-stak.github.io/abromarket1/boutique/";
+</script>
+<style>
+:root{
+  --deep:#0E1F63; --main:#1736A6; --sun:#FFC93C; --ink:#141A2E; --soft:#5A6178; --line:#E3E6EF;
+  --surface:#F3F5FB; --bg:#FFFFFF; --ok:#12A150; --okbg:#DDF5E7; --err:#C62828; --errbg:#FBE3E3;
+  --onDeep:#FFFFFF; --onDeepSoft:rgba(255,255,255,.66);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:var(--deep);font-size:16px;line-height:1.45;overscroll-behavior-y:contain}
+h1,h2,h3,.num{font-family:"Bricolage Grotesque","Figtree",system-ui,sans-serif;letter-spacing:-.01em}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+a{color:inherit;text-decoration:none}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+.hidden{display:none!important}
+
+/* Connexion */
+.login{min-height:100%;display:flex;flex-direction:column;justify-content:center;padding:32px 24px;color:var(--onDeep);max-width:420px;margin:0 auto}
+.login .logo{width:72px;height:72px;border-radius:20px;background:var(--sun);display:grid;place-items:center;font:800 34px "Bricolage Grotesque",sans-serif;color:var(--deep);margin-bottom:22px}
+.login h1{font-size:32px;line-height:1.1}
+.login p{color:var(--onDeepSoft);margin:10px 0 26px}
+.login input{width:100%;padding:16px;border-radius:14px;border:2px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;font:600 20px "Figtree",sans-serif;letter-spacing:.2em;text-align:center}
+.login input::placeholder{letter-spacing:normal;color:var(--onDeepSoft);font-weight:500;font-size:16px}
+.login .btn{margin-top:14px}
+.login .err{color:#FFB4B4;margin-top:12px;font-weight:600;min-height:22px}
+.btn{display:block;width:100%;padding:16px;border-radius:14px;background:var(--sun);color:var(--deep);font-weight:700;font-size:17px;text-align:center}
+.btn.blue{background:var(--main);color:#fff}
+.btn.ghost{background:var(--surface);color:var(--ink)}
+
+/* En-tête */
+.top{color:var(--onDeep);padding:calc(env(safe-area-inset-top) + 14px) 16px 0}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.avatar{width:44px;height:44px;border-radius:50%;background:var(--sun);color:var(--deep);display:grid;place-items:center;font:800 17px "Bricolage Grotesque",sans-serif}
+.store{display:flex;align-items:center;gap:10px;font:800 21px "Bricolage Grotesque",sans-serif}
+.store i{width:34px;height:34px;border-radius:10px;background:var(--sun);display:grid;place-items:center;font-style:normal;font-size:18px}
+.iconbtn{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-size:20px;background:rgba(255,255,255,.08)}
+.iconbtn.off{opacity:.5}
+
+.kpis{display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;margin:18px -16px 0;padding:0 16px 4px}
+.kpis::-webkit-scrollbar{display:none}
+.kpi{flex:0 0 auto;text-align:left;padding:10px 14px;border-radius:16px;border:1px solid transparent;min-width:118px}
+.kpi.on{background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.18)}
+.kpi small{display:block;color:var(--onDeepSoft);font-size:14px;font-weight:500}
+.kpi b{font:800 24px "Bricolage Grotesque",sans-serif;white-space:nowrap}
+.kpi .d{font-size:13px;font-weight:700;margin-left:6px}
+.up{color:#5BE39B}.down{color:#FF9D9D}
+.pulse{display:inline-block;width:10px;height:10px;border-radius:50%;background:#5BE39B;margin-right:6px;box-shadow:0 0 0 0 rgba(91,227,155,.6);animation:p 1.8s infinite}
+@keyframes p{70%{box-shadow:0 0 0 8px rgba(91,227,155,0)}100%{box-shadow:0 0 0 0 rgba(91,227,155,0)}}
+
+.chart{margin-top:10px;height:200px;position:relative}
+.chart svg{width:100%;height:100%;display:block;overflow:visible}
+.legend{display:flex;gap:16px;font-size:13px;color:var(--onDeepSoft);margin-top:2px}
+.legend span::before{content:"";display:inline-block;width:16px;height:3px;border-radius:2px;background:var(--sun);vertical-align:middle;margin-right:6px}
+.legend span.p::before{background:repeating-linear-gradient(90deg,rgba(255,255,255,.55) 0 4px,transparent 4px 7px)}
+.periods{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:14px 0 22px}
+.periods::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;padding:9px 14px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);font-weight:600;font-size:15px;color:var(--onDeep)}
+.chip.on{background:var(--sun);color:var(--deep);border-color:var(--sun)}
+
+/* Feuille blanche */
+.sheet{background:var(--bg);border-radius:26px 26px 0 0;min-height:60vh;padding:24px 16px calc(110px + env(safe-area-inset-bottom))}
+.sheet h2{font-size:26px;line-height:1.15;margin-bottom:16px}
+.sheet h2 span{color:var(--soft);font-weight:600}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:22px}
+.tile{border:1px solid var(--line);border-radius:18px;padding:14px;text-align:left;background:#fff}
+.tile small{color:var(--soft);font-weight:600;font-size:14px;display:block}
+.tile b{font:800 24px "Bricolage Grotesque",sans-serif;display:block;margin-top:4px}
+.tile.warn b{color:var(--err)}
+.tile.yes b{color:var(--ok)}
+.block{margin-bottom:24px}
+.block h3{font-size:19px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:baseline}
+.block h3 button{font:600 14px "Figtree",sans-serif;color:var(--main)}
+.livelist{display:grid;gap:8px}
+.liverow{display:flex;justify-content:space-between;gap:10px;padding:12px 14px;background:var(--surface);border-radius:14px;font-weight:600}
+.empty{color:var(--soft);padding:18px;text-align:center;background:var(--surface);border-radius:14px}
+.money{display:flex;flex-direction:column;gap:6px}
+.money div{display:flex;justify-content:space-between;padding:10px 14px;background:var(--surface);border-radius:12px;font-weight:600}
+
+/* Commandes */
+.page{background:var(--bg);min-height:100%;padding:calc(env(safe-area-inset-top) + 16px) 16px calc(110px + env(safe-area-inset-bottom))}
+.page>h1{font-size:30px;margin-bottom:14px}
+.search{width:100%;padding:14px 16px;border-radius:14px;border:0;background:var(--surface);font:500 16px "Figtree",sans-serif;color:var(--ink)}
+.filters{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:12px 0}
+.filters::-webkit-scrollbar{display:none}
+.filters button{flex:0 0 auto;padding:8px 14px;border-radius:999px;font-weight:600;font-size:15px;color:var(--soft)}
+.filters button.on{background:var(--surface);color:var(--ink)}
+.order{display:block;width:100%;text-align:left;padding:16px 2px;border-bottom:1px solid var(--line)}
+.order .l1{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.order .l1 b{font:800 21px "Bricolage Grotesque",sans-serif}
+.order .l1 span{font-weight:600;white-space:nowrap}
+.order .l2{color:var(--ink);margin:4px 0 8px}
+.order .l3{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.daysep{background:var(--surface);color:var(--soft);font-weight:600;font-size:14px;padding:8px 12px;margin:10px -16px 0}
+.badge{display:inline-block;padding:4px 10px;border-radius:999px;font-size:14px;font-weight:600;background:#FFF1BF;color:#6B4E00}
+.b-Confirmée{background:#DCE6FF;color:#1736A6}.b-Livrée{background:var(--okbg);color:#0B6B35}
+.b-Annulée,.b-Retournée{background:var(--errbg);color:#9B1C1C}.b-Injoignable{background:#ECEDF2;color:#4A5068}
+.b-En{background:#E9E2FF;color:#4B2BA8}.b-Expédition{background:#FFE6D1;color:#8A3D00}
+.tag{font-size:13px;color:var(--soft)}
+
+/* Détail */
+.overlay{position:fixed;inset:0;background:rgba(14,31,99,.45);z-index:40;display:flex;align-items:flex-end;justify-content:center}
+.detail{background:#fff;width:100%;max-width:560px;border-radius:24px 24px 0 0;padding:20px 18px calc(24px + env(safe-area-inset-bottom));max-height:88vh;overflow:auto;animation:up .22s ease-out}
+@keyframes up{from{transform:translateY(40px);opacity:.4}}
+.detail .grab{width:44px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 14px}
+.detail h2{font-size:26px}
+.detail .sub{color:var(--soft);margin-bottom:14px}
+.ticket{border:2px dashed var(--main);border-radius:14px;padding:12px 14px;margin:12px 0}
+.ticket .row{display:flex;justify-content:space-between;gap:14px;padding:5px 0}
+.ticket .row span:first-child{color:var(--soft)}
+.ticket .row span:last-child{text-align:right;font-weight:600}
+.ticket .total{border-top:2px dashed var(--line);margin-top:6px;padding-top:9px}
+.ticket .total span:last-child{font:800 22px "Bricolage Grotesque",sans-serif;color:var(--main)}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+.actions a{padding:14px;border-radius:14px;text-align:center;font-weight:700}
+.a-call{background:var(--surface)}
+.a-wa{background:#25D366;color:#fff}
+label.lbl{display:block;font-weight:700;margin:14px 0 8px}
+select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line);font:600 16px "Figtree",sans-serif;background:#fff;color:var(--ink)}
+
+/* Abandons */
+.ab{padding:14px 0;border-bottom:1px solid var(--line)}
+.ab .l1{display:flex;justify-content:space-between;gap:10px}
+.ab .l1 b{font-weight:700}
+.ab p{color:var(--soft);font-size:15px;margin:2px 0 10px}
+.ab .row{display:flex;gap:8px}
+.ab .row a{flex:1;padding:11px;border-radius:12px;text-align:center;font-weight:700;font-size:15px}
+
+/* Produits */
+.prod{display:flex;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}
+.prod img{width:64px;height:64px;border-radius:12px;object-fit:cover;background:var(--surface);flex:0 0 64px}
+.prod .info{flex:1;min-width:0}
+.prod .info b{display:block;font-weight:700;line-height:1.3}
+.prod .info small{color:var(--soft);display:block;margin:2px 0 8px}
+.prod .links{display:flex;gap:8px;flex-wrap:wrap}
+.prod .links a,.prod .links button{padding:7px 12px;border-radius:10px;background:var(--surface);font-weight:600;font-size:14px}
+
+/* Réglages */
+.set{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:16px 0;border-bottom:1px solid var(--line)}
+.set p{color:var(--soft);font-size:14px}
+.switch{width:52px;height:32px;border-radius:999px;background:var(--line);position:relative;flex:0 0 52px;transition:background .2s}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:26px;height:26px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .2s}
+.switch.on{background:var(--ok)}
+.switch.on::after{transform:translateX(20px)}
+.help{background:var(--surface);border-radius:14px;padding:14px;margin-top:18px;color:var(--soft);font-size:15px}
+.help b{color:var(--ink)}
+
+/* Navigation */
+.nav{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom));display:flex;gap:4px;background:#fff;border-radius:999px;padding:6px;box-shadow:0 8px 30px rgba(14,31,99,.22);z-index:30}
+.nav button{width:58px;height:50px;border-radius:999px;display:grid;place-items:center;position:relative;color:var(--soft)}
+.nav button.on{background:var(--surface);color:var(--deep)}
+.nav svg{width:24px;height:24px}
+.nav .dot{position:absolute;top:7px;right:12px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--err);color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center}
+
+/* Alerte nouvelle commande */
+.toast{position:fixed;left:12px;right:12px;top:calc(12px + env(safe-area-inset-top));z-index:60;max-width:520px;margin:0 auto;background:var(--sun);color:var(--deep);border-radius:18px;padding:14px 16px;display:flex;gap:12px;align-items:center;box-shadow:0 10px 30px rgba(14,31,99,.35);animation:drop .35s cubic-bezier(.2,1.4,.4,1)}
+@keyframes drop{from{transform:translateY(-120%)}}
+.toast .e{font-size:30px}
+.toast b{display:block;font:800 18px "Bricolage Grotesque",sans-serif}
+.loading{color:var(--onDeepSoft);text-align:center;padding:40px}
+.refresh{font-size:13px;color:var(--onDeepSoft);text-align:right;margin-top:6px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media (min-width:700px){.app{max-width:560px;margin:0 auto}}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+<nav class="nav hidden" id="nav" aria-label="Navigation">
+  <button data-v="home" aria-label="Accueil" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg></button>
+  <button data-v="orders" aria-label="Commandes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="M4 13h4l2 3h4l2-3h4"/></svg><span class="dot hidden" id="dotNew"></span></button>
+  <button data-v="abandons" aria-label="Abandons"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg><span class="dot hidden" id="dotAb"></span></button>
+  <button data-v="products" aria-label="Produits"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg></button>
+  <button data-v="settings" aria-label="Réglages"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+</nav>
+
+<script>
+(function(){
+  const app = document.getElementById('app'), nav = document.getElementById('nav');
+  const S = { get(k){ try{return localStorage.getItem(k)}catch(e){return null} }, set(k,v){ try{localStorage.setItem(k,v)}catch(e){} }, del(k){ try{localStorage.removeItem(k)}catch(e){} } };
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const fmt = (n, d) => (Number(n)||0).toLocaleString('fr-FR', {maximumFractionDigits: 2}).replace(/[  ]/g, ' ') + (d ? ' ' + d : '');
+  const short = n => { n = Number(n)||0; return n >= 1e6 ? (n/1e6).toFixed(1).replace('.0','') + ' M' : n >= 1e3 ? Math.round(n/1e3) + ' k' : String(Math.round(n)); };
+
+  let key = S.get('adm_key') || '', D = null, view = 'home', metric = 'ventes', periode = 'jour', filtre = 'Toutes', q = '';
+  let sound = S.get('adm_sound') !== '0', lastNum = S.get('adm_last') || '', pubData = null, timer = null, busy = false;
+
+  /* ---------- Son de nouvelle commande ---------- */
+  let ctx = null;
+  function unlock(){ try { ctx = ctx || new (window.AudioContext || window.webkitAudioContext)(); if (ctx.state === 'suspended') ctx.resume(); } catch(e){} }
+  document.addEventListener('pointerdown', unlock, {passive:true});
+  function chime(){
+    if (!sound) return;
+    unlock(); if (!ctx) return;
+    const t0 = ctx.currentTime + .02;
+    [[1318.5,0],[1760,.11],[2637,.22]].forEach(([f, dt], i) => {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = i === 2 ? 'triangle' : 'sine'; o.frequency.value = f;
+      g.gain.setValueAtTime(0, t0 + dt); g.gain.linearRampToValueAtTime(.32, t0 + dt + .01);
+      g.gain.exponentialRampToValueAtTime(.001, t0 + dt + (i === 2 ? .9 : .35));
+      o.connect(g).connect(ctx.destination); o.start(t0 + dt); o.stop(t0 + dt + 1);
+    });
+  }
+  async function notifyNew(o){
+    chime();
+    try { navigator.vibrate && navigator.vibrate([120, 60, 120]); } catch(e){}
+    const t = document.createElement('div'); t.className = 'toast'; t.setAttribute('role','status');
+    t.innerHTML = `<div class="e">🛒</div><div><b>Nouvelle commande n°${esc(o.numero)}</b>${esc(fmt(o.total, o.devise))} · ${esc(o.pays)}</div>`;
+    t.onclick = () => { t.remove(); go('orders'); };
+    document.body.appendChild(t); setTimeout(() => t.remove(), 7000);
+    try {
+      if ('Notification' in window && Notification.permission === 'granted'){
+        const reg = await navigator.serviceWorker?.getRegistration();
+        const opts = { body: `${o.produit} – ${fmt(o.total, o.devise)} (${o.pays})`, icon: 'icon-192.png', badge: 'icon-192.png', tag: 'cmd-' + o.numero, vibrate: [120,60,120] };
+        if (reg) reg.showNotification('🛒 Nouvelle commande n°' + o.numero, opts); else new Notification('🛒 Nouvelle commande n°' + o.numero, opts);
+      }
+    } catch(e){}
+  }
+
+  /* ---------- Échanges avec le Google Sheets ---------- */
+  async function call(body){
+    const r = await fetch(API, {method:'POST', body: JSON.stringify(Object.assign({key}, body))});
+    const j = await r.json();
+    if (!j.ok) throw new Error(j.erreur || 'Erreur');
+    return j;
+  }
+  async function refresh(silent){
+    if (busy) return; busy = true;
+    try {
+      const j = await call({type:'dash', periode});
+      D = j;
+      if (j.dernier){
+        if (lastNum && j.dernier.numero !== lastNum) notifyNew(j.dernier);
+        lastNum = j.dernier.numero; S.set('adm_last', lastNum);
+      }
+      const nouv = j.commandes.filter(o => o.statut === 'Nouvelle').length;
+      const dn = document.getElementById('dotNew'); dn.textContent = nouv > 99 ? '99+' : nouv; dn.classList.toggle('hidden', !nouv);
+      const ar = j.abandons.filter(a => !a.suivi || a.suivi === 'À relancer').length;
+      const da = document.getElementById('dotAb'); da.textContent = ar > 99 ? '99+' : ar; da.classList.toggle('hidden', !ar);
+      if (!document.querySelector('.overlay')) render();
+    } catch(e){
+      if (/mot de passe/i.test(e.message)){ logout('Mot de passe incorrect.'); }
+      else if (!silent && !D){ app.innerHTML = `<div class="login"><h1>Connexion impossible</h1><p>Vérifie ta connexion internet, puis réessaie.</p><button class="btn" id="retry">Réessayer</button></div>`; document.getElementById('retry').onclick = () => refresh(); }
+    } finally { busy = false; }
+  }
+  function schedule(){
+    clearTimeout(timer);
+    timer = setTimeout(async () => { await refresh(true); schedule(); }, document.visibilityState === 'visible' ? 15000 : 60000);
+  }
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && key){ refresh(true); schedule(); } });
+
+  /* ---------- Connexion ---------- */
+  function login(msg){
+    nav.classList.add('hidden');
+    app.innerHTML = `<form class="login" id="lf">
+      <div class="logo">A</div>
+      <h1>Ta boutique, en direct.</h1>
+      <p>Entre le mot de passe de l'application. Tu le trouves dans ton Google Sheets, onglet « Réglages ».</p>
+      <input id="pw" type="password" inputmode="numeric" autocomplete="current-password" placeholder="Mot de passe" aria-label="Mot de passe">
+      <button class="btn" type="submit">Ouvrir mon tableau de bord</button>
+      <div class="err" id="lerr">${esc(msg || '')}</div></form>`;
+    document.getElementById('lf').onsubmit = async e => {
+      e.preventDefault(); unlock();
+      key = document.getElementById('pw').value.trim();
+      const b = e.target.querySelector('.btn'); b.textContent = 'Connexion…';
+      try { const j = await call({type:'dash', periode}); S.set('adm_key', key); D = j; lastNum = j.dernier ? j.dernier.numero : ''; S.set('adm_last', lastNum); start(); }
+      catch(err){ b.textContent = 'Ouvrir mon tableau de bord'; document.getElementById('lerr').textContent = /mot de passe/i.test(err.message) ? 'Mot de passe incorrect.' : 'Connexion impossible. Vérifie ta connexion internet.'; }
+    };
+  }
+  function logout(msg){ key = ''; S.del('adm_key'); clearTimeout(timer); login(msg); }
+  function start(){ nav.classList.remove('hidden'); render(); schedule(); }
+
+  /* ---------- Navigation ---------- */
+  function go(v){ view = v; [...nav.children].forEach(b => b.classList.toggle('on', b.dataset.v === v)); render(); scrollTo({top:0}); }
+  nav.addEventListener('click', e => { const b = e.target.closest('button'); if (b) go(b.dataset.v); });
+  function render(){
+    if (!D) { app.innerHTML = '<div class="loading">Chargement…</div>'; return; }
+    ({home, orders, abandons, products, settings}[view])();
+  }
+
+  /* ---------- Accueil ---------- */
+  const LABEL = { jour: "Aujourd'hui", hier: 'Hier', '7j': '7 derniers jours', '30j': '30 derniers jours' };
+  function pct(a, b){ if (!b) return a ? '<span class="d up">nouveau</span>' : ''; const p = Math.round((a - b) / b * 100); return `<span class="d ${p >= 0 ? 'up' : 'down'}">${p >= 0 ? '+' : ''}${p} %</span>`; }
+  function home(){
+    const c = D.cur, p = D.prev, dev = D.devise;
+    const ca = c.ca[dev] || 0, caP = p.ca[dev] || 0;
+    const conv = c.visites ? (c.commandes / c.visites * 100) : 0, convP = p.visites ? (p.commandes / p.visites * 100) : 0;
+    const autres = Object.keys(c.ca).filter(k => k !== dev);
+    const live = Object.entries(D.liveParProduit).sort((a,b) => b[1]-a[1]);
+    const recent = D.commandes.slice(0, 5);
+    app.innerHTML = `
+      <div class="top">
+        <div class="bar">
+          <div class="avatar" aria-hidden="true">${esc((D.boutique || 'AB').slice(0,2).toUpperCase())}</div>
+          <div class="store"><i aria-hidden="true">🛍️</i>${esc(D.boutique || 'Ma boutique')}</div>
+          <button class="iconbtn ${sound ? '' : 'off'}" id="snd" aria-label="${sound ? 'Couper le son' : 'Activer le son'}">${sound ? '🔔' : '🔕'}</button>
+        </div>
+        <div class="kpis" role="tablist">
+          <div class="kpi"><small>En direct</small><b><span class="pulse"></span>${D.live}</b></div>
+          <button class="kpi ${metric==='ventes'?'on':''}" data-m="ventes"><small>Ventes totales</small><b>${esc(fmt(ca, dev))}</b>${pct(ca, caP)}</button>
+          <button class="kpi ${metric==='commandes'?'on':''}" data-m="commandes"><small>Commandes</small><b>${c.commandes}</b>${pct(c.commandes, p.commandes)}</button>
+          <button class="kpi ${metric==='visites'?'on':''}" data-m="visites"><small>Visites</small><b>${c.visites}</b>${pct(c.visites, p.visites)}</button>
+          <div class="kpi"><small>Taux de conversion</small><b>${conv.toFixed(1).replace('.', ',')} %</b>${p.visites ? `<span class="d ${conv >= convP ? 'up' : 'down'}">${conv >= convP ? '+' : ''}${(conv-convP).toFixed(1).replace('.', ',')} pt</span>` : ''}</div>
+        </div>
+        <div class="chart" id="chart"></div>
+        <div class="legend"><span>${esc(LABEL[periode])}</span><span class="p">${periode === 'jour' ? 'Hier' : 'Période précédente'}</span></div>
+        <div class="periods">${Object.keys(LABEL).map(k => `<button class="chip ${k===periode?'on':''}" data-p="${k}">${LABEL[k]}</button>`).join('')}</div>
+      </div>
+      <div class="sheet">
+        <h2>Bonjour ! <span>Voici ton activité</span></h2>
+        <div class="grid2">
+          <button class="tile ${D.commandes.some(o=>o.statut==='Nouvelle')?'warn':''}" data-go="orders"><small>À traiter</small><b>${D.commandes.filter(o => o.statut === 'Nouvelle').length}</b></button>
+          <button class="tile" data-go="abandons"><small>Abandons à relancer</small><b>${D.abandons.filter(a => !a.suivi || a.suivi === 'À relancer').length}</b></button>
+          <div class="tile yes"><small>Livrées</small><b>${c.livrees}</b></div>
+          <div class="tile"><small>Taux de livraison</small><b>${c.commandes ? Math.round(c.livrees / c.commandes * 100) : 0} %</b></div>
+        </div>
+        <div class="block"><h3>Chiffre d'affaires</h3><div class="money">
+          <div><span>Commandé (brut)</span><span>${esc(fmt(ca, dev))}</span></div>
+          <div><span>Livré (encaissé)</span><span>${esc(fmt(c.caLivre[dev] || 0, dev))}</span></div>
+          ${autres.map(k => `<div><span>Autres pays</span><span>${esc(fmt(c.ca[k], k))}</span></div>`).join('')}
+        </div></div>
+        <div class="block"><h3>En ce moment sur le site</h3>
+          ${live.length ? `<div class="livelist">${live.map(([k,n]) => `<div class="liverow"><span>${k === 'accueil' ? "Page d'accueil" : esc(k)}</span><span>${n} ${n > 1 ? 'personnes' : 'personne'}</span></div>`).join('')}</div>` : `<div class="empty">Personne sur le site pour l'instant.</div>`}
+        </div>
+        <div class="block"><h3>Dernières commandes <button data-go="orders">Tout voir</button></h3>
+          ${recent.length ? recent.map(orderRow).join('') : `<div class="empty">Aucune commande pour l'instant. Elles apparaîtront ici dès qu'un client commande.</div>`}
+        </div>
+      </div>`;
+    drawChart();
+    app.querySelectorAll('[data-m]').forEach(b => b.onclick = () => { metric = b.dataset.m; home(); });
+    app.querySelectorAll('[data-p]').forEach(b => b.onclick = async () => { periode = b.dataset.p; app.querySelectorAll('[data-p]').forEach(x => x.classList.toggle('on', x === b)); await refresh(); });
+    app.querySelectorAll('[data-go]').forEach(b => b.onclick = () => go(b.dataset.go));
+    bindOrders();
+    document.getElementById('snd').onclick = () => { sound = !sound; S.set('adm_sound', sound ? '1' : '0'); if (sound) chime(); home(); };
+  }
+
+  function drawChart(){
+    const el = document.getElementById('chart'); if (!el) return;
+    const b = D.serieP[metric], n = b.length;
+    let a = D.serie[metric];
+    if (periode === 'jour') a = a.slice(0, new Date().getHours() + 1);
+    const W = el.clientWidth || 340, H = 200, L = 58, R = 6, T = 12, B = 26;
+    const max = Math.max(1, ...a, ...b);
+    const xn = n;
+    const step = (v => { const m = Math.pow(10, Math.floor(Math.log10(v))); const k = v / m; return (k <= 1 ? 1 : k <= 2 ? 2 : k <= 5 ? 5 : 10) * m; })(max / 3);
+    const top = step * Math.ceil(max / step);
+    const x = i => L + (W - L - R) * (xn === 1 ? .5 : i / (xn - 1));
+    const y = v => T + (H - T - B) * (1 - v / top);
+    const path = arr => { let d = ''; arr.forEach((v,i) => { const X = x(i), Y = y(v); if (!i) d = `M${X},${Y}`; else { const X0 = x(i-1), Y0 = y(arr[i-1]), cx = (X0 + X) / 2; d += ` C${cx},${Y0} ${cx},${Y} ${X},${Y}`; } }); return d; };
+    let grid = '';
+    for (let v = 0; v <= top + 1e-9; v += step){
+      grid += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="rgba(255,255,255,.12)"/>
+        <text x="${L - 8}" y="${y(v) + 4}" text-anchor="end" fill="rgba(255,255,255,.66)" font-size="12" font-family="Figtree, sans-serif",sans-serif>${metric === 'ventes' ? short(v) : Math.round(v)}</text>`;
+    }
+    const labels = D.parJour ? [0, Math.floor((n-1)/2), n-1].map(i => ({i, t: (() => { const [dd, mm] = D.debut.split('/').map(Number); const d = new Date(new Date().getFullYear(), mm-1, dd + i); return d.getDate() + '/' + (d.getMonth()+1); })()}))
+      : [0, 10, 20].map(i => ({i, t: String(i).padStart(2,'0') + ':00'}));
+    const xl = labels.map(l => `<text x="${x(l.i)}" y="${H - 6}" text-anchor="middle" fill="rgba(255,255,255,.66)" font-size="12" font-family="Figtree, sans-serif",sans-serif>${l.t}</text>`).join('');
+    const unit = metric === 'ventes' ? D.devise : metric;
+    el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Évolution des ${esc(metric)} (${esc(unit)})">${grid}
+      <path d="${path(b)}" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="2" stroke-dasharray="4 4"/>
+      <path d="${path(a)}" fill="none" stroke="#FFC93C" stroke-width="3" stroke-linecap="round"/>${xl}</svg>`;
+  }
+
+  /* ---------- Commandes ---------- */
+  const badge = st => `<span class="badge b-${esc(String(st || 'Nouvelle').split(' ')[0])}">${esc(st || 'Nouvelle')}</span>`;
+  const orderRow = o => `<button class="order" data-num="${esc(o.numero)}">
+      <div class="l1"><b>#${esc(o.numero)}</b><span>${esc(fmt(o.total, o.devise))}</span></div>
+      <div class="l2">${esc(o.nom || 'Sans nom')} · ${esc(o.qte)} article${Number(o.qte) > 1 ? 's' : ''} · ${esc(o.heure)}</div>
+      <div class="l3">${badge(o.statut)}<span class="tag">${esc(o.pays)}${o.pub ? ' · ' + esc(o.pub) : ''}</span></div></button>`;
+  function bindOrders(){ app.querySelectorAll('[data-num]').forEach(b => b.onclick = () => detail(b.dataset.num)); }
+  function orders(){
+    const list = D.commandes.filter(o => (filtre === 'Toutes' || o.statut === filtre) &&
+      (!q || (o.numero + ' ' + o.nom + ' ' + o.tel + ' ' + o.produit + ' ' + o.pays).toLowerCase().includes(q.toLowerCase())));
+    let html = '', last = '';
+    list.forEach(o => { if (o.date !== last){ last = o.date; html += `<div class="daysep">${esc(dayName(o.date))}</div>`; } html += orderRow(o); });
+    app.innerHTML = `<div class="page"><h1>Commandes</h1>
+      <input class="search" id="q" type="search" placeholder="Rechercher un nom, un numéro…" value="${esc(q)}" aria-label="Rechercher">
+      <div class="filters">${['Toutes','Nouvelle','Confirmée','En livraison','Livrée','Annulée','Injoignable'].map(f => `<button class="${f===filtre?'on':''}" data-f="${f}">${f === 'Nouvelle' ? 'À traiter' : f}</button>`).join('')}</div>
+      ${html || `<div class="empty">Aucune commande ici.</div>`}</div>`;
+    const qi = document.getElementById('q');
+    qi.oninput = () => { q = qi.value; const pos = qi.selectionStart; orders(); const n = document.getElementById('q'); n.focus(); n.setSelectionRange(pos, pos); };
+    app.querySelectorAll('[data-f]').forEach(b => b.onclick = () => { filtre = b.dataset.f; orders(); });
+    bindOrders();
+  }
+  function dayName(s){
+    const [d, m, y] = s.split('/').map(Number); const dt = new Date(y, m-1, d), t = new Date(); t.setHours(0,0,0,0);
+    const diff = Math.round((t - dt) / 864e5);
+    if (diff === 0) return "Aujourd'hui"; if (diff === 1) return 'Hier';
+    if (diff < 7) return dt.toLocaleDateString('fr-FR', {weekday:'long'});
+    return dt.toLocaleDateString('fr-FR', {day:'numeric', month:'long'});
+  }
+  function detail(num){
+    const o = D.commandes.find(x => x.numero === num); if (!o) return;
+    const tel = String(o.tel).replace(/\D/g, '');
+    const ov = document.createElement('div'); ov.className = 'overlay';
+    ov.innerHTML = `<div class="detail" role="dialog" aria-modal="true" aria-label="Commande ${esc(o.numero)}">
+      <div class="grab"></div>
+      <h2>Commande #${esc(o.numero)}</h2>
+      <p class="sub">${esc(dayName(o.date))} à ${esc(o.heure)} · ${esc(o.pays)}${o.source ? ' · ' + esc(o.source) : ''}</p>
+      ${badge(o.statut)}
+      <div class="ticket">
+        <div class="row"><span>Client</span><span>${esc(o.nom)}</span></div>
+        <div class="row"><span>Téléphone</span><span>${esc(o.tel)}</span></div>
+        <div class="row"><span>Adresse</span><span>${esc(o.adresse)}</span></div>
+        <div class="row"><span>Produit</span><span>${esc(o.produit)}</span></div>
+        <div class="row"><span>Offre</span><span>${esc(o.offre)}</span></div>
+        <div class="row"><span>Livraison</span><span>${esc(o.livraison)}</span></div>
+        ${o.pub ? `<div class="row"><span>Publicité</span><span>${esc(o.pub)}</span></div>` : ''}
+        ${o.commentaire ? `<div class="row"><span>Commentaire</span><span>${esc(o.commentaire)}</span></div>` : ''}
+        <div class="row total"><span>À encaisser</span><span>${esc(fmt(o.total, o.devise))}</span></div>
+      </div>
+      <div class="actions"><a class="a-call" href="tel:+${tel}">📞 Appeler</a><a class="a-wa" href="https://wa.me/${tel}" target="_blank" rel="noopener">WhatsApp</a></div>
+      <label class="lbl" for="st">Statut de la commande</label>
+      <select class="st" id="st">${D.statuts.map(s => `<option ${s === o.statut ? 'selected' : ''}>${esc(s)}</option>`).join('')}</select>
+      <button class="btn blue" id="save" style="margin-top:12px">Enregistrer le statut</button>
+      <button class="btn ghost" id="close" style="margin-top:10px">Fermer</button></div>`;
+    document.body.appendChild(ov);
+    const close = () => { ov.remove(); render(); };
+    ov.onclick = e => { if (e.target === ov) close(); };
+    ov.querySelector('#close').onclick = close;
+    ov.querySelector('#save').onclick = async e => {
+      const b = e.target, st = ov.querySelector('#st').value; b.textContent = 'Enregistrement…'; b.disabled = true;
+      try { await call({type:'statut', numero: o.numero, statut: st}); o.statut = st; b.textContent = 'Statut enregistré ✓'; setTimeout(close, 700); }
+      catch(err){ b.disabled = false; b.textContent = 'Échec : réessayer'; }
+    };
+  }
+
+  /* ---------- Abandons ---------- */
+  function abandons(){
+    app.innerHTML = `<div class="page"><h1>Abandons</h1>
+      <p class="tag" style="margin:-6px 0 8px">Ces personnes ont donné leur numéro sans valider. Relance-les environ 5 minutes après.</p>
+      ${D.abandons.length ? D.abandons.map(a => `<div class="ab">
+        <div class="l1"><b>${esc(a.nom || 'Sans nom')}</b><span class="tag">${esc(dayName(a.date))} ${esc(a.heure)}</span></div>
+        <p>${esc(a.produit)} · ${esc(a.offre)} · ${esc(a.prix)} · ${esc(a.pays)}${a.suivi ? ' · ' + esc(a.suivi) : ''}</p>
+        <div class="row"><a class="a-call" href="tel:+${esc(String(a.tel).replace(/\D/g,''))}">📞 Appeler</a>${a.lien ? `<a class="a-wa" href="${esc(a.lien)}" target="_blank" rel="noopener">📲 Relancer</a>` : ''}</div></div>`).join('')
+        : `<div class="empty">Aucun formulaire abandonné. Bonne nouvelle !</div>`}</div>`;
+  }
+
+  /* ---------- Produits ---------- */
+  async function products(){
+    app.innerHTML = `<div class="page"><h1>Produits</h1><div id="pl" class="empty">Chargement…</div>
+      <a class="btn blue" style="margin-top:18px" href="${esc(D.sheetUrl)}" target="_blank" rel="noopener">Ajouter ou modifier dans Google Sheets</a></div>`;
+    try {
+      if (!pubData) pubData = await (await fetch(API + '?t=' + Date.now())).json();
+      const pl = document.getElementById('pl'); if (!pl) return;
+      pl.className = '';
+      pl.innerHTML = pubData.produits.length ? pubData.produits.map(p => {
+        const pays = Object.keys(p.prix).map(c => { const pp = pubData.pays.find(x => x.code === c); return `${pp ? pp.nom : c} : ${fmt(p.prix[c].offres[0].prix, pp ? pp.devise : '')}`; }).join(' · ');
+        const url = SITE + '?p=' + encodeURIComponent(p.id);
+        let img = p.photos[0] || '';
+        const m = img.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:export=\w+&)?id=)([\w-]{20,})/); if (m) img = 'https://drive.google.com/thumbnail?id=' + m[1] + '&sz=w300';
+        return `<div class="prod"><img src="${esc(img)}" alt="" loading="lazy"><div class="info"><b>${esc(p.nom)}</b><small>${esc(pays || 'Aucun prix renseigné')}</small>
+          <div class="links"><a href="${esc(url)}" target="_blank" rel="noopener">Voir la page</a><button data-copy="${esc(url)}">Copier le lien</button></div></div></div>`;
+      }).join('') : `<div class="empty">Aucun produit actif. Ajoute-en un dans l'onglet « Produits » du Google Sheets.</div>`;
+      pl.querySelectorAll('[data-copy]').forEach(b => b.onclick = async () => { try { await navigator.clipboard.writeText(b.dataset.copy); b.textContent = 'Lien copié ✓'; } catch(e){ prompt('Copie ce lien :', b.dataset.copy); } });
+    } catch(e){ const pl = document.getElementById('pl'); if (pl) pl.textContent = 'Impossible de charger les produits.'; }
+  }
+
+  /* ---------- Réglages ---------- */
+  function settings(){
+    const perm = 'Notification' in window ? Notification.permission : 'unsupported';
+    app.innerHTML = `<div class="page"><h1>Réglages</h1>
+      <div class="set"><div><b>Son des nouvelles commandes</b><p>Un « ding » à chaque commande, quand l'application est ouverte.</p></div><button class="switch ${sound?'on':''}" id="sw" role="switch" aria-checked="${sound}" aria-label="Son des nouvelles commandes"></button></div>
+      <div class="set"><div><b>Tester le son</b><p>Vérifie que le volume de ton téléphone est assez fort.</p></div><button class="chip" style="background:var(--surface);color:var(--ink);border-color:var(--line)" id="test">Écouter</button></div>
+      <div class="set"><div><b>Notifications</b><p>${perm === 'granted' ? 'Activées.' : perm === 'denied' ? 'Bloquées : autorise-les dans les réglages du navigateur.' : perm === 'unsupported' ? 'Installe d’abord l’application sur ton écran d’accueil.' : 'Affiche une alerte même si tu es sur une autre application.'}</p></div>${perm === 'default' ? '<button class="chip" style="background:var(--main);border-color:var(--main)" id="notif">Activer</button>' : ''}</div>
+      <div class="set"><div><b>Google Sheets</b><p>Produits, prix, pays, agences et commandes.</p></div><a class="chip" style="background:var(--surface);color:var(--ink);border-color:var(--line)" href="${esc(D.sheetUrl)}" target="_blank" rel="noopener">Ouvrir</a></div>
+      <div class="set"><div><b>Ma boutique</b><p>La page que voient tes clients.</p></div><a class="chip" style="background:var(--surface);color:var(--ink);border-color:var(--line)" href="${SITE}" target="_blank" rel="noopener">Ouvrir</a></div>
+      <div class="help"><b>Installer l'application sur ton téléphone</b><br>Android (Chrome) : menu ⋮ → « Ajouter à l'écran d'accueil » ou « Installer l'application ».<br>iPhone (Safari) : bouton Partager → « Sur l'écran d'accueil ».<br><br><b>Bon à savoir</b> : le son et les alertes marchent quand l'application est ouverte ou en arrière-plan récent. Quand elle est fermée, tu reçois quand même chaque commande par email.</div>
+      <button class="btn ghost" id="out" style="margin-top:18px">Se déconnecter</button></div>`;
+    document.getElementById('sw').onclick = () => { sound = !sound; S.set('adm_sound', sound ? '1' : '0'); if (sound) chime(); settings(); };
+    document.getElementById('test').onclick = () => { const s = sound; sound = true; chime(); sound = s; };
+    const nb = document.getElementById('notif'); if (nb) nb.onclick = async () => { try { await Notification.requestPermission(); } catch(e){} settings(); };
+    document.getElementById('out').onclick = () => logout();
+  }
+
+  /* ---------- Démarrage ---------- */
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+  if (key){ app.innerHTML = '<div class="loading">Chargement…</div>'; nav.classList.remove('hidden'); refresh().then(() => { if (key) schedule(); }); }
+  else login();
+  addEventListener('resize', () => { if (view === 'home' && D) drawChart(); });
+})();
+</script>
+</body>
+</html>

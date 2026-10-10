@@ -165,7 +165,8 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
 .thanks{padding:30px 18px 26px;text-align:center}
 .thanks .big{font-size:54px;line-height:1}
 .thanks h1{font-size:30px;margin:12px 0 6px}
-.thanks .lead{font-size:18px;margin-bottom:18px}
+.thanks .lead{font-size:18px;margin-bottom:6px}
+.thanks .num{color:var(--soft);font-weight:600;margin-bottom:18px}
 .thanks .ticket{text-align:left}
 .thanks .call{background:var(--sun);border-radius:14px;padding:14px;font-weight:600;margin:4px 0 18px}
 .loading{padding:60px 20px;text-align:center;color:var(--soft)}
@@ -541,7 +542,8 @@ Heure de la livraison : ${r.livraison}`;
     app.innerHTML = `<div class="wrap">${header([])}
       <div class="thanks"><div class="big">✅</div>
         <h1>Merci${prenom ? ' ' + esc(prenom) : ''} !</h1>
-        <p class="lead">Votre commande <b>n°${esc(r.numero)}</b> est bien enregistrée.</p>
+        <p class="lead">Votre commande de <b>${esc(r.produit)}</b> a bien été envoyée.</p>
+        <p class="num">Commande n°${esc(r.numero)}</p>
         <div class="ticket">
           <div class="row"><span>Produit</span><span>${esc(r.produit)}</span></div>
           <div class="row"><span>Offre</span><span>${esc(r.offre)}</span></div>
@@ -549,7 +551,7 @@ Heure de la livraison : ${r.livraison}`;
           <div class="row"><span>Adresse</span><span>${esc(r.adresse)}</span></div>
           <div class="row total"><span>À payer à la livraison</span><span>${money(r.total, r.devise)}</span></div>
         </div>
-        <div class="call">📞 Notre équipe va vous appeler au <b>${esc(r.tel)}</b> pour confirmer la livraison. Gardez votre téléphone près de vous.</div>
+        <div class="call">📞 Notre équipe va vous appeler <b>dans les 24h</b> au <b>${esc(r.tel)}</b> pour la livraison. Gardez votre téléphone près de vous.</div>
         <a class="cta" href="./?c=${esc(country || '')}">Voir nos autres produits</a>
       </div>
       ${trust()}
@@ -599,6 +601,27 @@ Heure de la livraison : ${r.livraison}`;
     if (!pid) pixels();
   }
 
+  /* ---------- Visites et visiteurs en direct ---------- */
+  let sid = '';
+  function beacon(type){
+    try {
+      if (!sid){ sid = sessionStorage.getItem('sid') || (Date.now().toString(36) + Math.random().toString(36).slice(2, 8)); sessionStorage.setItem('sid', sid); }
+    } catch(e){ if (!sid) sid = Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+    const body = JSON.stringify({type, sid, produit: pid, pays: country || ''});
+    try {
+      if (navigator.sendBeacon) navigator.sendBeacon(API, new Blob([body], {type:'text/plain'}));
+      else fetch(API, {method:'POST', body, keepalive:true}).catch(()=>{});
+    } catch(e){}
+  }
+  function startTracking(){
+    let first = true;
+    try { first = !sessionStorage.getItem('vu'); sessionStorage.setItem('vu', '1'); } catch(e){}
+    beacon(first ? 'visite' : 'ping');
+    setInterval(() => { if (document.visibilityState === 'visible') beacon('ping'); }, 40000);
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') beacon('ping'); });
+    window.addEventListener('pagehide', () => beacon('quitte'));
+  }
+
   async function load(){
     if (!/^https:\/\/script\.google(usercontent)?\.com\//.test(API)){
       app.innerHTML = '<div class="empty">⚠️ Colle l\'URL de ton Application Web Google Apps Script dans la ligne <b>const API</b> en haut du fichier index.html.</div>';
@@ -618,7 +641,7 @@ Heure de la livraison : ${r.livraison}`;
       if (!D) app.innerHTML = '<div class="empty">Impossible de charger la boutique. Vérifiez votre connexion et actualisez la page.</div>';
     }
   }
-  load();
+  load().then(() => { if (D) startTracking(); });
 })();
 </script>
 </body>
