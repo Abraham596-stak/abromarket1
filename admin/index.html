@@ -526,7 +526,8 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
     render();
   }
   function pushBanner(){
-    if (!D || !D.onesignal || pushOn) return '';
+    const accorde = 'Notification' in window && Notification.permission === 'granted';
+    if (!D || !D.onesignal || pushOn || accorde) return '';
     return `<button class="pushban" id="pushban"><div style="font-size:26px">🔔</div><div><b>Active les notifications</b><span>Pour recevoir chaque commande même téléphone verrouillé.</span></div></button>`;
   }
   document.addEventListener('click', e => { if (e.target.closest('#pushban') || e.target.closest('#notifOS')) askPush(); });
