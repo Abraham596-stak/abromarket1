@@ -80,6 +80,8 @@ section h2{font-size:23px;font-weight:800;margin-bottom:14px}
 .rich img{width:100%;border-radius:14px;margin:4px 0 16px;background:var(--surface)}
 .perks{list-style:none;display:grid;gap:12px;margin-top:6px}
 .perks li{display:flex;gap:12px;align-items:flex-start;font-size:17px}
+.perks.top{margin-top:16px;gap:10px}
+.perks.top li{font-size:16px;font-weight:600}
 .perks li::before{content:"✓";flex:0 0 26px;height:26px;border-radius:50%;background:var(--main);color:#fff;display:grid;place-items:center;font-weight:700;font-size:14px;margin-top:1px}
 .box{margin-top:18px;background:var(--surface);border-radius:12px;padding:14px 16px}
 .box h3{font-size:16px;margin-bottom:6px}
@@ -155,8 +157,10 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
 .sticky.hide{transform:translateY(110%)}
 .sticky .sp{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:20px;white-space:nowrap}
 .sticky .cta{flex:1;padding:14px;font-size:17px}
-.attn{animation:attn 10s ease-in-out infinite;transform-origin:center}
-@keyframes attn{0%,88%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(23,54,166,0)}91%{transform:scale(1.045);box-shadow:0 0 0 8px rgba(23,54,166,.18)}94%{transform:scale(.99)}97%{transform:scale(1.02);box-shadow:0 0 0 0 rgba(23,54,166,0)}}
+.attn{position:relative;overflow:hidden;animation:attn 2s ease-in-out infinite;transform-origin:center}
+@keyframes attn{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(23,54,166,.45)}45%{transform:scale(1.035);box-shadow:0 0 0 10px rgba(23,54,166,0)}70%{transform:scale(1)}}
+.attn::after{content:"";position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.4),transparent);transform:skewX(-20deg);animation:brille 2s ease-in-out infinite;pointer-events:none}
+@keyframes brille{0%{left:-60%}55%,100%{left:130%}}
 .overlay{position:fixed;inset:0;background:rgba(20,26,46,.6);display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
 .overlay.show{display:flex}
 .modal{background:#fff;border-radius:18px;padding:24px 20px;max-width:400px;width:100%;text-align:center}
@@ -231,8 +235,11 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
     const s = v.toLocaleString('fr-FR', {maximumFractionDigits: 2}).replace(/[  ]/g, ' ');
     return s + ' ' + (dev || '');
   }
+  let IMG = {};
+  try { IMG = JSON.parse(localStorage.getItem('imgs') || '{}') || {}; } catch(e){}
   function img(u){
     u = String(u || '').trim();
+    if (IMG[u]) return IMG[u];
     const m = u.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:export=\w+&)?id=)([\w-]{20,})/);
     if (m) return 'https://drive.google.com/thumbnail?id=' + m[1] + '&sz=w1200';
     return u;
@@ -240,7 +247,7 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
   const isUrl = s => /^https?:\/\/\S+$/i.test(s);
   function rich(t){
     return String(t || '').split(/\r?\n|\s*\|\s*/).map(l => l.trim()).filter(Boolean).map(l => {
-      if (isUrl(l)) return `<img src="${esc(img(l))}" alt="" loading="lazy">`;
+      if (isUrl(l)) return `<img src="${esc(img(l))}" alt="" decoding="async">`;
       if (/^##\s*/.test(l)) return `<h3>${esc(l.replace(/^##\s*/, ''))}</h3>`;
       return `<p>${esc(l).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')}</p>`;
     }).join('');
@@ -387,17 +394,17 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
       priceBlock = `<div class="unavail">Ce produit n'est pas encore disponible dans votre pays.</div>`;
     }
 
-    const desc = P.description || P.avantages.length || P.boite.length;
+    const desc = P.description || P.boite.length;
     const nAvis = P.avis.length;
     app.innerHTML = `<div class="wrap">${header(avail)}
-      <div class="gallery"><div class="slides" id="slides">${photos.map((s,i)=>`<img src="${esc(img(s))}" alt="${esc(P.nom)} photo ${i+1}" width="600" height="600" ${i?'loading="lazy" decoding="async"':'fetchpriority="high"'}>`).join('')}</div></div>
+      <div class="gallery"><div class="slides" id="slides">${photos.map((s,i)=>`<img src="${esc(img(s))}" alt="${esc(P.nom)} photo ${i+1}" width="600" height="600" ${i?'decoding="async"':'fetchpriority="high"'}>`).join('')}</div></div>
       ${photos.length > 1 ? `<div class="dots" id="dots">${photos.map((_,i)=>`<span class="${i?'':'on'}"></span>`).join('')}</div>` : ''}
       <div class="intro"><h1>${esc(P.nom)}</h1>${P.accroche?`<p>${esc(P.accroche)}</p>`:''}
-        ${nAvis ? `<div class="stars">★★★★★<small>(${nAvis} avis)</small></div>` : ''}</div>
+        ${nAvis ? `<div class="stars">★★★★★<small>(${nAvis} avis)</small></div>` : ''}
+        ${P.avantages.length ? `<ul class="perks top">${P.avantages.map(a=>`<li>${esc(a)}</li>`).join('')}</ul>` : ''}</div>
       ${priceBlock}
       ${form}
       ${desc ? `<section><h2>Description</h2><div class="rich">${rich(P.description)}</div>
-        ${P.avantages.length ? `<ul class="perks">${P.avantages.map(a=>`<li>${esc(a)}</li>`).join('')}</ul>` : ''}
         ${P.boite.length ? `<div class="box"><h3>Dans la boîte</h3><ul>${P.boite.map(a=>`<li>${esc(a)}</li>`).join('')}</ul></div>` : ''}</section>` : ''}
       ${nAvis ? `<section><h2>Ils l'ont déjà reçu</h2><div class="reviews" id="revs">${P.avis.map(a=>`<div class="review"><div class="rs">${'★'.repeat(a.note)}${'☆'.repeat(5-a.note)}</div><p>${esc(a.texte)}</p><div class="who">${esc(a.nom)}</div>${a.photo?`<img src="${esc(img(a.photo))}" alt="" loading="lazy">`:''}</div>`).join('')}</div>
         ${nAvis > 1 ? `<div class="rdots" id="rdots">${P.avis.map((_,i)=>`<span class="${i?'':'on'}"></span>`).join('')}</div>` : ''}</section>` : ''}
@@ -671,13 +678,27 @@ Heure de la livraison : ${r.livraison}`;
       app.innerHTML = '<div class="empty">⚠️ Colle l\'URL de ton Application Web Google Apps Script dans la ligne <b>const API</b> en haut du fichier index.html.</div>';
       return;
     }
-    const same = (a, b) => JSON.stringify({...a, maj:0}) === JSON.stringify({...b, maj:0});
+    const same = (a, b) => JSON.stringify({...a, maj:0, imgs:0}) === JSON.stringify({...b, maj:0, imgs:0});
+    let shown = false, ready = null;
+    const imagesPage = d => {
+      const urls = [];
+      if (pid){
+        const P = d.produits.find(x => x.id === pid);
+        if (P){ urls.push(...P.photos); String(P.description || '').split(/\r?\n|\s*\|\s*/).map(l => l.trim()).filter(isUrl).forEach(u => urls.push(u)); }
+      } else d.produits.slice(0, 6).forEach(x => x.photos[0] && urls.push(x.photos[0]));
+      return urls.map(img);
+    };
+    const precharger = (urls, ms) => Promise.race([
+      Promise.all(urls.map(u => new Promise(ok => { const i = new Image(); i.onload = i.onerror = ok; i.src = u; if (i.decode) i.decode().then(ok, ok); }))),
+      new Promise(ok => setTimeout(ok, ms))]);
     const use = (fresh, save) => {
       if (!fresh || !fresh.produits) return;
+      if (fresh.imgs){ Object.assign(IMG, fresh.imgs); try { localStorage.setItem('imgs', JSON.stringify(IMG)); } catch(e){} }
       if (save) store.set('data:' + API, JSON.stringify(fresh));
       if (D && same(D, fresh)) return;
       const first = !D; D = fresh;
-      if (first || !touched) render();
+      if (first) ready = precharger(imagesPage(D), 3000).then(() => { shown = true; render(); });
+      else if (shown && !touched) render();
     };
     const cached = store.get('data:' + API);
     if (cached){ try { use(JSON.parse(cached)); } catch(e){} }
@@ -687,6 +708,7 @@ Heure de la livraison : ${r.livraison}`;
     const live = fetch(API + (API.includes('?') ? '&' : '?') + 't=' + Date.now()).then(r => r.json()).then(j => { liveOk = true; use(j, true); }).catch(() => {});
     await Promise.race([live, snap.then(() => D ? null : live)]);
     if (!D) await live;
+    if (ready) await ready;
     if (!D) app.innerHTML = '<div class="empty">Impossible de charger la boutique. Vérifiez votre connexion et actualisez la page.</div>';
   }
   load().then(() => { if (D) startTracking(); });
