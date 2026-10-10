@@ -515,6 +515,12 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
       sending = true; btn.disabled = true; btn.textContent = 'Envoi en cours…'; err.style.display = 'none';
       const payload = {produit: P.id, pays: pays.code, offre: s.o.key, nom, tel, ville, adresse: adr,
         jour: s.today ? 'today' : 'tomorrow', moment: $('slot').value, page: location.href.split('#')[0], attrib: attribution(), deja: prev && prev.numero ? prev.numero : ''};
+      // Affichage immédiat de la confirmation : le client n'attend pas
+      const modeMerci = !/whatsapp/i.test(R('Après la commande (MERCI = page de remerciement / WHATSAPP = le client envoie sur WhatsApp)'));
+      const garde = saveForm();
+      if (modeMerci) merci({numero: '', produit: P.nom, offre: s.o.label, livraison: (s.today ? "Aujourd'hui" : 'Demain') + ', ' + $('slot').value,
+        adresse: ville + ' – ' + adr, total: s.total, devise: dev, tel: '+' + pays.indicatif + ' ' + tel, nom}, P);
+      const retour = () => { if (modeMerci){ render(); restoreForm(garde); const f = $('form'); if (f) f.__markOrdered && f.__unmarkOrdered && f.__unmarkOrdered(); $('commande').scrollIntoView({block:'start'}); } };
       let r = null;
       for (let tries = 0; tries < 2 && !(r && r.ok); tries++){
         try {
@@ -523,10 +529,11 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
         } catch(x){ r = null; }
       }
       sending = false; btn.disabled = false; btn.textContent = 'Je commande maintenant';
-      if (r && r.doublon){ memo(P.id, r.numero); dejaCommande(r.numero, r.whatsapp); return; }
-      if (r && r.bloque){ err.textContent = r.erreur; err.style.display = 'block'; return; }
+      if (r && r.doublon){ memo(P.id, r.numero); retour(); dejaCommande(r.numero, r.whatsapp); return; }
+      if (r && r.bloque){ retour(); const er = $('sendErr'); er.textContent = r.erreur; er.style.display = 'block'; return; }
       if (!r || !r.ok){
-        form.__unmarkOrdered();
+        form.__unmarkOrdered(); retour();
+        const err = $('sendErr');
         const msg = `Nouvelle commande (non numérotée)\nPays : ${pays.nom}\nProduit : ${P.nom}\nOffre : ${s.o.label}\nNom : ${nom}\nNuméro : +${pays.indicatif} ${tel}\nAdresse de la livraison : ${ville} – ${adr}\nLe prix à payer : ${money(s.total, dev)}\nHeure de la livraison : ${(s.today ? "Aujourd'hui" : 'Demain')}, ${$('slot').value}`;
         const wa = (pays.whatsapp || R('WhatsApp des commandes')).replace(/\D/g,'');
         err.innerHTML = `${esc(r && r.erreur ? r.erreur : 'Connexion difficile.')} Réessayez.<a href="https://wa.me/${wa}?text=${encodeURIComponent(msg)}">Ou commandez directement sur WhatsApp →</a>`;
@@ -555,9 +562,9 @@ Heure de la livraison : ${r.livraison}`;
           ttq.track('CompletePayment', {value: r.total, currency: cur, contents: [{content_id: P.id, quantity: r.qte}], content_type: 'product'}, {event_id: evId}); });
       } } catch(x){}
       memo(P.id, r.numero);
-      if (!/whatsapp/i.test(R('Après la commande (MERCI = page de remerciement / WHATSAPP = le client envoie sur WhatsApp)'))){
-        merci(r, P); return;
-      }
+      // Lance tout de suite les notifications (WhatsApp, email, application) et l'envoi aux agences
+      try { const bd = JSON.stringify({type: 'apres', numero: r.numero}); if (navigator.sendBeacon) navigator.sendBeacon(API, new Blob([bd], {type: 'text/plain'})); else fetch(API, {method: 'POST', body: bd, keepalive: true}); } catch(x){}
+      if (modeMerci){ const n = $('numCmd'); if (n) n.textContent = r.numero; else merci(r, P); return; }
       $('mNum').textContent = r.numero;
       $('waLink').href = url;
       $('overlay').classList.add('show');
@@ -574,7 +581,7 @@ Heure de la livraison : ${r.livraison}`;
       <div class="thanks"><div class="big">✅</div>
         <h1>Merci${prenom ? ' ' + esc(prenom) : ''} !</h1>
         <p class="lead">Votre commande de <b>${esc(r.produit)}</b> a bien été envoyée.</p>
-        <p class="num">Commande n°${esc(r.numero)}</p>
+        <p class="num">Commande n°<span id="numCmd">${r.numero ? esc(r.numero) : '…'}</span></p>
         <div class="ticket">
           <div class="row"><span>Produit</span><span>${esc(r.produit)}</span></div>
           <div class="row"><span>Offre</span><span>${esc(r.offre)}</span></div>
