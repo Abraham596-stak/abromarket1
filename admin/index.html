@@ -17,6 +17,8 @@
 <link rel="preconnect" href="https://script.google.com">
 <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
 <link rel="preload" href="kaching.mp3" as="audio">
+<script>window.OneSignalDeferred = window.OneSignalDeferred || [];</script>
+<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 <script>
 const API = "https://script.google.com/macros/s/AKfycbwgdtcXlXB9niD3hactnz4SLIrpY_q74iQQZwkr1vrUBjczfCCVWwamG69uqnUQZsba/exec";
 const SITE = "https://abraham596-stak.github.io/abromarket1/boutique/";
@@ -491,24 +493,37 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
   }
 
   /* ---------- Notifications même application fermée (OneSignal) ---------- */
-  let pushReady = false, pushOn = false;
+  let pushReady = false, pushOn = false, osErr = '', osOk = null;
+  const osPret = new Promise(r => osOk = r);
   function initPush(){
     if (pushReady || !D || !D.onesignal) return; pushReady = true;
     window.OneSignalDeferred = window.OneSignalDeferred || [];
-    const s = document.createElement('script'); s.src = 'https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js'; s.defer = true; document.head.appendChild(s);
     OneSignalDeferred.push(async OneSignal => {
-      await OneSignal.init({ appId: D.onesignal, serviceWorkerPath: 'abromarket1/admin/OneSignalSDKWorker.js',
-        serviceWorkerParam: { scope: '/abromarket1/admin/' }, notifyButton: { enable: false }, allowLocalhostAsSecureOrigin: true });
-      pushOn = OneSignal.Notifications.permission && OneSignal.User.PushSubscription.optedIn;
-      OneSignal.Notifications.addEventListener('permissionChange', () => { pushOn = OneSignal.Notifications.permission; if (view === 'home' || view === 'settings') render(); });
+      try {
+        await OneSignal.init({ appId: D.onesignal, serviceWorkerPath: 'abromarket1/admin/OneSignalSDKWorker.js',
+          serviceWorkerParam: { scope: '/abromarket1/admin/' }, notifyButton: { enable: false } });
+        pushOn = !!(OneSignal.Notifications.permission && OneSignal.User.PushSubscription.optedIn);
+        OneSignal.User.PushSubscription.addEventListener('change', () => { pushOn = !!OneSignal.User.PushSubscription.optedIn; if (view === 'home' || view === 'settings') render(); });
+        osOk(true);
+      } catch(e){ osErr = (e && e.message) || String(e); osOk(false); }
       if (view === 'home' || view === 'settings') render();
     });
   }
   async function askPush(){
     unlock();
-    if (!window.OneSignal){ alert("Les notifications ne sont pas encore configurées. Ajoute l'App ID OneSignal dans ton Google Sheets (onglet Réglages)."); return; }
-    try { await OneSignal.Notifications.requestPermission(); await OneSignal.User.PushSubscription.optIn(); } catch(e){}
-    pushOn = OneSignal.Notifications.permission; render();
+    if (!D || !D.onesignal){ alert("Ajoute l'App ID OneSignal dans ton Google Sheets (onglet Réglages)."); return; }
+    initPush();
+    const b = document.getElementById('pushban'); if (b) b.querySelector('b').textContent = 'Activation…';
+    const ok = await Promise.race([osPret, new Promise(r => setTimeout(() => r('lent'), 15000))]);
+    if (ok === 'lent'){ alert("Le service de notifications ne répond pas. Vérifie ta connexion internet, puis réessaie."); render(); return; }
+    if (!ok){ alert("Erreur OneSignal : " + osErr); render(); return; }
+    try {
+      await OneSignal.Notifications.requestPermission();
+      await OneSignal.User.PushSubscription.optIn();
+    } catch(e){ alert("Erreur : " + ((e && e.message) || e)); }
+    pushOn = !!(OneSignal.Notifications.permission && OneSignal.User.PushSubscription.optedIn);
+    if (!pushOn && 'Notification' in window && Notification.permission === 'denied') alert("Les notifications sont bloquées pour ce site. Dans Chrome : ⋮ → Paramètres → Paramètres des sites → Notifications → autorise abraham596-stak.github.io.");
+    render();
   }
   function pushBanner(){
     if (!D || !D.onesignal || pushOn) return '';
