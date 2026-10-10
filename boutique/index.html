@@ -162,6 +162,12 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
 .done .big{font-size:42px}
 .done h3{font-size:20px;margin:8px 0}
 .done p{color:var(--soft);margin-bottom:16px}
+.thanks{padding:30px 18px 26px;text-align:center}
+.thanks .big{font-size:54px;line-height:1}
+.thanks h1{font-size:30px;margin:12px 0 6px}
+.thanks .lead{font-size:18px;margin-bottom:18px}
+.thanks .ticket{text-align:left}
+.thanks .call{background:var(--sun);border-radius:14px;padding:14px;font-weight:600;margin:4px 0 18px}
 .loading{padding:60px 20px;text-align:center;color:var(--soft)}
 .spin{width:34px;height:34px;border:4px solid var(--line);border-top-color:var(--main);border-radius:50%;margin:0 auto 14px;animation:s 1s linear infinite}
 @keyframes s{to{transform:rotate(360deg)}}
@@ -384,8 +390,9 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
     if (auto && n > 1 && !matchMedia('(prefers-reduced-motion: reduce)').matches){
       let paused = false;
       ['touchstart','pointerdown','mouseenter'].forEach(ev => el.addEventListener(ev, () => paused = true, {passive:true}));
-      setInterval(() => {
-        if (paused || document.hidden) return;
+      const timer = setInterval(() => {
+        if (!el.isConnected){ clearInterval(timer); return; }
+        if (paused || document.hidden || !el.children[0]) return;
         const i = (idx() + 1) % n;
         el.scrollTo({left: el.children[i].offsetLeft - el.children[0].offsetLeft, behavior:'smooth'});
       }, 4500);
@@ -516,12 +523,38 @@ Heure de la livraison : ${r.livraison}`;
           ttq.track('CompletePayment', {value: r.total, currency: cur, contents: [{content_id: P.id, quantity: r.qte}], content_type: 'product'}, {event_id: evId}); });
       } } catch(x){}
       store.set('commande', JSON.stringify({numero: r.numero}));
+      if (!/whatsapp/i.test(R('Après la commande (MERCI = page de remerciement / WHATSAPP = le client envoie sur WhatsApp)'))){
+        merci(r, P); return;
+      }
       $('mNum').textContent = r.numero;
       $('waLink').href = url;
       $('overlay').classList.add('show');
       form.reset(); update();
       setTimeout(() => { location.href = url; }, 1800);
     });
+  }
+
+  function merci(r, P){
+    const st = $('sticky'); if (st) st.remove();
+    document.body.classList.remove('has-sticky');
+    const prenom = String(r.nom || '').split(/\s+/)[0];
+    app.innerHTML = `<div class="wrap">${header([])}
+      <div class="thanks"><div class="big">✅</div>
+        <h1>Merci${prenom ? ' ' + esc(prenom) : ''} !</h1>
+        <p class="lead">Votre commande <b>n°${esc(r.numero)}</b> est bien enregistrée.</p>
+        <div class="ticket">
+          <div class="row"><span>Produit</span><span>${esc(r.produit)}</span></div>
+          <div class="row"><span>Offre</span><span>${esc(r.offre)}</span></div>
+          <div class="row"><span>Livraison</span><span>${esc(r.livraison)}</span></div>
+          <div class="row"><span>Adresse</span><span>${esc(r.adresse)}</span></div>
+          <div class="row total"><span>À payer à la livraison</span><span>${money(r.total, r.devise)}</span></div>
+        </div>
+        <div class="call">📞 Notre équipe va vous appeler au <b>${esc(r.tel)}</b> pour confirmer la livraison. Gardez votre téléphone près de vous.</div>
+        <a class="cta" href="./?c=${esc(country || '')}">Voir nos autres produits</a>
+      </div>
+      ${trust()}
+      <footer>© ${new Date().getFullYear()} ${esc(R('Nom de la boutique'))}</footer></div>`;
+    scrollTo({top: 0});
   }
 
   function oui(v){ return /^(oui|yes|o|1|true|vrai)$/i.test(String(v || '').trim()); }
