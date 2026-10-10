@@ -273,7 +273,7 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
       D = j;
       try { S.set('adm_dash_' + periode, JSON.stringify(j)); } catch(e){}
       setBusy(false);
-      initPush();
+      initPush(); swCache();
       if (j.dernier){
         if (lastNum && j.dernier.numero !== lastNum) notifyNew(j.dernier);
         lastNum = j.dernier.numero; S.set('adm_last', lastNum);
@@ -570,6 +570,8 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
       <div class="set"><div><b>Son des nouvelles commandes</b><p>Un « ding » à chaque commande, quand l'application est ouverte.</p></div><button class="switch ${sound?'on':''}" id="sw" role="switch" aria-checked="${sound}" aria-label="Son des nouvelles commandes"></button></div>
       <div class="set"><div><b>Tester le son</b><p>Vérifie que le volume de ton téléphone est assez fort.</p></div><button class="chip" style="background:var(--surface);color:var(--ink);border-color:var(--line)" id="test">Écouter</button></div>
       <div class="set"><div><b>Notifications (même application fermée)</b><p>${!D.onesignal ? 'À configurer : ajoute l’App ID OneSignal dans ton Google Sheets.' : pushOn ? 'Activées sur ce téléphone ✓' : perm === 'denied' ? 'Bloquées : autorise les notifications pour ce site dans les réglages de Chrome.' : 'Reçois chaque commande même téléphone verrouillé.'}</p></div>${D.onesignal && !pushOn && perm !== 'denied' ? '<button class="chip" style="background:var(--main);border-color:var(--main)" id="notifOS">Activer</button>' : ''}</div>
+      <div class="set"><div><b>Tester les notifications</b><p>Verrouille ton téléphone juste après avoir appuyé : une notification doit arriver en quelques secondes.</p></div><button class="chip" style="background:var(--main);border-color:var(--main)" id="testPush">Tester</button></div>
+      <div class="help" id="diag" style="margin-top:6px;font-size:13px;word-break:break-word">Diagnostic : appuie sur « Tester ».</div>
       <div class="set"><div><b>Son « caisse » pour les notifications</b><p>Télécharge-le, puis choisis-le comme son de notification de l’application dans les réglages Android.</p></div><a class="chip" style="background:var(--surface);color:var(--ink);border-color:var(--line)" href="kaching.mp3" download="ABROMARKET-commande.mp3">Télécharger</a></div>
       <div class="set"><div><b>Google Sheets</b><p>Produits, prix, pays, agences et commandes.</p></div><a class="chip" style="background:var(--surface);color:var(--ink);border-color:var(--line)" href="${esc(D.sheetUrl)}" target="_blank" rel="noopener">Ouvrir</a></div>
       <div class="set"><div><b>Ma boutique</b><p>La page que voient tes clients.</p></div><a class="chip" style="background:var(--surface);color:var(--ink);border-color:var(--line)" href="${SITE}" target="_blank" rel="noopener">Ouvrir</a></div>
@@ -578,10 +580,26 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
     document.getElementById('sw').onclick = () => { sound = !sound; S.set('adm_sound', sound ? '1' : '0'); if (sound) chime(); settings(); };
     document.getElementById('test').onclick = () => { const s = sound; sound = true; chime(); sound = s; };
     document.getElementById('out').onclick = () => logout();
+    document.getElementById('testPush').onclick = async e => {
+      const b = e.target, dg = document.getElementById('diag'); b.textContent = '…';
+      let regs = [];
+      try { regs = (await navigator.serviceWorker.getRegistrations()).map(r => r.scope.replace(location.origin, '') + ' (' + ((r.active && r.active.scriptURL) || '').split('/').pop().split('?')[0] + ')'); } catch(x){}
+      const os = window.OneSignal && OneSignal.User ? OneSignal.User.PushSubscription : null;
+      const lignes = [
+        'Permission du téléphone : ' + ('Notification' in window ? Notification.permission : 'non disponible'),
+        'Module OneSignal : ' + (window.OneSignal && OneSignal.User ? 'chargé' : 'NON chargé') + (osErr ? ' – erreur : ' + osErr : ''),
+        'Abonné : ' + (os ? (os.optedIn ? 'oui' : 'non') + (os.id ? ' (id ' + os.id.slice(0, 8) + '…)' : ' (aucun id)') : '?'),
+        'Services : ' + (regs.join(', ') || 'aucun')
+      ];
+      try { const r = await call({type: 'testpush'}); lignes.push('Envoi : ' + (r.resultat || r.code)); }
+      catch(err){ lignes.push('Envoi : erreur ' + err.message); }
+      dg.innerHTML = lignes.map(esc).join('<br>'); b.textContent = 'Tester';
+    };
   }
 
   /* ---------- Démarrage ---------- */
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('OneSignalSDKWorker.js', {scope: './'}).catch(() => {});
+  let swFait = false;
+  function swCache(){ if (swFait || !D || D.onesignal || !('serviceWorker' in navigator)) return; swFait = true; navigator.serviceWorker.register('OneSignalSDKWorker.js', {scope: './'}).catch(() => {}); }
   if (key){
     nav.classList.remove('hidden');
     D = fromCache(periode);
