@@ -4,9 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Boutique</title>
+<meta name="theme-color" content="#1736A6">
+<link rel="preconnect" href="https://script.google.com">
+<link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
+<link rel="preload" href="data.json" as="fetch" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;700&display=swap">
 <script>
 /* =====================================================================
    ✏️  SEULE LIGNE À MODIFIER : colle entre les guillemets l'URL de ton
@@ -133,7 +137,7 @@ input:focus,textarea:focus,select:focus{border-color:var(--main);outline:none}
 .confirm input{width:24px;height:24px;accent-color:var(--main);flex:0 0 24px;margin-top:1px}
 .error{color:var(--err);font-size:14px;font-weight:600;margin-top:6px;display:none}
 .field.bad .error{display:block}
-.field.bad input,.field.bad textarea,.field.bad .confirm,.field.bad .phone{border-color:var(--err)}
+.field.bad input,.field.bad textarea,.field.bad .confirm,.field.bad .phone,.field.bad select{border-color:var(--err)}
 .ticket{background:#fff;border:2px dashed var(--main);border-radius:14px;padding:16px;margin:6px 0 16px}
 .ticket .row{display:flex;justify-content:space-between;gap:12px;padding:4px 0}
 .ticket .row span:first-child{color:var(--soft)}
@@ -169,6 +173,7 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
 .thanks .num{color:var(--soft);font-weight:600;margin-bottom:18px}
 .thanks .ticket{text-align:left}
 .thanks .call{background:var(--sun);border-radius:14px;padding:14px;font-weight:600;margin:4px 0 18px}
+.hidden{display:none!important}
 .loading{padding:60px 20px;text-align:center;color:var(--soft)}
 .spin{width:34px;height:34px;border:4px solid var(--line);border-top-color:var(--main);border-radius:50%;margin:0 auto 14px;animation:s 1s linear infinite}
 @keyframes s{to{transform:rotate(360deg)}}
@@ -250,10 +255,28 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
     return codes[0] || null;
   }
   function setCountry(c){
+    const keep = saveForm(), y = scrollY;
     country = c; store.set('pays', c);
-    const u = new URL(location.href); u.searchParams.set('c', c);
-    history.replaceState(null, '', u);
     render();
+    restoreForm(keep); scrollTo(0, y);
+  }
+  function saveForm(){
+    const f = $('form'); if (!f) return null;
+    const v = id => { const e = $(id); return e ? e.value : ''; };
+    const r = n => { const e = f.querySelector('input[name=' + n + ']:checked'); return e ? e.id : ''; };
+    return {ville: v('ville'), autre: v('villeAutre'), adr: v('adr'), nom: v('nom'), tel: v('tel'), slot: v('slot'), offre: r('offre'), jour: r('jour'), ok: $('ok') && $('ok').checked};
+  }
+  function restoreForm(k){
+    if (!k || !$('form')) return;
+    const set = (id, v) => { const e = $(id); if (e && v != null) e.value = v; };
+    set('nom', k.nom); set('tel', k.tel); set('adr', k.adr); set('slot', k.slot);
+    const vs = $('ville');
+    if (vs && [...vs.options].some(o => o.value === k.ville)) vs.value = k.ville;
+    if (vs && vs.value === '__autre'){ $('fAutre').classList.remove('hidden'); set('villeAutre', k.autre); }
+    if (k.offre && $(k.offre)) $(k.offre).checked = true;
+    if (k.jour && $(k.jour)) $(k.jour).checked = true;
+    if ($('ok')) $('ok').checked = !!k.ok;
+    $('form').dispatchEvent(new Event('change'));
   }
   function countrySelect(list){
     if (!list.length) return '';
@@ -263,7 +286,7 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
     const logo = R('Logo (lien image, optionnel)');
     const name = R('Nom de la boutique') || 'Boutique';
     return `<div class="topbar">${esc(R('Bandeau du haut'))}</div>
-      <header><a class="brand" href="./${country?'?c='+esc(country):''}">${logo?`<img src="${esc(img(logo))}" alt="">`:''}<span>${esc(name)}</span></a>${countrySelect(list)}</header>`;
+      <header><a class="brand" href="./">${logo?`<img src="${esc(img(logo))}" alt="">`:''}<span>${esc(name)}</span></a></header>`;
   }
   function trust(){
     let h = '';
@@ -273,7 +296,7 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
     }
     return h ? `<section><h2>Nos garanties</h2><div class="trust">${h}</div></section>` : '';
   }
-  function bindCountry(){ const s = $('cSel'); if (s) s.onchange = () => setCountry(s.value); }
+  function bindCountry(){ const s = $('cSel'); if (s) s.onchange = () => { touched = true; setCountry(s.value); }; }
 
   /* ---------- Accueil ---------- */
   function renderHome(){
@@ -281,19 +304,21 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
     const avail = D.pays.filter(p => D.produits.some(x => x.prix[p.code]));
     if (!country || !avail.some(p => p.code === country)) country = pickCountry(avail);
     const prods = D.produits.filter(x => x.prix[country]);
+    const autres = D.produits.filter(x => !x.prix[country] && Object.keys(x.prix).length);
     document.title = R('Nom de la boutique') || 'Boutique';
     const pays = D.pays.find(p => p.code === country) || {};
     app.innerHTML = `<div class="wrap">${header(avail)}
-      <div class="hero"><h1>Nos produits</h1><p>Livraison et paiement à la réception${pays.nom ? ' – ' + esc(pays.nom) : ''}.</p></div>
+      <div class="hero"><h1>Nos produits</h1><p>Livraison et paiement à la réception.</p></div>
       ${prods.length ? `<div class="grid">${prods.map(x => {
         const o = x.prix[country].offres[0];
         const off = o.ancien > o.prix ? Math.round((1 - o.prix/o.ancien)*100) : 0;
-        return `<a class="card" href="?p=${encodeURIComponent(x.id)}&c=${esc(country)}">
+        return `<a class="card" href="?p=${encodeURIComponent(x.id)}">
           <img src="${esc(img(x.photos[0] || ''))}" alt="${esc(x.nom)}" loading="lazy">
           <div class="ci">${off?`<span class="badge">−${off} %</span>`:''}<div class="cn">${esc(x.nom)}</div>
           ${o.ancien > o.prix ? `<div class="co">${money(o.ancien, pays.devise)}</div>` : ''}
           <div class="cp">${money(o.prix, pays.devise)}</div></div></a>`;
-      }).join('')}</div>` : `<div class="empty">Aucun produit disponible pour ce pays pour le moment.</div>`}
+      }).join('')}</div>` : (autres.length ? `<div class="grid">${autres.map(x => { const c = Object.keys(x.prix)[0], pp = D.pays.find(p => p.code === c) || {}, o = x.prix[c].offres[0];
+          return `<a class="card" href="?p=${encodeURIComponent(x.id)}"><img src="${esc(img(x.photos[0] || ''))}" alt="${esc(x.nom)}" loading="lazy"><div class="ci"><div class="cn">${esc(x.nom)}</div><div class="cp">${money(o.prix, pp.devise)}</div></div></a>`; }).join('')}</div>` : `<div class="empty">Aucun produit disponible pour le moment.</div>`)}
       ${trust()}
       <footer>© ${new Date().getFullYear()} ${esc(R('Nom de la boutique'))}</footer></div>`;
     bindCountry();
@@ -319,6 +344,15 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
       const promo = Number(px.promoJour) || 0;
       form = `<section id="commande"><h2>Passer ma commande</h2><p class="sub">Remplissez ce formulaire, ça prend moins d'une minute.</p>
         <form id="form" novalidate>
+          <div class="field"><label for="cSel">Votre pays</label>
+            <select class="in" id="cSel" autocomplete="country-name">${avail.map(p => `<option value="${esc(p.code)}" ${p.code===country?'selected':''}>${esc(p.nom)}</option>`).join('')}</select></div>
+          <div class="field" id="fVille"><label for="ville">Votre ville</label>
+            <select class="in" id="ville"><option value="">Choisissez votre ville</option>${((D.villes || {})[country] || []).map(v => `<option>${esc(v)}</option>`).join('')}<option value="__autre">Autre ville…</option></select>
+            <div class="field hidden" id="fAutre" style="margin:10px 0 0"><input type="text" id="villeAutre" placeholder="Écrivez le nom de votre ville"></div>
+            <div class="error">Choisissez votre ville.</div></div>
+          <div class="field" id="fAdr"><label for="adr">Lieu exact de livraison</label>
+            <textarea id="adr" placeholder="Quartier, rue, repère connu (ex : à côté de la pharmacie…)"></textarea>
+            <div class="error">Précisez où le livreur doit venir.</div></div>
           <div class="field"><span class="legend">Choisissez votre offre</span><div class="choices">
             ${px.offres.map((o,i) => {
               const save = o.ancien > o.prix ? o.ancien - o.prix : 0;
@@ -331,9 +365,6 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
           <div class="field" id="fTel"><label for="tel">Votre numéro de téléphone (WhatsApp de préférence)</label>
             <div class="phone"><span>+${esc(pays.indicatif)}</span><input type="tel" id="tel" inputmode="tel" autocomplete="tel" placeholder="Votre numéro"></div>
             <div class="error">Entrez un numéro valide pour qu'on puisse vous appeler.</div></div>
-          <div class="field" id="fAdr"><label for="adr">Adresse exacte de livraison</label>
-            <textarea id="adr" placeholder="Ville, quartier, rue, repère (ex : à côté de la pharmacie…)"></textarea>
-            <div class="error">Précisez votre ville et votre adresse pour que le livreur vous trouve.</div></div>
           <div class="field"><span class="legend">Quand voulez-vous être livré ?</span><div class="choices">
             <div class="choice"><input type="radio" name="jour" id="j0" value="today" checked><label for="j0"><span>Aujourd'hui${promo?`<small>Promo : −${money(promo, dev)}</small>`:''}</span></label></div>
             <div class="choice"><input type="radio" name="jour" id="j1" value="tomorrow"><label for="j1"><span>Demain</span></label></div></div></div>
@@ -357,7 +388,7 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
     const desc = P.description || P.avantages.length || P.boite.length;
     const nAvis = P.avis.length;
     app.innerHTML = `<div class="wrap">${header(avail)}
-      <div class="gallery"><div class="slides" id="slides">${photos.map((s,i)=>`<img src="${esc(img(s))}" alt="${esc(P.nom)} photo ${i+1}" ${i?'loading="lazy"':''}>`).join('')}</div></div>
+      <div class="gallery"><div class="slides" id="slides">${photos.map((s,i)=>`<img src="${esc(img(s))}" alt="${esc(P.nom)} photo ${i+1}" width="600" height="600" ${i?'loading="lazy" decoding="async"':'fetchpriority="high"'}>`).join('')}</div></div>
       ${photos.length > 1 ? `<div class="dots" id="dots">${photos.map((_,i)=>`<span class="${i?'':'on'}"></span>`).join('')}</div>` : ''}
       <div class="intro"><h1>${esc(P.nom)}</h1>${P.accroche?`<p>${esc(P.accroche)}</p>`:''}
         ${nAvis ? `<div class="stars">★★★★★<small>(${nAvis} avis)</small></div>` : ''}</div>
@@ -370,7 +401,7 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
         ${nAvis > 1 ? `<div class="rdots" id="rdots">${P.avis.map((_,i)=>`<span class="${i?'':'on'}"></span>`).join('')}</div>` : ''}</section>` : ''}
       ${P.faq.length ? `<section><h2>Questions fréquentes</h2>${P.faq.map(f=>`<details><summary>${esc(f.q)}</summary><p>${esc(f.r)}</p></details>`).join('')}</section>` : ''}
       ${trust()}
-      <footer><a href="./?c=${esc(country||'')}">← Voir tous nos produits</a><br>© ${new Date().getFullYear()} ${esc(R('Nom de la boutique'))}</footer></div>
+      <footer><a href="./">← Voir tous nos produits</a><br>© ${new Date().getFullYear()} ${esc(R('Nom de la boutique'))}</footer></div>
       ${px ? `<div class="sticky" id="sticky"><div class="sp">${money(o1.prix, dev)}</div><a href="#commande" class="cta">Je commande</a></div>` : ''}`;
 
     bindCountry();
@@ -419,12 +450,14 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
       $('tTotal').textContent = money(s.total, dev);
     };
     form.addEventListener('change', update);
+    const villeVal = () => { const v = $('ville').value; return v === '__autre' ? $('villeAutre').value.trim() : v; };
+    $('ville').addEventListener('change', () => { $('fAutre').classList.toggle('hidden', $('ville').value !== '__autre'); if ($('ville').value === '__autre') $('villeAutre').focus(); });
     /* Formulaire abandonné : on garde le numéro si la personne ne valide pas */
     let abTimer = null, abSent = '', ordered = false;
     const abData = () => {
       const s = state();
       return {type:'abandon', produit: P.id, pays: pays.code, offre: s.o.key, nom: $('nom').value.trim(),
-        tel: $('tel').value.trim(), adresse: $('adr').value.trim(), page: location.href.split('#')[0], attrib: attribution()};
+        tel: $('tel').value.trim(), ville: villeVal(), adresse: $('adr').value.trim(), page: location.href.split('#')[0], attrib: attribution()};
     };
     const abReady = () => !ordered && !store.get('commande') && $('tel').value.replace(/\D/g,'').length >= 8;
     const abSend = (beacon) => {
@@ -472,7 +505,8 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
       e.preventDefault();
       if (sending) return;
       const nom = $('nom').value.trim(), tel = $('tel').value.trim(), adr = $('adr').value.trim();
-      const b = [bad('fNom', nom.length < 2), bad('fTel', tel.replace(/\D/g,'').length < 8), bad('fAdr', adr.length < 5), bad('fOk', !$('ok').checked)];
+      const ville = villeVal();
+      const b = [bad('fVille', ville.length < 2), bad('fAdr', adr.length < 3), bad('fNom', nom.length < 2), bad('fTel', tel.replace(/\D/g,'').length < 8), bad('fOk', !$('ok').checked)];
       if (b.some(Boolean)){ document.querySelector('.field.bad').scrollIntoView({behavior:'smooth', block:'center'}); return; }
       const s = state();
       const btn = $('sendBtn'), err = $('sendErr');
@@ -482,7 +516,7 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
       }
       form.__markOrdered();
       sending = true; btn.disabled = true; btn.textContent = 'Envoi en cours…'; err.style.display = 'none';
-      const payload = {produit: P.id, pays: pays.code, offre: s.o.key, nom, tel, adresse: adr,
+      const payload = {produit: P.id, pays: pays.code, offre: s.o.key, nom, tel, ville, adresse: adr,
         jour: s.today ? 'today' : 'tomorrow', moment: $('slot').value, page: location.href.split('#')[0], attrib: attribution()};
       let r = null;
       for (let tries = 0; tries < 2 && !(r && r.ok); tries++){
@@ -496,7 +530,7 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
       if (r && r.bloque){ err.textContent = r.erreur; err.style.display = 'block'; return; }
       if (!r || !r.ok){
         form.__unmarkOrdered();
-        const msg = `Nouvelle commande (non numérotée)\nPays : ${pays.nom}\nProduit : ${P.nom}\nOffre : ${s.o.label}\nNom : ${nom}\nNuméro : +${pays.indicatif} ${tel}\nAdresse de la livraison : ${adr}\nLe prix à payer : ${money(s.total, dev)}\nHeure de la livraison : ${(s.today ? "Aujourd'hui" : 'Demain')}, ${$('slot').value}`;
+        const msg = `Nouvelle commande (non numérotée)\nPays : ${pays.nom}\nProduit : ${P.nom}\nOffre : ${s.o.label}\nNom : ${nom}\nNuméro : +${pays.indicatif} ${tel}\nAdresse de la livraison : ${ville} – ${adr}\nLe prix à payer : ${money(s.total, dev)}\nHeure de la livraison : ${(s.today ? "Aujourd'hui" : 'Demain')}, ${$('slot').value}`;
         const wa = (pays.whatsapp || R('WhatsApp des commandes')).replace(/\D/g,'');
         err.innerHTML = `${esc(r && r.erreur ? r.erreur : 'Connexion difficile.')} Réessayez.<a href="https://wa.me/${wa}?text=${encodeURIComponent(msg)}">Ou commandez directement sur WhatsApp →</a>`;
         err.style.display = 'block';
@@ -629,19 +663,23 @@ Heure de la livraison : ${r.livraison}`;
       app.innerHTML = '<div class="empty">⚠️ Colle l\'URL de ton Application Web Google Apps Script dans la ligne <b>const API</b> en haut du fichier index.html.</div>';
       return;
     }
+    const same = (a, b) => JSON.stringify({...a, maj:0}) === JSON.stringify({...b, maj:0});
+    const use = (fresh, save) => {
+      if (!fresh || !fresh.produits) return;
+      if (save) store.set('data:' + API, JSON.stringify(fresh));
+      if (D && same(D, fresh)) return;
+      const first = !D; D = fresh;
+      if (first || !touched) render();
+    };
     const cached = store.get('data:' + API);
-    if (cached){ try { D = JSON.parse(cached); render(); } catch(e){} }
-    try {
-      const res = await fetch(API + (API.includes('?') ? '&' : '?') + 't=' + Date.now());
-      const txt = await res.text();
-      const fresh = JSON.parse(txt);
-      store.set('data:' + API, txt);
-      const changed = !D || JSON.stringify({...D, maj:0}) !== JSON.stringify({...fresh, maj:0});
-      D = fresh;
-      if (changed && !touched) render();
-    } catch(e){
-      if (!D) app.innerHTML = '<div class="empty">Impossible de charger la boutique. Vérifiez votre connexion et actualisez la page.</div>';
-    }
+    if (cached){ try { use(JSON.parse(cached)); } catch(e){} }
+    // 1) copie rapide hébergée avec le site  2) données en direct du Google Sheets
+    let liveOk = false;
+    const snap = fetch('data.json', {cache: 'no-cache'}).then(r => r.ok ? r.json() : null).then(j => { if (!liveOk) use(j); }).catch(() => {});
+    const live = fetch(API + (API.includes('?') ? '&' : '?') + 't=' + Date.now()).then(r => r.json()).then(j => { liveOk = true; use(j, true); }).catch(() => {});
+    await Promise.race([live, snap.then(() => D ? null : live)]);
+    if (!D) await live;
+    if (!D) app.innerHTML = '<div class="empty">Impossible de charger la boutique. Vérifiez votre connexion et actualisez la page.</div>';
   }
   load().then(() => { if (D) startTracking(); });
 })();

@@ -1,0 +1,32 @@
+name: Copie rapide des produits
+# Copie les produits du Google Sheets dans boutique/data.json pour que la boutique s'affiche instantanément.
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency: copie-produits
+jobs:
+  copie:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Récupérer les produits
+        run: |
+          API=$(grep -oE 'https://script\.google\.com/macros/s/[A-Za-z0-9_-]+/exec' boutique/index.html | head -1)
+          curl -sSL --max-time 60 "$API" -o /tmp/d.json
+          python3 - <<'PY'
+          import json
+          d = json.load(open('/tmp/d.json'))
+          assert isinstance(d.get('produits'), list) and d.get('pays'), 'réponse invalide'
+          d.pop('maj', None)
+          json.dump(d, open('boutique/data.json', 'w'), ensure_ascii=False, separators=(',', ':'), sort_keys=True)
+          PY
+      - name: Enregistrer si quelque chose a changé
+        run: |
+          git config user.name "abromarket-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add boutique/data.json
+          git diff --cached --quiet || (git commit -m "Mise à jour de la copie des produits" && git push)

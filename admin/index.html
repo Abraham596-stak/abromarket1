@@ -13,7 +13,10 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="preconnect" href="https://script.google.com">
+<link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
+<link rel="preload" href="kaching.mp3" as="audio">
 <script>
 const API = "https://script.google.com/macros/s/AKfycbwgdtcXlXB9niD3hactnz4SLIrpY_q74iQQZwkr1vrUBjczfCCVWwamG69uqnUQZsba/exec";
 const SITE = "https://abraham596-stak.github.io/abromarket1/boutique/";
@@ -176,6 +179,12 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
 .toast .e{font-size:30px}
 .toast b{display:block;font:800 18px "Bricolage Grotesque",sans-serif}
 .loading{color:var(--onDeepSoft);text-align:center;padding:40px}
+.sync{position:fixed;top:calc(8px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);background:rgba(255,255,255,.14);color:#fff;font-size:12px;font-weight:600;padding:4px 10px;border-radius:999px;z-index:20}
+.pushban{display:flex;gap:12px;align-items:center;width:100%;text-align:left;margin-top:14px;background:var(--sun);color:var(--deep);border-radius:16px;padding:12px 14px;font-weight:600}
+.pushban b{display:block;font-size:15px}
+.pushban span{font-size:13px;font-weight:500}
+.copy{display:block;width:100%;margin:0 0 12px;padding:13px;border-radius:14px;background:var(--surface);font-weight:700;text-align:center}
+.ab .row button{flex:1;padding:11px;border-radius:12px;text-align:center;font-weight:700;font-size:15px;background:var(--surface)}
 .refresh{font-size:13px;color:var(--onDeepSoft);text-align:right;margin-top:6px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 @media (min-width:700px){.app{max-width:560px;margin:0 auto}}
@@ -203,12 +212,24 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
   let sound = S.get('adm_sound') !== '0', lastNum = S.get('adm_last') || '', pubData = null, timer = null, busy = false;
 
   /* ---------- Son de nouvelle commande ---------- */
-  let ctx = null;
-  function unlock(){ try { ctx = ctx || new (window.AudioContext || window.webkitAudioContext)(); if (ctx.state === 'suspended') ctx.resume(); } catch(e){} }
+  let ctx = null, buf = null, unlocked = false;
+  function unlock(){
+    try {
+      ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
+      if (ctx.state === 'suspended') ctx.resume();
+      if (!buf && !unlocked){ unlocked = true; fetch('kaching.mp3').then(r => r.arrayBuffer()).then(a => ctx.decodeAudioData(a)).then(b => buf = b).catch(() => {}); }
+    } catch(e){}
+  }
   document.addEventListener('pointerdown', unlock, {passive:true});
   function chime(){
     if (!sound) return;
     unlock(); if (!ctx) return;
+    try { navigator.vibrate && navigator.vibrate(70); } catch(e){}
+    if (buf){
+      const src = ctx.createBufferSource(), g = ctx.createGain(); g.gain.value = 1;
+      src.buffer = buf; src.connect(g).connect(ctx.destination); src.start(ctx.currentTime + .14);
+      return;
+    }
     const t0 = ctx.currentTime + .02;
     [[1318.5,0],[1760,.11],[2637,.22]].forEach(([f, dt], i) => {
       const o = ctx.createOscillator(), g = ctx.createGain();
@@ -220,7 +241,6 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
   }
   async function notifyNew(o){
     chime();
-    try { navigator.vibrate && navigator.vibrate([120, 60, 120]); } catch(e){}
     const t = document.createElement('div'); t.className = 'toast'; t.setAttribute('role','status');
     t.innerHTML = `<div class="e">🛒</div><div><b>Nouvelle commande n°${esc(o.numero)}</b>${esc(fmt(o.total, o.devise))} · ${esc(o.pays)}</div>`;
     t.onclick = () => { t.remove(); go('orders'); };
@@ -228,8 +248,10 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
     try {
       if ('Notification' in window && Notification.permission === 'granted'){
         const reg = await navigator.serviceWorker?.getRegistration();
-        const opts = { body: `${o.produit} – ${fmt(o.total, o.devise)} (${o.pays})`, icon: 'icon-192.png', badge: 'icon-192.png', tag: 'cmd-' + o.numero, vibrate: [120,60,120] };
-        if (reg) reg.showNotification('🛒 Nouvelle commande n°' + o.numero, opts); else new Notification('🛒 Nouvelle commande n°' + o.numero, opts);
+        if (document.visibilityState !== 'visible'){
+          const opts = { body: `${fmt(o.total, o.devise)} · ${o.produit} · ${o.pays}`, icon: 'icon-192.png', badge: 'icon-192.png', tag: 'cmd-' + o.numero, vibrate: [70, 80, 200] };
+          if (reg) reg.showNotification('🛒 Nouvelle commande n°' + o.numero, opts); else new Notification('🛒 Nouvelle commande n°' + o.numero, opts);
+        }
       }
     } catch(e){}
   }
@@ -245,7 +267,11 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
     if (busy) return; busy = true;
     try {
       const j = await call({type:'dash', periode});
+      const pareil = D && JSON.stringify(D) === JSON.stringify(j);
       D = j;
+      try { S.set('adm_dash_' + periode, JSON.stringify(j)); } catch(e){}
+      setBusy(false);
+      initPush();
       if (j.dernier){
         if (lastNum && j.dernier.numero !== lastNum) notifyNew(j.dernier);
         lastNum = j.dernier.numero; S.set('adm_last', lastNum);
@@ -254,11 +280,20 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
       const dn = document.getElementById('dotNew'); dn.textContent = nouv > 99 ? '99+' : nouv; dn.classList.toggle('hidden', !nouv);
       const ar = j.abandons.filter(a => !a.suivi || a.suivi === 'À relancer').length;
       const da = document.getElementById('dotAb'); da.textContent = ar > 99 ? '99+' : ar; da.classList.toggle('hidden', !ar);
-      if (!document.querySelector('.overlay')) render();
+      if (!pareil && !document.querySelector('.overlay') && !(view === 'orders' && document.activeElement && document.activeElement.id === 'q')) render();
+      openFromLink();
     } catch(e){
       if (/mot de passe/i.test(e.message)){ logout('Mot de passe incorrect.'); }
       else if (!silent && !D){ app.innerHTML = `<div class="login"><h1>Connexion impossible</h1><p>Vérifie ta connexion internet, puis réessaie.</p><button class="btn" id="retry">Réessayer</button></div>`; document.getElementById('retry').onclick = () => refresh(); }
-    } finally { busy = false; }
+    } finally { busy = false; setBusy(false); }
+  }
+  function setBusy(on){ const el = document.getElementById('sync'); if (el) el.classList.toggle('hidden', !on); }
+  function fromCache(p){ try { const c = S.get('adm_dash_' + p); return c ? JSON.parse(c) : null; } catch(e){ return null; } }
+  let opened = false;
+  function openFromLink(){
+    if (opened || !D) return; opened = true;
+    const n = new URLSearchParams(location.search).get('cmd');
+    if (n && D.commandes.some(o => o.numero === n)){ history.replaceState(null, '', location.pathname); view = 'orders'; [...nav.children].forEach(b => b.classList.toggle('on', b.dataset.v === 'orders')); render(); detail(n); }
   }
   function schedule(){
     clearTimeout(timer);
@@ -280,7 +315,7 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
       e.preventDefault(); unlock();
       key = document.getElementById('pw').value.trim();
       const b = e.target.querySelector('.btn'); b.textContent = 'Connexion…';
-      try { const j = await call({type:'dash', periode}); S.set('adm_key', key); D = j; lastNum = j.dernier ? j.dernier.numero : ''; S.set('adm_last', lastNum); start(); }
+      try { const j = await call({type:'dash', periode}); S.set('adm_key', key); D = j; try { S.set('adm_dash_' + periode, JSON.stringify(j)); } catch(x){} initPush(); lastNum = j.dernier ? j.dernier.numero : ''; S.set('adm_last', lastNum); start(); }
       catch(err){ b.textContent = 'Ouvrir mon tableau de bord'; document.getElementById('lerr').textContent = /mot de passe/i.test(err.message) ? 'Mot de passe incorrect.' : 'Connexion impossible. Vérifie ta connexion internet.'; }
     };
   }
@@ -312,6 +347,8 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
           <div class="store"><i aria-hidden="true">🛍️</i>${esc(D.boutique || 'Ma boutique')}</div>
           <button class="iconbtn ${sound ? '' : 'off'}" id="snd" aria-label="${sound ? 'Couper le son' : 'Activer le son'}">${sound ? '🔔' : '🔕'}</button>
         </div>
+        <div class="sync hidden" id="sync">Mise à jour…</div>
+        ${pushBanner()}
         <div class="kpis" role="tablist">
           <div class="kpi"><small>En direct</small><b><span class="pulse"></span>${D.live}</b></div>
           <button class="kpi ${metric==='ventes'?'on':''}" data-m="ventes"><small>Ventes totales</small><b>${esc(fmt(ca, dev))}</b>${pct(ca, caP)}</button>
@@ -345,7 +382,7 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
       </div>`;
     drawChart();
     app.querySelectorAll('[data-m]').forEach(b => b.onclick = () => { metric = b.dataset.m; home(); });
-    app.querySelectorAll('[data-p]').forEach(b => b.onclick = async () => { periode = b.dataset.p; app.querySelectorAll('[data-p]').forEach(x => x.classList.toggle('on', x === b)); await refresh(); });
+    app.querySelectorAll('[data-p]').forEach(b => b.onclick = async () => { periode = b.dataset.p; const c = fromCache(periode); if (c){ D = c; home(); } else app.querySelectorAll('[data-p]').forEach(x => x.classList.toggle('on', x === b)); setBusy(true); await refresh(); });
     app.querySelectorAll('[data-go]').forEach(b => b.onclick = () => go(b.dataset.go));
     bindOrders();
     document.getElementById('snd').onclick = () => { sound = !sound; S.set('adm_sound', sound ? '1' : '0'); if (sound) chime(); home(); };
@@ -427,11 +464,13 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
         <div class="row total"><span>À encaisser</span><span>${esc(fmt(o.total, o.devise))}</span></div>
       </div>
       <div class="actions"><a class="a-call" href="tel:+${tel}">📞 Appeler</a><a class="a-wa" href="https://wa.me/${tel}" target="_blank" rel="noopener">WhatsApp</a></div>
+      <button class="copy" data-copytel="+${tel}">📋 Copier le numéro (+${tel})</button>
       <label class="lbl" for="st">Statut de la commande</label>
       <select class="st" id="st">${D.statuts.map(s => `<option ${s === o.statut ? 'selected' : ''}>${esc(s)}</option>`).join('')}</select>
       <button class="btn blue" id="save" style="margin-top:12px">Enregistrer le statut</button>
       <button class="btn ghost" id="close" style="margin-top:10px">Fermer</button></div>`;
     document.body.appendChild(ov);
+    bindCopy(ov);
     const close = () => { ov.remove(); render(); };
     ov.onclick = e => { if (e.target === ov) close(); };
     ov.querySelector('#close').onclick = close;
@@ -442,6 +481,41 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
     };
   }
 
+  function bindCopy(root){
+    root.querySelectorAll('[data-copytel]').forEach(b => b.onclick = async () => {
+      const t = b.dataset.copytel, label = b.textContent;
+      try { await navigator.clipboard.writeText(t); }
+      catch(e){ const i = document.createElement('input'); i.value = t; document.body.appendChild(i); i.select(); try { document.execCommand('copy'); } catch(x){} i.remove(); }
+      b.textContent = '✓ Numéro copié'; setTimeout(() => b.textContent = label, 1500);
+    });
+  }
+
+  /* ---------- Notifications même application fermée (OneSignal) ---------- */
+  let pushReady = false, pushOn = false;
+  function initPush(){
+    if (pushReady || !D || !D.onesignal) return; pushReady = true;
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+    const s = document.createElement('script'); s.src = 'https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js'; s.defer = true; document.head.appendChild(s);
+    OneSignalDeferred.push(async OneSignal => {
+      await OneSignal.init({ appId: D.onesignal, serviceWorkerPath: 'abromarket1/admin/OneSignalSDKWorker.js',
+        serviceWorkerParam: { scope: '/abromarket1/admin/' }, notifyButton: { enable: false }, allowLocalhostAsSecureOrigin: true });
+      pushOn = OneSignal.Notifications.permission && OneSignal.User.PushSubscription.optedIn;
+      OneSignal.Notifications.addEventListener('permissionChange', () => { pushOn = OneSignal.Notifications.permission; if (view === 'home' || view === 'settings') render(); });
+      if (view === 'home' || view === 'settings') render();
+    });
+  }
+  async function askPush(){
+    unlock();
+    if (!window.OneSignal){ alert("Les notifications ne sont pas encore configurées. Ajoute l'App ID OneSignal dans ton Google Sheets (onglet Réglages)."); return; }
+    try { await OneSignal.Notifications.requestPermission(); await OneSignal.User.PushSubscription.optIn(); } catch(e){}
+    pushOn = OneSignal.Notifications.permission; render();
+  }
+  function pushBanner(){
+    if (!D || !D.onesignal || pushOn) return '';
+    return `<button class="pushban" id="pushban"><div style="font-size:26px">🔔</div><div><b>Active les notifications</b><span>Pour recevoir chaque commande même téléphone verrouillé.</span></div></button>`;
+  }
+  document.addEventListener('click', e => { if (e.target.closest('#pushban') || e.target.closest('#notifOS')) askPush(); });
+
   /* ---------- Abandons ---------- */
   function abandons(){
     app.innerHTML = `<div class="page"><h1>Abandons</h1>
@@ -449,8 +523,9 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
       ${D.abandons.length ? D.abandons.map(a => `<div class="ab">
         <div class="l1"><b>${esc(a.nom || 'Sans nom')}</b><span class="tag">${esc(dayName(a.date))} ${esc(a.heure)}</span></div>
         <p>${esc(a.produit)} · ${esc(a.offre)} · ${esc(a.prix)} · ${esc(a.pays)}${a.suivi ? ' · ' + esc(a.suivi) : ''}</p>
-        <div class="row"><a class="a-call" href="tel:+${esc(String(a.tel).replace(/\D/g,''))}">📞 Appeler</a>${a.lien ? `<a class="a-wa" href="${esc(a.lien)}" target="_blank" rel="noopener">📲 Relancer</a>` : ''}</div></div>`).join('')
+        <div class="row"><a class="a-call" href="tel:+${esc(String(a.tel).replace(/\D/g,''))}">📞 Appeler</a><button data-copytel="+${esc(String(a.tel).replace(/\D/g,''))}">📋 Copier</button>${a.lien ? `<a class="a-wa" href="${esc(a.lien)}" target="_blank" rel="noopener">📲 Relancer</a>` : ''}</div></div>`).join('')
         : `<div class="empty">Aucun formulaire abandonné. Bonne nouvelle !</div>`}</div>`;
+    bindCopy(app);
   }
 
   /* ---------- Produits ---------- */
@@ -479,20 +554,26 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
     app.innerHTML = `<div class="page"><h1>Réglages</h1>
       <div class="set"><div><b>Son des nouvelles commandes</b><p>Un « ding » à chaque commande, quand l'application est ouverte.</p></div><button class="switch ${sound?'on':''}" id="sw" role="switch" aria-checked="${sound}" aria-label="Son des nouvelles commandes"></button></div>
       <div class="set"><div><b>Tester le son</b><p>Vérifie que le volume de ton téléphone est assez fort.</p></div><button class="chip" style="background:var(--surface);color:var(--ink);border-color:var(--line)" id="test">Écouter</button></div>
-      <div class="set"><div><b>Notifications</b><p>${perm === 'granted' ? 'Activées.' : perm === 'denied' ? 'Bloquées : autorise-les dans les réglages du navigateur.' : perm === 'unsupported' ? 'Installe d’abord l’application sur ton écran d’accueil.' : 'Affiche une alerte même si tu es sur une autre application.'}</p></div>${perm === 'default' ? '<button class="chip" style="background:var(--main);border-color:var(--main)" id="notif">Activer</button>' : ''}</div>
+      <div class="set"><div><b>Notifications (même application fermée)</b><p>${!D.onesignal ? 'À configurer : ajoute l’App ID OneSignal dans ton Google Sheets.' : pushOn ? 'Activées sur ce téléphone ✓' : perm === 'denied' ? 'Bloquées : autorise les notifications pour ce site dans les réglages de Chrome.' : 'Reçois chaque commande même téléphone verrouillé.'}</p></div>${D.onesignal && !pushOn && perm !== 'denied' ? '<button class="chip" style="background:var(--main);border-color:var(--main)" id="notifOS">Activer</button>' : ''}</div>
+      <div class="set"><div><b>Son « caisse » pour les notifications</b><p>Télécharge-le, puis choisis-le comme son de notification de l’application dans les réglages Android.</p></div><a class="chip" style="background:var(--surface);color:var(--ink);border-color:var(--line)" href="kaching.mp3" download="ABROMARKET-commande.mp3">Télécharger</a></div>
       <div class="set"><div><b>Google Sheets</b><p>Produits, prix, pays, agences et commandes.</p></div><a class="chip" style="background:var(--surface);color:var(--ink);border-color:var(--line)" href="${esc(D.sheetUrl)}" target="_blank" rel="noopener">Ouvrir</a></div>
       <div class="set"><div><b>Ma boutique</b><p>La page que voient tes clients.</p></div><a class="chip" style="background:var(--surface);color:var(--ink);border-color:var(--line)" href="${SITE}" target="_blank" rel="noopener">Ouvrir</a></div>
-      <div class="help"><b>Installer l'application sur ton téléphone</b><br>Android (Chrome) : menu ⋮ → « Ajouter à l'écran d'accueil » ou « Installer l'application ».<br>iPhone (Safari) : bouton Partager → « Sur l'écran d'accueil ».<br><br><b>Bon à savoir</b> : le son et les alertes marchent quand l'application est ouverte ou en arrière-plan récent. Quand elle est fermée, tu reçois quand même chaque commande par email.</div>
+      <div class="help"><b>Installer l'application sur ton téléphone</b><br>Android (Chrome) : menu ⋮ → « Ajouter à l'écran d'accueil » ou « Installer l'application ».<br>iPhone (Safari) : bouton Partager → « Sur l'écran d'accueil » (obligatoire sur iPhone pour les notifications).</div>
       <button class="btn ghost" id="out" style="margin-top:18px">Se déconnecter</button></div>`;
     document.getElementById('sw').onclick = () => { sound = !sound; S.set('adm_sound', sound ? '1' : '0'); if (sound) chime(); settings(); };
     document.getElementById('test').onclick = () => { const s = sound; sound = true; chime(); sound = s; };
-    const nb = document.getElementById('notif'); if (nb) nb.onclick = async () => { try { await Notification.requestPermission(); } catch(e){} settings(); };
     document.getElementById('out').onclick = () => logout();
   }
 
   /* ---------- Démarrage ---------- */
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
-  if (key){ app.innerHTML = '<div class="loading">Chargement…</div>'; nav.classList.remove('hidden'); refresh().then(() => { if (key) schedule(); }); }
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('OneSignalSDKWorker.js', {scope: './'}).catch(() => {});
+  if (key){
+    nav.classList.remove('hidden');
+    D = fromCache(periode);
+    if (D) render(); else app.innerHTML = '<div class="loading">Chargement…</div>';
+    setBusy(true);
+    refresh().then(() => { if (key) schedule(); });
+  }
   else login();
   addEventListener('resize', () => { if (view === 'home' && D) drawChart(); });
 })();
