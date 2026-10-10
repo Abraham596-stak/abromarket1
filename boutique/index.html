@@ -155,6 +155,8 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
 .sticky.hide{transform:translateY(110%)}
 .sticky .sp{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:20px;white-space:nowrap}
 .sticky .cta{flex:1;padding:14px;font-size:17px}
+.attn{animation:attn 10s ease-in-out infinite;transform-origin:center}
+@keyframes attn{0%,88%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(23,54,166,0)}91%{transform:scale(1.045);box-shadow:0 0 0 8px rgba(23,54,166,.18)}94%{transform:scale(.99)}97%{transform:scale(1.02);box-shadow:0 0 0 0 rgba(23,54,166,0)}}
 .overlay{position:fixed;inset:0;background:rgba(20,26,46,.6);display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
 .overlay.show{display:flex}
 .modal{background:#fff;border-radius:18px;padding:24px 20px;max-width:400px;width:100%;text-align:center}
@@ -315,8 +317,8 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
         return `<a class="card" href="?p=${encodeURIComponent(x.id)}">
           <img src="${esc(img(x.photos[0] || ''))}" alt="${esc(x.nom)}" loading="lazy">
           <div class="ci">${off?`<span class="badge">−${off} %</span>`:''}<div class="cn">${esc(x.nom)}</div>
-          ${o.ancien > o.prix ? `<div class="co">${money(o.ancien, pays.devise)}</div>` : ''}
-          <div class="cp">${money(o.prix, pays.devise)}</div></div></a>`;
+          ${o.ancien > o.prix ? `<div class="co">${money(o.ancien, x.prix[country].devise || pays.devise)}</div>` : ''}
+          <div class="cp">${money(o.prix, x.prix[country].devise || pays.devise)}</div></div></a>`;
       }).join('')}</div>` : (autres.length ? `<div class="grid">${autres.map(x => { const c = Object.keys(x.prix)[0], pp = D.pays.find(p => p.code === c) || {}, o = x.prix[c].offres[0];
           return `<a class="card" href="?p=${encodeURIComponent(x.id)}"><img src="${esc(img(x.photos[0] || ''))}" alt="${esc(x.nom)}" loading="lazy"><div class="ci"><div class="cn">${esc(x.nom)}</div><div class="cp">${money(o.prix, pp.devise)}</div></div></a>`; }).join('')}</div>` : `<div class="empty">Aucun produit disponible pour le moment.</div>`)}
       ${trust()}
@@ -334,16 +336,21 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
     document.title = P.nom + ' | ' + (R('Nom de la boutique') || 'Boutique');
     const photos = P.photos.length ? P.photos : [''];
     const o1 = px ? px.offres[0] : null;
-    const dev = pays ? pays.devise : '';
+    const dev = (px && px.devise) || (pays ? pays.devise : '');
 
     let priceBlock = '', form = '';
     if (px){
       const off = o1.ancien > o1.prix ? Math.round((1 - o1.prix/o1.ancien)*100) : 0;
       priceBlock = `<div class="pricetag"><div><div class="now">${money(o1.prix, dev)}</div>${off?`<div class="old">${money(o1.ancien, dev)}</div>`:''}</div>${off?`<div class="off">−${off} %</div>`:''}</div>
-        ${P.stock ? `<p class="stock">Plus que ${esc(P.stock)} pièces en stock</p>` : ''}`;
+        ${P.stock ? `<p class="stock">⚠️ Stock très limité</p>` : ''}`;
       const promo = Number(px.promoJour) || 0;
       form = `<section id="commande"><h2>Passer ma commande</h2><p class="sub">Remplissez ce formulaire, ça prend moins d'une minute.</p>
         <form id="form" novalidate>
+          <div class="field" id="fNom"><label for="nom">Votre nom</label><input type="text" id="nom" autocomplete="name" placeholder="Nom et prénom">
+            <div class="error">Indiquez votre nom.</div></div>
+          <div class="field" id="fTel"><label for="tel">Votre numéro de téléphone (WhatsApp de préférence)</label>
+            <div class="phone"><span>+${esc(pays.indicatif)}</span><input type="tel" id="tel" inputmode="tel" autocomplete="tel" placeholder="Votre numéro"></div>
+            <div class="error">Entrez un numéro valide pour qu'on puisse vous appeler.</div></div>
           <div class="field"><label for="cSel">Votre pays</label>
             <select class="in" id="cSel" autocomplete="country-name">${avail.map(p => `<option value="${esc(p.code)}" ${p.code===country?'selected':''}>${esc(p.nom)}</option>`).join('')}</select></div>
           <div class="field" id="fVille"><label for="ville">Votre ville</label>
@@ -360,11 +367,6 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
                 <label for="o${i}"><span>${esc(o.label)}${save && o.qte > 1 ? `<small>Vous économisez ${money(save, dev)}</small>` : ''}</span>
                 <span class="p"><b>${money(o.prix, dev)}</b>${o.ancien > o.prix ? `<s>${money(o.ancien, dev)}</s>` : ''}</span></label></div>`;
             }).join('')}</div></div>
-          <div class="field" id="fNom"><label for="nom">Votre nom</label><input type="text" id="nom" autocomplete="name" placeholder="Nom et prénom">
-            <div class="error">Indiquez votre nom.</div></div>
-          <div class="field" id="fTel"><label for="tel">Votre numéro de téléphone (WhatsApp de préférence)</label>
-            <div class="phone"><span>+${esc(pays.indicatif)}</span><input type="tel" id="tel" inputmode="tel" autocomplete="tel" placeholder="Votre numéro"></div>
-            <div class="error">Entrez un numéro valide pour qu'on puisse vous appeler.</div></div>
           <div class="field"><span class="legend">Quand voulez-vous être livré ?</span><div class="choices">
             <div class="choice"><input type="radio" name="jour" id="j0" value="today" checked><label for="j0"><span>Aujourd'hui${promo?`<small>Promo : −${money(promo, dev)}</small>`:''}</span></label></div>
             <div class="choice"><input type="radio" name="jour" id="j1" value="tomorrow"><label for="j1"><span>Demain</span></label></div></div></div>
@@ -377,7 +379,7 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
             <div class="row"><span>Livraison</span><span id="tDay"></span></div>
             <div class="row" id="tPromoRow"><span>Promo livraison du jour</span><span id="tPromo"></span></div>
             <div class="row total"><span>À payer à la livraison</span><span id="tTotal"></span></div></div>
-          <button type="submit" class="cta" id="sendBtn">Je commande maintenant</button>
+          <button type="submit" class="cta attn" id="sendBtn">Je commande maintenant</button>
           <p class="reassure">Aucun paiement en ligne. Vous payez au livreur.</p>
           <div class="senderr" id="sendErr"></div>
         </form></section>`;
@@ -402,7 +404,7 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
       ${P.faq.length ? `<section><h2>Questions fréquentes</h2>${P.faq.map(f=>`<details><summary>${esc(f.q)}</summary><p>${esc(f.r)}</p></details>`).join('')}</section>` : ''}
       ${trust()}
       <footer><a href="./">← Voir tous nos produits</a><br>© ${new Date().getFullYear()} ${esc(R('Nom de la boutique'))}</footer></div>
-      ${px ? `<div class="sticky" id="sticky"><div class="sp">${money(o1.prix, dev)}</div><a href="#commande" class="cta">Je commande</a></div>` : ''}`;
+      ${px ? `<div class="sticky" id="sticky"><div class="sp">${money(o1.prix, dev)}</div><a href="#commande" class="cta attn">Je commande</a></div>` : ''}`;
 
     bindCountry();
     slider($('slides'), $('dots'), false);
