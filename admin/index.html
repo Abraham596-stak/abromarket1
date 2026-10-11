@@ -211,7 +211,8 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
 .pm b{font:800 16px "Bricolage Grotesque",sans-serif;white-space:nowrap}
 .vd{display:inline-block;padding:4px 10px;border-radius:999px;font-size:13px;font-weight:700;white-space:nowrap}
 .v-ok{background:var(--okbg);color:#0B6B35}.v-bad{background:var(--errbg);color:#9B1C1C}.v-mid{background:#FFE6D1;color:#8A3D00}.v-wait{background:#ECEDF2;color:#4A5068}
-.st-on{color:#0B6B35;font-weight:700;font-size:13px}.st-off{color:var(--soft);font-weight:700;font-size:13px}
+.st-on{color:#0B6B35;font-weight:700;font-size:13px}.st-wait{color:#B45309;font-weight:700;font-size:13px}
+.btn.red{background:var(--errbg);color:#9B1C1C}.st-off{color:var(--soft);font-weight:700;font-size:13px}
 .mgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
 .mgrid .tile{padding:12px}
 .mgrid .tile b{font-size:20px}
@@ -650,7 +651,7 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
     </div>`;
   }
   const promoCard = (p, i, autre) => `<button class="promo" data-tt="${i}" data-autre="${autre ? 1 : ''}">
-      <div class="h"><div><b>${esc(p.nom)}</b><div class="meta">${autre ? 'Commandes TikTok sans lien de promo' : `${p.statut === 'Active' ? '<span class="st-on">● Active</span>' : '<span class="st-off">● Terminée</span>'} · ${esc(p.produit || 'Boutique')}${nomsPays(p)} · n°${esc(p.code)}`}${p.live ? ` · <b style="color:#0B6B35">${p.live} en direct</b>` : ''}</div></div>${autre ? '' : verdict(p)}</div>
+      <div class="h"><div><b>${esc(p.nom)}</b><div class="meta">${autre ? 'Commandes TikTok sans lien de promo' : `${p.statut === 'Active' ? '<span class="st-on">● Active</span>' : p.statut === 'En attente' ? '<span class="st-wait">● En attente d’approbation</span>' : '<span class="st-off">● Terminée</span>'} · ${esc(p.produit || 'Boutique')}${nomsPays(p)} · n°${esc(p.code)}`}${p.live ? ` · <b style="color:#0B6B35">${p.live} en direct</b>` : ''}</div></div>${autre ? '' : verdict(p)}</div>
       <div class="pm">
         <div><small>Dépensé</small><b>${autre ? '–' : K(p.depense)}</b></div>
         <div><small>Commandes</small><b>${p.commandes}</b></div>
@@ -660,13 +661,14 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
   function drawTT(){
     if (view !== 'tiktok') return;
     if (!TT){ app.innerHTML = ttTop() + `<div class="sheet"><div class="empty">Chargement des promotions…</div></div>`; bindTT(); return; }
-    const actives = TT.promos.filter(p => p.statut === 'Active'), finies = TT.promos.filter(p => p.statut !== 'Active');
+    const actives = TT.promos.filter(p => p.statut === 'Active'), attente = TT.promos.filter(p => p.statut === 'En attente'), finies = TT.promos.filter(p => p.statut !== 'Active' && p.statut !== 'En attente');
     app.innerHTML = ttTop() + `<div class="sheet">
       ${!TT.promos.length ? `<div class="block"><h3>Comment ça marche</h3><ol class="steps">
         <li>Appuie sur <b>+ Nouvelle promotion</b> et choisis le produit.</li>
         <li>Copie le lien qu'on te donne.</li>
         <li>Dans TikTok : <b>Promouvoir</b> → objectif <b>Plus de visites sur le site web</b> → colle ce lien.</li>
         <li>Chaque visite et chaque commande venant de cette promotion est comptée ici. Mets à jour le montant dépensé pour voir le coût par commande.</li></ol></div>` : ''}
+      ${attente.length ? `<div class="block"><h3>En attente d’approbation TikTok</h3><p class="tag" style="margin:-4px 0 10px">Elle passe toute seule en « Active » dès la première visite venue de TikTok.</p>${attente.map(p => promoCard(p, TT.promos.indexOf(p))).join('')}</div>` : ''}
       ${actives.length ? `<div class="block"><h3>Promotions actives</h3>${actives.map(p => promoCard(p, TT.promos.indexOf(p))).join('')}</div>` : ''}
       ${TT.autres.length ? `<div class="block"><h3>Autres commandes venues de TikTok</h3>${TT.autres.map((p, i) => promoCard(p, i, true)).join('')}</div>` : ''}
       ${finies.length ? `<div class="block"><h3>Promotions terminées</h3>${finies.map(p => promoCard(p, TT.promos.indexOf(p))).join('')}</div>` : ''}
@@ -751,21 +753,22 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
     box.onchange = majNb;
     tous.onclick = () => { const all = [...box.querySelectorAll('input')], on = coches().length; all.forEach((i, k) => i.checked = on ? false : k < 20); majNb(); };
     listePays();
+    const rid = Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
     ov.querySelector('#npGo').onclick = async e => {
       const b = e.target, nom = ov.querySelector('#npNom').value.trim();
       if (!nom){ ov.querySelector('#npNom').focus(); return; }
       b.textContent = 'Création…'; b.disabled = true;
       try {
         const r = await call({type: 'tiktok', action: 'creer', nom, produit: ov.querySelector('#npProd').value, pays: coches(),
-          depense: ov.querySelector('#npDep').value, devise: ov.querySelector('#npDev').value, site: SITE});
+          depense: ov.querySelector('#npDep').value, devise: ov.querySelector('#npDev').value, site: SITE, rid});
         ov.remove();
         sheet(`<h2>Lien prêt ✓</h2><p class="sub">Promotion n°${esc(r.code)} · ${esc(nom)}</p>
           <div class="linkbox">${esc(r.lien)}</div>
           <button class="btn tt" data-copy="${esc(r.lien)}">📋 Copier le lien</button>
-          <ol class="steps" style="margin-top:14px"><li>Ouvre TikTok → ta vidéo → <b>Promouvoir</b>.</li><li>Objectif : <b>Plus de visites sur le site web</b>.</li><li>Colle ce lien, choisis ton budget et lance.</li><li>Reviens ici : les visites et commandes s'affichent toutes seules.</li></ol>
+          <ol class="steps" style="margin-top:14px"><li>Ouvre TikTok → ta vidéo → <b>Promouvoir</b>.</li><li>Objectif : <b>Plus de visites sur le site web</b>.</li><li>Colle ce lien, choisis ton budget et lance.</li><li>Reviens ici : la promotion est « En attente » et passe en « Active » dès que TikTok l’a approuvée et envoie les premiers visiteurs.</li></ol>
           <button class="btn ghost" data-close style="margin-top:12px">Terminé</button>`);
         loadTT(true);
-      } catch(err){ b.disabled = false; b.textContent = 'Échec : réessayer'; }
+      } catch(err){ b.disabled = false; b.textContent = 'Connexion lente : réessayer (sans doublon)'; }
     };
   }
 
@@ -802,7 +805,8 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
       <div class="block" style="margin-top:6px"><h3>Commandes (${p.liste.length})</h3>
         ${p.liste.length ? p.liste.map(o => `<button class="order" data-onum="${esc(o.numero)}"><div class="l1"><b>#${esc(o.numero)}</b><span>${esc(fmt(o.total, o.devise))}</span></div><div class="l2">${esc(o.nom || 'Sans nom')} · ${esc(dayName(o.date))} ${esc(o.heure)}</div><div class="l3">${badge(o.statut)}<span class="tag">${esc(o.pays)}</span></div></button>`).join('') : '<div class="empty">Aucune commande sur cette période.</div>'}
       </div>
-      ${autre ? '' : `<button class="btn ghost" id="pdStat">${p.statut === 'Active' ? 'Marquer comme terminée' : 'Réactiver la promotion'}</button>`}
+      ${autre ? '' : `<button class="btn ghost" id="pdStat">${p.statut === 'Active' ? 'Marquer comme terminée' : p.statut === 'En attente' ? 'TikTok a approuvé : passer en active' : 'Réactiver la promotion'}</button>
+        <button class="btn red" id="pdDel" style="margin-top:10px">🗑 Supprimer cette promotion</button>`}
       <button class="btn ghost" data-close style="margin-top:10px">Fermer</button>`);
     ov.querySelectorAll('[data-onum]').forEach(b => b.onclick = () => { if (D && D.commandes.some(o => o.numero === b.dataset.onum)){ ov.remove(); detail(b.dataset.onum); } });
     const sv = ov.querySelector('#pdSave');
@@ -816,6 +820,13 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
       st.textContent = '…';
       try { await call({type: 'tiktok', action: 'statut', code: p.code, statut: p.statut === 'Active' ? 'Terminée' : 'Active'}); await loadTT(true); ov.remove(); drawTT(); }
       catch(e){ st.textContent = 'Échec : réessayer'; }
+    };
+    const del = ov.querySelector('#pdDel');
+    if (del) del.onclick = async () => {
+      if (!confirm(`Supprimer « ${p.nom} » (n°${p.code}) ?` + (p.commandes ? `\n${p.commandes} commande(s) y sont liées : elles resteront dans tes commandes.` : ''))) return;
+      del.textContent = 'Suppression…';
+      try { await call({type: 'tiktok', action: 'supprimer', code: p.code}); await loadTT(true); ov.remove(); drawTT(); }
+      catch(e){ del.textContent = 'Échec : réessayer'; }
     };
   }
 
