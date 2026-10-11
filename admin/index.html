@@ -318,6 +318,13 @@ html.ordi .dvgrid{grid-template-columns:repeat(4,minmax(0,1fr))}
 .brandlogo{width:40px;height:40px;border-radius:11px;box-shadow:0 4px 12px rgba(0,0,0,.25);display:block}
 .login .logo{background:none;width:88px;height:88px;border-radius:24px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.35)}
 .login .logo img{width:100%;height:100%;display:block}
+/* Passer d'une commande à l'autre */
+.dnav{display:flex;align-items:center;justify-content:space-between;margin:-4px 0 6px;color:var(--soft);font-weight:600;font-size:14px}
+.dnavb{width:44px;height:36px;border-radius:12px;background:var(--surface);font-size:24px;line-height:1;color:var(--ink)}
+.dnavb:disabled{opacity:.3}
+.detail{transition:transform .15s ease-out;touch-action:pan-y}
+.detail.glisse-g{animation:glg .22s ease-out}.detail.glisse-d{animation:gld .22s ease-out}
+@keyframes glg{from{transform:translateX(60px);opacity:.3}}@keyframes gld{from{transform:translateX(-60px);opacity:.3}}
 /* Confirmation */
 .cfov{position:fixed;inset:0;z-index:90;background:rgba(18,48,143,.55);display:flex;align-items:center;justify-content:center;padding:20px;animation:fd .15s ease-out}
 @keyframes fd{from{opacity:0}}
@@ -1005,7 +1012,20 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
       <div class="l1"><b>#${esc(o.numero)}</b><span>${esc(fmt(o.total, o.devise))}</span></div>
       <div class="l2">${esc(o.nom || 'Sans nom')} · ${esc(o.qte)} article${Number(o.qte) > 1 ? 's' : ''} · ${esc(o.heure)}</div>
       <div class="l3">${badge(o.statut)}<span class="tag">${esc(o.pays)}${o.pub ? ' · ' + esc(o.pub) : ''}</span></div></button>`;
-  function bindOrders(){ app.querySelectorAll('[data-num]').forEach(b => b.onclick = () => detail(b.dataset.num)); }
+  // Ordre des commandes affichées : sert à passer de l'une à l'autre en glissant (comme Shopify)
+  let listeDetail = [];
+  function bindOrders(){
+    const bs = [...app.querySelectorAll('[data-num]')];
+    listeDetail = bs.map(b => b.dataset.num);
+    bs.forEach(b => b.onclick = () => detail(b.dataset.num));
+  }
+  // Numéro au format international avec espaces (+225 07 09 58 09 24) : WhatsApp le rend cliquable
+  function telJoli(t){
+    const d = String(t || '').replace(/\D/g, ''); if (!d) return '';
+    const cc = /^1/.test(d) ? 1 : /^(33|32|41|44|49|39|34)/.test(d) ? 2 : 3;
+    const reste = d.slice(cc);
+    return '+' + d.slice(0, cc) + ' ' + (reste.match(/.{1,2}/g) || []).join(' ');
+  }
   function orders(){
     const list = D.commandes.filter(o => (filtre === 'Toutes' || o.statut === filtre) &&
       (!q || (o.numero + ' ' + o.nom + ' ' + o.tel + ' ' + o.produit + ' ' + o.pays).toLowerCase().includes(q.toLowerCase())));
@@ -1027,12 +1047,15 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
     if (diff < 7) return dt.toLocaleDateString('fr-FR', {weekday:'long'});
     return dt.toLocaleDateString('fr-FR', {day:'numeric', month:'long'});
   }
-  function detail(num){
+  function detail(num, sens, ovExistant){
     const o = D.commandes.find(x => x.numero === num); if (!o) return;
     const tel = String(o.tel).replace(/\D/g, '');
-    const ov = document.createElement('div'); ov.className = 'overlay';
-    ov.innerHTML = `<div class="detail" role="dialog" aria-modal="true" aria-label="Commande ${esc(o.numero)}">
+    if (!listeDetail.includes(num)) listeDetail = D.commandes.map(x => x.numero);
+    const i = listeDetail.indexOf(num), prec = listeDetail[i - 1], suiv = listeDetail[i + 1];
+    const ov = ovExistant || document.createElement('div'); ov.className = 'overlay';
+    ov.innerHTML = `<div class="detail ${sens ? 'glisse-' + sens : ''}" role="dialog" aria-modal="true" aria-label="Commande ${esc(o.numero)}">
       <div class="grab"></div>
+      <div class="dnav"><button class="dnavb" data-aller="${esc(prec || '')}" ${prec ? '' : 'disabled'} aria-label="Commande précédente">‹</button><span>${i + 1} / ${listeDetail.length}</span><button class="dnavb" data-aller="${esc(suiv || '')}" ${suiv ? '' : 'disabled'} aria-label="Commande suivante">›</button></div>
       <h2>Commande #${esc(o.numero)}</h2>
       <p class="sub">${esc(dayName(o.date))} à ${esc(o.heure)} · ${esc(o.pays)}${o.source ? ' · ' + esc(o.source) : ''}</p>
       ${badge(o.statut)}
@@ -1048,15 +1071,25 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
         <div class="row total"><span>À encaisser</span><span>${esc(fmt(o.total, o.devise))}</span></div>
       </div>
       <div class="actions"><a class="a-call" href="tel:+${tel}">📞 Appeler</a><a class="a-wa" href="https://wa.me/${tel}" target="_blank" rel="noopener">WhatsApp</a></div>
-      <button class="copy" data-copytel="+${tel}">📋 Copier le numéro (+${tel})</button>
+      <button class="copy" data-copytel="${esc(telJoli(tel))}">📋 Copier le numéro (${esc(telJoli(tel))})</button>
       <label class="lbl" for="st">Statut de la commande</label>
       <select class="st" id="st">${D.statuts.map(s => `<option ${s === o.statut ? 'selected' : ''}>${esc(s)}</option>`).join('')}</select>
       <button class="btn blue" id="save" style="margin-top:12px">Enregistrer le statut</button>
       <button class="btn ghost" id="close" style="margin-top:10px">Fermer</button></div>`;
-    document.body.appendChild(ov);
+    if (!ovExistant) document.body.appendChild(ov);
     bindCopy(ov);
     const close = () => { ov.remove(); render(); };
     ov.onclick = e => { if (e.target === ov) close(); };
+    // Glisser à gauche = commande suivante, à droite = précédente
+    const aller = (n, s) => { if (n) detail(n, s, ov); };
+    ov.querySelectorAll('[data-aller]').forEach(b => b.onclick = () => aller(b.dataset.aller, b.textContent === '›' ? 'g' : 'd'));
+    const boite = ov.querySelector('.detail'); let x0 = 0, y0 = 0, suivi = false;
+    boite.addEventListener('touchstart', e => { if (e.target.closest('select,input,textarea')) return; x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; suivi = true; }, {passive: true});
+    boite.addEventListener('touchmove', e => { if (!suivi) return; const dx = e.touches[0].clientX - x0, dy = e.touches[0].clientY - y0;
+      if (Math.abs(dx) > Math.abs(dy) * 1.3) boite.style.transform = `translateX(${dx * .6}px)`; }, {passive: true});
+    boite.addEventListener('touchend', e => { if (!suivi) return; suivi = false;
+      const dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0; boite.style.transform = '';
+      if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.3) aller(dx < 0 ? suiv : prec, dx < 0 ? 'g' : 'd'); }, {passive: true});
     ov.querySelector('#close').onclick = close;
     ov.querySelector('#save').onclick = async e => {
       const b = e.target, st = ov.querySelector('#st').value; b.textContent = 'Enregistrement…'; b.disabled = true;
@@ -1125,7 +1158,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
       ${D.abandons.length ? D.abandons.map(a => `<div class="ab">
         <div class="l1"><b>${esc(a.nom || 'Sans nom')}</b><span class="tag">${esc(dayName(a.date))} ${esc(a.heure)}</span></div>
         <p>${esc(a.produit)} · ${esc(a.offre)} · ${esc(a.prix)} · ${esc(a.pays)}${a.suivi ? ' · ' + esc(a.suivi) : ''}</p>
-        <div class="row"><a class="a-call" href="tel:+${esc(String(a.tel).replace(/\D/g,''))}">📞 Appeler</a><button data-copytel="+${esc(String(a.tel).replace(/\D/g,''))}">📋 Copier</button>${a.lien ? `<a class="a-wa" href="${esc(a.lien)}" target="_blank" rel="noopener">📲 Relancer</a>` : ''}</div></div>`).join('')
+        <div class="row"><a class="a-call" href="tel:+${esc(String(a.tel).replace(/\D/g,''))}">📞 Appeler</a><button data-copytel="${esc(telJoli(a.tel))}">📋 Copier</button>${a.lien ? `<a class="a-wa" href="${esc(a.lien)}" target="_blank" rel="noopener">📲 Relancer</a>` : ''}</div></div>`).join('')
         : `<div class="empty">Aucun formulaire abandonné. Bonne nouvelle !</div>`}</div>`;
     bindCopy(app);
   }
