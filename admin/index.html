@@ -1182,8 +1182,9 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
       ${finies.length ? `<div class="block"><h3>Promotions terminées</h3>${finies.map(p => promoCard(p, TT.promos.indexOf(p))).join('')}</div>` : ''}
       <div class="block"><h3>Réglages TikTok</h3>
         <div class="usdbox"><span>💱</span><div><b>1 $ = ${esc(String(TT.usd).replace('.', ','))} FCFA</b><small>${TT.usdAuto ? 'Taux du jour, mis à jour automatiquement' + (TT.usdHeure ? ' · ' + esc(TT.usdHeure) : '') : 'Taux automatique indisponible pour le moment, nouvel essai dans 1 heure'}</small></div></div>
-        <label class="lbl" for="ttCible">Coût maximum accepté par commande (FCFA)</label>
-        <input class="field" id="ttCible" type="number" inputmode="numeric" placeholder="Ex : 2500" value="${TT.cible ? esc(TT.cible) : ''}">
+        <label class="lbl" for="ttCible">Coût maximum accepté par commande</label>
+        <div class="frow"><input class="field" id="ttCible" type="number" inputmode="decimal" placeholder="Ex : 2500" value="${TT.cibleBrut || TT.cible ? esc(TT.cibleBrut || TT.cible) : ''}"><select class="field" id="ttCibleDev" aria-label="Devise">${['FCFA','USD','EUR'].map(d => `<option ${d === (TT.cibleDevise || 'FCFA') ? 'selected' : ''}>${d}</option>`).join('')}</select></div>
+        ${TT.cible && TT.cibleDevise && TT.cibleDevise !== 'FCFA' ? `<p class="tag" style="margin-top:6px">Soit environ ${esc(F(TT.cible))} au taux du jour.</p>` : ''}
         <p class="tag" style="margin-top:6px">Au-dessus de ce coût, la promotion est marquée « Trop chère ».</p>
         <button class="btn blue" id="ttSave" style="margin-top:12px">Enregistrer</button>
       </div></div>`;
@@ -1196,7 +1197,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
     const sv = document.getElementById('ttSave');
     if (sv) sv.onclick = async () => {
       sv.textContent = 'Enregistrement…';
-      try { await call({type: 'tiktok', action: 'reglages', cible: document.getElementById('ttCible').value}); sv.textContent = 'Enregistré ✓'; loadTT(true); }
+      try { await call({type: 'tiktok', action: 'reglages', cible: document.getElementById('ttCible').value, cibleDevise: document.getElementById('ttCibleDev').value}); sv.textContent = 'Enregistré ✓'; loadTT(true); }
       catch(e){ sv.textContent = 'Échec : réessayer'; }
     };
   }
