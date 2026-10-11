@@ -220,6 +220,14 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
 .linkbox{background:var(--surface);border-radius:14px;padding:12px 14px;font-size:14px;word-break:break-all;margin:8px 0}
 .steps{background:var(--surface);border-radius:14px;padding:14px 14px 14px 32px;color:var(--ink);font-size:15px}
 .steps li{margin:4px 0}
+.pays{display:flex;flex-wrap:wrap;gap:8px}
+.pays label{display:flex;align-items:center;gap:6px;padding:9px 12px;border-radius:999px;border:2px solid var(--line);font-weight:600;font-size:15px;cursor:pointer}
+.pays input{width:18px;height:18px;accent-color:#FE2C55}
+.pays label:has(input:checked){border-color:#FE2C55;background:#FFF0F3}
+.pays label.off{opacity:.45}
+.prow{display:flex;justify-content:space-between;align-items:baseline;margin:14px 0 8px}
+.prow .lbl{margin:0}
+.prow button{font-weight:600;font-size:14px;color:var(--main)}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 @media (min-width:700px){.app{max-width:560px;margin:0 auto}}
 </style>
@@ -604,6 +612,7 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
   const F = n => fmt(Math.round(Number(n) || 0), 'FCFA');
   const K = n => (n = Math.round(Number(n) || 0)) >= 1e5 ? short(n) : fmt(n);
   const ratio = (a, b) => b ? a / b : 0;
+  const nomsPays = p => { const l = p.pays || []; if (!l.length) return ''; const n = l.map(c => { const x = pubData && pubData.pays.find(q => q.code === c); return x ? x.nom : c; }); return ' · ' + esc(n.length > 3 ? n.slice(0, 3).join(', ') + ' +' + (n.length - 3) : n.join(', ')); };
   function verdict(p){
     if (!p.depense && !p.commandes) return '<span class="vd v-wait">En attente</span>';
     if (p.depense && !p.commandes) return '<span class="vd v-bad">Aucune commande</span>';
@@ -634,7 +643,7 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
     </div>`;
   }
   const promoCard = (p, i, autre) => `<button class="promo" data-tt="${i}" data-autre="${autre ? 1 : ''}">
-      <div class="h"><div><b>${esc(p.nom)}</b><div class="meta">${autre ? 'Commandes TikTok sans lien de promo' : `${p.statut === 'Active' ? '<span class="st-on">● Active</span>' : '<span class="st-off">● Terminée</span>'} · ${esc(p.produit || 'Boutique')} · n°${esc(p.code)}`}${p.live ? ` · <b style="color:#0B6B35">${p.live} en direct</b>` : ''}</div></div>${autre ? '' : verdict(p)}</div>
+      <div class="h"><div><b>${esc(p.nom)}</b><div class="meta">${autre ? 'Commandes TikTok sans lien de promo' : `${p.statut === 'Active' ? '<span class="st-on">● Active</span>' : '<span class="st-off">● Terminée</span>'} · ${esc(p.produit || 'Boutique')}${nomsPays(p)} · n°${esc(p.code)}`}${p.live ? ` · <b style="color:#0B6B35">${p.live} en direct</b>` : ''}</div></div>${autre ? '' : verdict(p)}</div>
       <div class="pm">
         <div><small>Dépensé</small><b>${autre ? '–' : K(p.depense)}</b></div>
         <div><small>Commandes</small><b>${p.commandes}</b></div>
@@ -689,7 +698,7 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
       if (!TT && view === 'tiktok') app.innerHTML = ttTop() + `<div class="sheet"><div class="empty">${/mot de passe/i.test(e.message) ? 'Mot de passe incorrect.' : /inconnu|Produit introuvable|tiktok/i.test(e.message) ? 'Mets à jour le code Apps Script (Code.gs) puis crée une nouvelle version.' : 'Connexion impossible. Réessaie.'}</div></div>`;
     } finally { ttBusy = false; }
   }
-  function tiktok(){ if (!TT) TT = ttCache(); drawTT(); loadTT(); }
+  function tiktok(){ if (!TT) TT = ttCache(); drawTT(); loadTT(); if (!pubData) fetch(API + '?t=' + Date.now()).then(r => r.json()).then(j => { pubData = j; if (view === 'tiktok' && !document.querySelector('.overlay')) drawTT(); }).catch(() => {}); }
 
   function sheet(html){
     const ov = document.createElement('div'); ov.className = 'overlay';
@@ -712,8 +721,9 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
       <input class="field" id="npNom" placeholder="Ex : Vidéo témoignage calcium" maxlength="100">
       <label class="lbl" for="npProd">Produit</label>
       <select class="field" id="npProd"><option value="">Chargement…</option></select>
-      <label class="lbl" for="npPays">Pays du client (optionnel)</label>
-      <select class="field" id="npPays"><option value="">Le client choisit</option></select>
+      <div class="prow"><span class="lbl">Pays de la promotion <span class="tag" id="npNb"></span></span><button type="button" id="npTous">Tout cocher</button></div>
+      <div class="pays" id="npPays"><span class="tag">Chargement…</span></div>
+      <p class="tag" style="margin-top:6px">Coche jusqu'à 20 pays où tu as du stock. Le client ne verra que ces pays et choisira le sien.</p>
       <label class="lbl" for="npDep">Budget déjà payé à TikTok (optionnel)</label>
       <div class="frow"><input class="field" id="npDep" type="number" inputmode="decimal" placeholder="0"><select class="field" id="npDev"><option>FCFA</option><option>USD</option><option>EUR</option></select></div>
       <button class="btn tt" id="npGo">Créer le lien</button>
@@ -721,14 +731,26 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
     try {
       if (!pubData) pubData = await (await fetch(API + '?t=' + Date.now())).json();
       ov.querySelector('#npProd').innerHTML = pubData.produits.map(p => `<option value="${esc(p.id)}">${esc(p.nom)}</option>`).join('') + '<option value="">Page d’accueil (tous les produits)</option>';
-      ov.querySelector('#npPays').innerHTML = '<option value="">Le client choisit</option>' + pubData.pays.map(p => `<option value="${esc(p.code)}">${esc(p.nom)}</option>`).join('');
     } catch(e){ ov.querySelector('#npProd').innerHTML = '<option value="">Page d’accueil (tous les produits)</option>'; }
+    const box = ov.querySelector('#npPays'), nb = ov.querySelector('#npNb'), tous = ov.querySelector('#npTous');
+    const coches = () => [...box.querySelectorAll('input:checked')].map(i => i.value);
+    const majNb = () => { const n = coches().length; nb.textContent = n ? `(${n}/20)` : ''; box.querySelectorAll('input').forEach(i => { i.disabled = !i.checked && n >= 20; i.parentNode.classList.toggle('off', i.disabled); }); tous.textContent = n && n === Math.min(20, box.querySelectorAll('input').length) ? 'Tout décocher' : 'Tout cocher'; };
+    const listePays = () => {
+      const avant = coches(), id = ov.querySelector('#npProd').value, P = pubData && pubData.produits.find(x => x.id === id);
+      const pays = ((pubData && pubData.pays) || []).filter(p => !P || (P.prix && P.prix[p.code]));
+      box.innerHTML = pays.length ? pays.map(p => `<label><input type="checkbox" value="${esc(p.code)}" ${avant.includes(p.code) ? 'checked' : ''}>${esc(p.nom)}</label>`).join('') : '<span class="tag">Aucun pays actif pour ce produit.</span>';
+      majNb();
+    };
+    box.onchange = majNb;
+    tous.onclick = () => { const all = [...box.querySelectorAll('input')], on = coches().length; all.forEach((i, k) => i.checked = on ? false : k < 20); majNb(); };
+    ov.querySelector('#npProd').onchange = listePays;
+    listePays();
     ov.querySelector('#npGo').onclick = async e => {
       const b = e.target, nom = ov.querySelector('#npNom').value.trim();
       if (!nom){ ov.querySelector('#npNom').focus(); return; }
       b.textContent = 'Création…'; b.disabled = true;
       try {
-        const r = await call({type: 'tiktok', action: 'creer', nom, produit: ov.querySelector('#npProd').value, pays: ov.querySelector('#npPays').value,
+        const r = await call({type: 'tiktok', action: 'creer', nom, produit: ov.querySelector('#npProd').value, pays: coches(),
           depense: ov.querySelector('#npDep').value, devise: ov.querySelector('#npDev').value, site: SITE});
         ov.remove();
         sheet(`<h2>Lien prêt ✓</h2><p class="sub">Promotion n°${esc(r.code)} · ${esc(nom)}</p>
@@ -746,7 +768,7 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
     const cpa = ratio(p.depense, p.commandes), cpl = ratio(p.depense, p.livrees);
     const t = (l, v, cls) => `<div class="tile ${cls || ''}"><small>${l}</small><b>${v}</b></div>`;
     const {ov} = sheet(`<h2>${esc(p.nom)}</h2>
-      <p class="sub">${autre ? 'Commandes venues de TikTok sans lien de promotion' : `n°${esc(p.code)} · ${esc(p.produit || 'Boutique')} · créée le ${esc(p.cree)} · ${esc(TTP[ttPer])}`}</p>
+      <p class="sub">${autre ? 'Commandes venues de TikTok sans lien de promotion' : `n°${esc(p.code)} · ${esc(p.produit || 'Boutique')}${nomsPays(p)} · créée le ${esc(p.cree)} · ${esc(TTP[ttPer])}`}</p>
       ${autre ? '' : verdict(p)}
       <div class="mgrid">
         ${autre ? '' : t('Dépensé', F(p.depense))}
