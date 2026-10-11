@@ -213,7 +213,7 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
   let D = null, country = null, touched = false, pixelsOn = false, checkoutSent = false;
 
   /* ---------- Origine du client (quelle pub) ---------- */
-  const ATT_KEYS = ['utm_source','utm_campaign','utm_term','utm_content','fbclid','ttclid'];
+  const ATT_KEYS = ['utm_source','utm_campaign','utm_term','utm_content','fbclid','ttclid','tt'];
   (function saveAttribution(){
     const fresh = {}; ATT_KEYS.forEach(k => { const v = params.get(k); if (v) fresh[k] = v.slice(0, 200); });
     if (Object.keys(fresh).length){ fresh.t = Date.now(); store.set('attrib', JSON.stringify(fresh)); }
@@ -658,7 +658,10 @@ Heure de la livraison : ${r.livraison}`;
     try {
       if (!sid){ sid = sessionStorage.getItem('sid') || (Date.now().toString(36) + Math.random().toString(36).slice(2, 8)); sessionStorage.setItem('sid', sid); }
     } catch(e){ if (!sid) sid = Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
-    const body = JSON.stringify({type, sid, produit: pid, pays: country || ''});
+    const ttUrl = params.get('tt') || '';
+    let ttCode = ttUrl;
+    if (!ttCode){ try { const a = JSON.parse(store.get('attrib') || '{}') || {}; if (a.tt && a.t && Date.now() - a.t < 7*864e5) ttCode = a.tt; } catch(e){} }
+    const body = JSON.stringify({type, sid, produit: pid, pays: country || '', tt: ttCode.slice(0, 20), ttNew: type === 'visite' && ttUrl ? 1 : 0});
     try {
       if (navigator.sendBeacon) navigator.sendBeacon(API, new Blob([body], {type:'text/plain'}));
       else fetch(API, {method:'POST', body, keepalive:true}).catch(()=>{});

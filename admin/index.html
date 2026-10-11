@@ -170,7 +170,7 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
 
 /* Navigation */
 .nav{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom));display:flex;gap:4px;background:#fff;border-radius:999px;padding:6px;box-shadow:0 8px 30px rgba(14,31,99,.22);z-index:30}
-.nav button{width:58px;height:50px;border-radius:999px;display:grid;place-items:center;position:relative;color:var(--soft)}
+.nav button{width:52px;height:50px;border-radius:999px;display:grid;place-items:center;position:relative;color:var(--soft)}
 .nav button.on{background:var(--surface);color:var(--deep)}
 .nav svg{width:24px;height:24px}
 .nav .dot{position:absolute;top:7px;right:12px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--err);color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center}
@@ -188,6 +188,38 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
 .copy{display:block;width:100%;margin:0 0 12px;padding:13px;border-radius:14px;background:var(--surface);font-weight:700;text-align:center}
 .ab .row button{flex:1;padding:11px;border-radius:12px;text-align:center;font-weight:700;font-size:15px;background:var(--surface)}
 .refresh{font-size:13px;color:var(--onDeepSoft);text-align:right;margin-top:6px}
+/* TikTok */
+.tt-top{background:#0B0B10;color:#fff;padding:calc(env(safe-area-inset-top) + 18px) 16px 20px}
+.tt-top h1{font-size:28px;display:flex;align-items:center;gap:10px}
+.tt-logo{width:36px;height:36px;border-radius:10px;background:#000;display:grid;place-items:center;box-shadow:-2px -2px 0 #25F4EE,2px 2px 0 #FE2C55}
+.tt-logo svg{width:20px;height:20px}
+.tt-top .sub{color:rgba(255,255,255,.62);font-size:14px;margin-top:4px}
+.tt-top .periods{padding:14px 0 16px}
+.tt-top .chip.on{background:#FE2C55;border-color:#FE2C55;color:#fff}
+.ttsum{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ttsum div{background:rgba(255,255,255,.07);border-radius:16px;padding:12px 14px}
+.ttsum small{display:block;color:rgba(255,255,255,.62);font-size:13px;font-weight:600}
+.ttsum b{font:800 22px "Bricolage Grotesque",sans-serif;white-space:nowrap}
+.ttsum .big{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center}
+.btn.tt{background:#FE2C55;color:#fff;margin-top:14px}
+.promo{display:block;width:100%;text-align:left;border:1px solid var(--line);border-radius:18px;padding:14px;margin-bottom:12px;background:#fff}
+.promo .h{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.promo .h b{font-weight:700;font-size:17px;line-height:1.3}
+.promo .meta{color:var(--soft);font-size:13px;margin-top:2px}
+.pm{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:12px}
+.pm small{display:block;color:var(--soft);font-size:12px;font-weight:600;line-height:1.2}
+.pm b{font:800 16px "Bricolage Grotesque",sans-serif;white-space:nowrap}
+.vd{display:inline-block;padding:4px 10px;border-radius:999px;font-size:13px;font-weight:700;white-space:nowrap}
+.v-ok{background:var(--okbg);color:#0B6B35}.v-bad{background:var(--errbg);color:#9B1C1C}.v-mid{background:#FFE6D1;color:#8A3D00}.v-wait{background:#ECEDF2;color:#4A5068}
+.st-on{color:#0B6B35;font-weight:700;font-size:13px}.st-off{color:var(--soft);font-weight:700;font-size:13px}
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
+.mgrid .tile{padding:12px}
+.mgrid .tile b{font-size:20px}
+.field{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line);font:600 16px "Figtree",sans-serif;background:#fff;color:var(--ink)}
+.frow{display:grid;grid-template-columns:1fr 110px;gap:8px}
+.linkbox{background:var(--surface);border-radius:14px;padding:12px 14px;font-size:14px;word-break:break-all;margin:8px 0}
+.steps{background:var(--surface);border-radius:14px;padding:14px 14px 14px 32px;color:var(--ink);font-size:15px}
+.steps li{margin:4px 0}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 @media (min-width:700px){.app{max-width:560px;margin:0 auto}}
 </style>
@@ -198,6 +230,7 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
   <button data-v="home" aria-label="Accueil" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg></button>
   <button data-v="orders" aria-label="Commandes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="M4 13h4l2 3h4l2-3h4"/></svg><span class="dot hidden" id="dotNew"></span></button>
   <button data-v="abandons" aria-label="Abandons"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg><span class="dot hidden" id="dotAb"></span></button>
+  <button data-v="tiktok" aria-label="Promotions TikTok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v11.5a3.5 3.5 0 1 1-3.5-3.5"/><path d="M14 3c.4 2.6 2.4 4.6 5 4.8"/></svg></button>
   <button data-v="products" aria-label="Produits"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg></button>
   <button data-v="settings" aria-label="Réglages"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
 </nav>
@@ -210,7 +243,7 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
   const fmt = (n, d) => (Number(n)||0).toLocaleString('fr-FR', {maximumFractionDigits: 2}).replace(/[  ]/g, ' ') + (d ? ' ' + d : '');
   const short = n => { n = Number(n)||0; return n >= 1e6 ? (n/1e6).toFixed(1).replace('.0','') + ' M' : n >= 1e3 ? Math.round(n/1e3) + ' k' : String(Math.round(n)); };
 
-  let key = S.get('adm_key') || '', D = null, view = 'home', metric = 'ventes', periode = 'jour', filtre = 'Toutes', q = '';
+  let key = S.get('adm_key') || '', D = null, view = ['tiktok','orders','abandons'].indexOf(new URLSearchParams(location.search).get('v')) >= 0 ? new URLSearchParams(location.search).get('v') : 'home', metric = 'ventes', periode = 'jour', filtre = 'Toutes', q = '';
   let sound = S.get('adm_sound') !== '0', lastNum = S.get('adm_last') || '', pubData = null, timer = null, busy = false;
 
   /* ---------- Son de nouvelle commande ---------- */
@@ -299,7 +332,7 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
   }
   function schedule(){
     clearTimeout(timer);
-    timer = setTimeout(async () => { await refresh(true); schedule(); }, document.visibilityState === 'visible' ? 15000 : 60000);
+    timer = setTimeout(async () => { if (view === 'tiktok') loadTT(); await refresh(true); schedule(); }, document.visibilityState === 'visible' ? 15000 : 60000);
   }
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && key){ refresh(true); schedule(); } });
 
@@ -329,7 +362,8 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
   nav.addEventListener('click', e => { const b = e.target.closest('button'); if (b) go(b.dataset.v); });
   function render(){
     if (!D) { app.innerHTML = '<div class="loading">Chargement…</div>'; return; }
-    ({home, orders, abandons, products, settings}[view])();
+    [...nav.children].forEach(b => b.classList.toggle('on', b.dataset.v === view));
+    ({home, orders, abandons, products, settings, tiktok}[view])();
   }
 
   /* ---------- Accueil ---------- */
@@ -562,6 +596,199 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
       }).join('') : `<div class="empty">Aucun produit actif. Ajoute-en un dans l'onglet « Produits » du Google Sheets.</div>`;
       pl.querySelectorAll('[data-copy]').forEach(b => b.onclick = async () => { try { await navigator.clipboard.writeText(b.dataset.copy); b.textContent = 'Lien copié ✓'; } catch(e){ prompt('Copie ce lien :', b.dataset.copy); } });
     } catch(e){ const pl = document.getElementById('pl'); if (pl) pl.textContent = 'Impossible de charger les produits.'; }
+  }
+
+  /* ---------- Promotions TikTok ---------- */
+  let TT = null, ttPer = S.get('adm_ttper') || '7j', ttBusy = false;
+  const TTP = { jour: "Aujourd'hui", hier: 'Hier', '7j': '7 jours', '30j': '30 jours', tout: 'Depuis le début' };
+  const F = n => fmt(Math.round(Number(n) || 0), 'FCFA');
+  const K = n => (n = Math.round(Number(n) || 0)) >= 1e5 ? short(n) : fmt(n);
+  const ratio = (a, b) => b ? a / b : 0;
+  function verdict(p){
+    if (!p.depense && !p.commandes) return '<span class="vd v-wait">En attente</span>';
+    if (p.depense && !p.commandes) return '<span class="vd v-bad">Aucune commande</span>';
+    if (!p.depense) return '<span class="vd v-wait">Dépense à saisir</span>';
+    const cpa = p.depense / p.commandes, c = TT.cible;
+    if (!c) return `<span class="vd v-ok">${p.commandes} vente${p.commandes > 1 ? 's' : ''}</span>`;
+    return cpa <= c ? '<span class="vd v-ok">Rentable ✓</span>' : cpa <= c * 1.3 ? '<span class="vd v-mid">À surveiller</span>' : '<span class="vd v-bad">Trop chère</span>';
+  }
+  function ttTop(){
+    const all = TT ? TT.promos.concat(TT.autres) : [];
+    const dep = all.reduce((s, p) => s + p.depense, 0), cmd = all.reduce((s, p) => s + p.commandes, 0);
+    const liv = all.reduce((s, p) => s + p.livrees, 0), caL = all.reduce((s, p) => s + p.caLivre, 0), vis = all.reduce((s, p) => s + p.visites, 0);
+    const live = all.reduce((s, p) => s + p.live, 0);
+    return `<div class="tt-top">
+      <h1><span class="tt-logo"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M14 3v11.5a3.5 3.5 0 1 1-3.5-3.5"/><path d="M14 3c.4 2.6 2.4 4.6 5 4.8"/></svg></span>Promotions TikTok</h1>
+      <p class="sub">Combien chaque promotion t'a rapporté de commandes.</p>
+      <div class="periods">${Object.keys(TTP).map(k => `<button class="chip ${k === ttPer ? 'on' : ''}" data-tp="${k}">${TTP[k]}</button>`).join('')}</div>
+      <div class="ttsum">
+        <div><small>Dépensé</small><b>${F(dep)}</b></div>
+        <div><small>Commandes</small><b>${cmd}</b></div>
+        <div><small>Coût par commande</small><b>${cmd ? F(dep / cmd) : '–'}</b></div>
+        <div><small>Livrées</small><b>${liv}</b></div>
+        <div><small>Encaissé (livré)</small><b>${F(caL)}</b></div>
+        <div><small>Rentabilité</small><b>${dep ? 'x' + ratio(caL, dep).toFixed(1).replace('.', ',') : '–'}</b></div>
+        <div class="big"><span><small>Visites venues de TikTok</small><b>${vis}</b></span><span style="text-align:right"><small>En direct</small><b><span class="pulse"></span>${live}</b></span></div>
+      </div>
+      <button class="btn tt" id="ttNew">+ Nouvelle promotion</button>
+    </div>`;
+  }
+  const promoCard = (p, i, autre) => `<button class="promo" data-tt="${i}" data-autre="${autre ? 1 : ''}">
+      <div class="h"><div><b>${esc(p.nom)}</b><div class="meta">${autre ? 'Commandes TikTok sans lien de promo' : `${p.statut === 'Active' ? '<span class="st-on">● Active</span>' : '<span class="st-off">● Terminée</span>'} · ${esc(p.produit || 'Boutique')} · n°${esc(p.code)}`}${p.live ? ` · <b style="color:#0B6B35">${p.live} en direct</b>` : ''}</div></div>${autre ? '' : verdict(p)}</div>
+      <div class="pm">
+        <div><small>Dépensé</small><b>${autre ? '–' : K(p.depense)}</b></div>
+        <div><small>Commandes</small><b>${p.commandes}</b></div>
+        <div><small>Coût/cmd</small><b>${!autre && p.commandes && p.depense ? K(p.depense / p.commandes) : '–'}</b></div>
+        <div><small>Livrées</small><b>${p.livrees}</b></div>
+      </div></button>`;
+  function drawTT(){
+    if (view !== 'tiktok') return;
+    if (!TT){ app.innerHTML = ttTop() + `<div class="sheet"><div class="empty">Chargement des promotions…</div></div>`; bindTT(); return; }
+    const actives = TT.promos.filter(p => p.statut === 'Active'), finies = TT.promos.filter(p => p.statut !== 'Active');
+    app.innerHTML = ttTop() + `<div class="sheet">
+      ${!TT.promos.length ? `<div class="block"><h3>Comment ça marche</h3><ol class="steps">
+        <li>Appuie sur <b>+ Nouvelle promotion</b> et choisis le produit.</li>
+        <li>Copie le lien qu'on te donne.</li>
+        <li>Dans TikTok : <b>Promouvoir</b> → objectif <b>Plus de visites sur le site web</b> → colle ce lien.</li>
+        <li>Chaque visite et chaque commande venant de cette promotion est comptée ici. Mets à jour le montant dépensé pour voir le coût par commande.</li></ol></div>` : ''}
+      ${actives.length ? `<div class="block"><h3>Promotions actives</h3>${actives.map(p => promoCard(p, TT.promos.indexOf(p))).join('')}</div>` : ''}
+      ${TT.autres.length ? `<div class="block"><h3>Autres commandes venues de TikTok</h3>${TT.autres.map((p, i) => promoCard(p, i, true)).join('')}</div>` : ''}
+      ${finies.length ? `<div class="block"><h3>Promotions terminées</h3>${finies.map(p => promoCard(p, TT.promos.indexOf(p))).join('')}</div>` : ''}
+      <div class="block"><h3>Réglages TikTok</h3>
+        <label class="lbl" for="ttUsd">1 dollar ($) = combien de FCFA ?</label>
+        <input class="field" id="ttUsd" type="number" inputmode="decimal" value="${esc(TT.usd)}">
+        <label class="lbl" for="ttCible">Coût maximum accepté par commande (FCFA)</label>
+        <input class="field" id="ttCible" type="number" inputmode="numeric" placeholder="Ex : 2500" value="${TT.cible ? esc(TT.cible) : ''}">
+        <p class="tag" style="margin-top:6px">Au-dessus de ce coût, la promotion est marquée « Trop chère ».</p>
+        <button class="btn blue" id="ttSave" style="margin-top:12px">Enregistrer</button>
+      </div></div>`;
+    bindTT();
+  }
+  function bindTT(){
+    app.querySelectorAll('[data-tp]').forEach(b => b.onclick = () => { ttPer = b.dataset.tp; S.set('adm_ttper', ttPer); TT = ttCache(); drawTT(); loadTT(true); });
+    const n = document.getElementById('ttNew'); if (n) n.onclick = newPromo;
+    app.querySelectorAll('[data-tt]').forEach(b => b.onclick = () => promoDetail(b.dataset.autre ? TT.autres[b.dataset.tt] : TT.promos[b.dataset.tt], !!b.dataset.autre));
+    const sv = document.getElementById('ttSave');
+    if (sv) sv.onclick = async () => {
+      sv.textContent = 'Enregistrement…';
+      try { await call({type: 'tiktok', action: 'reglages', usd: document.getElementById('ttUsd').value, cible: document.getElementById('ttCible').value}); sv.textContent = 'Enregistré ✓'; loadTT(true); }
+      catch(e){ sv.textContent = 'Échec : réessayer'; }
+    };
+  }
+  function ttCache(){ try { return JSON.parse(S.get('adm_tt_' + ttPer) || 'null'); } catch(e){ return null; } }
+  async function loadTT(force){
+    if (ttBusy && !force) return; ttBusy = true;
+    const per = ttPer;
+    try {
+      const j = await call({type: 'tiktok', periode: per});
+      if (per !== ttPer) return;
+      const pareil = TT && JSON.stringify(TT) === JSON.stringify(j);
+      TT = j; S.set('adm_tt_' + per, JSON.stringify(j));
+      if (!pareil && view === 'tiktok' && !document.querySelector('.overlay') && !(document.activeElement && /^tt/.test(document.activeElement.id))) drawTT();
+    } catch(e){
+      if (!TT && view === 'tiktok') app.innerHTML = ttTop() + `<div class="sheet"><div class="empty">${/mot de passe/i.test(e.message) ? 'Mot de passe incorrect.' : /inconnu|Produit introuvable|tiktok/i.test(e.message) ? 'Mets à jour le code Apps Script (Code.gs) puis crée une nouvelle version.' : 'Connexion impossible. Réessaie.'}</div></div>`;
+    } finally { ttBusy = false; }
+  }
+  function tiktok(){ if (!TT) TT = ttCache(); drawTT(); loadTT(); }
+
+  function sheet(html){
+    const ov = document.createElement('div'); ov.className = 'overlay';
+    ov.innerHTML = `<div class="detail" role="dialog" aria-modal="true"><div class="grab"></div>${html}</div>`;
+    document.body.appendChild(ov);
+    const close = () => { ov.remove(); drawTT(); };
+    ov.onclick = e => { if (e.target === ov) close(); };
+    ov.querySelectorAll('[data-close]').forEach(b => b.onclick = close);
+    ov.querySelectorAll('[data-copy]').forEach(b => b.onclick = async () => {
+      const t = b.dataset.copy, l = b.textContent;
+      try { await navigator.clipboard.writeText(t); } catch(e){ prompt('Copie ce lien :', t); }
+      b.textContent = '✓ Lien copié'; setTimeout(() => b.textContent = l, 1500);
+    });
+    return {ov, close};
+  }
+
+  async function newPromo(){
+    const {ov, close} = sheet(`<h2>Nouvelle promotion</h2><p class="sub">Tu obtiens un lien unique à coller dans ta promotion TikTok.</p>
+      <label class="lbl" for="npNom">Nom de la promotion</label>
+      <input class="field" id="npNom" placeholder="Ex : Vidéo témoignage calcium" maxlength="100">
+      <label class="lbl" for="npProd">Produit</label>
+      <select class="field" id="npProd"><option value="">Chargement…</option></select>
+      <label class="lbl" for="npPays">Pays du client (optionnel)</label>
+      <select class="field" id="npPays"><option value="">Le client choisit</option></select>
+      <label class="lbl" for="npDep">Budget déjà payé à TikTok (optionnel)</label>
+      <div class="frow"><input class="field" id="npDep" type="number" inputmode="decimal" placeholder="0"><select class="field" id="npDev"><option>FCFA</option><option>USD</option><option>EUR</option></select></div>
+      <button class="btn tt" id="npGo">Créer le lien</button>
+      <button class="btn ghost" data-close style="margin-top:10px">Annuler</button>`);
+    try {
+      if (!pubData) pubData = await (await fetch(API + '?t=' + Date.now())).json();
+      ov.querySelector('#npProd').innerHTML = pubData.produits.map(p => `<option value="${esc(p.id)}">${esc(p.nom)}</option>`).join('') + '<option value="">Page d’accueil (tous les produits)</option>';
+      ov.querySelector('#npPays').innerHTML = '<option value="">Le client choisit</option>' + pubData.pays.map(p => `<option value="${esc(p.code)}">${esc(p.nom)}</option>`).join('');
+    } catch(e){ ov.querySelector('#npProd').innerHTML = '<option value="">Page d’accueil (tous les produits)</option>'; }
+    ov.querySelector('#npGo').onclick = async e => {
+      const b = e.target, nom = ov.querySelector('#npNom').value.trim();
+      if (!nom){ ov.querySelector('#npNom').focus(); return; }
+      b.textContent = 'Création…'; b.disabled = true;
+      try {
+        const r = await call({type: 'tiktok', action: 'creer', nom, produit: ov.querySelector('#npProd').value, pays: ov.querySelector('#npPays').value,
+          depense: ov.querySelector('#npDep').value, devise: ov.querySelector('#npDev').value, site: SITE});
+        ov.remove();
+        sheet(`<h2>Lien prêt ✓</h2><p class="sub">Promotion n°${esc(r.code)} · ${esc(nom)}</p>
+          <div class="linkbox">${esc(r.lien)}</div>
+          <button class="btn tt" data-copy="${esc(r.lien)}">📋 Copier le lien</button>
+          <ol class="steps" style="margin-top:14px"><li>Ouvre TikTok → ta vidéo → <b>Promouvoir</b>.</li><li>Objectif : <b>Plus de visites sur le site web</b>.</li><li>Colle ce lien, choisis ton budget et lance.</li><li>Reviens ici : les visites et commandes s'affichent toutes seules.</li></ol>
+          <button class="btn ghost" data-close style="margin-top:12px">Terminé</button>`);
+        loadTT(true);
+      } catch(err){ b.disabled = false; b.textContent = 'Échec : réessayer'; }
+    };
+  }
+
+  function promoDetail(p, autre){
+    if (!p) return;
+    const cpa = ratio(p.depense, p.commandes), cpl = ratio(p.depense, p.livrees);
+    const t = (l, v, cls) => `<div class="tile ${cls || ''}"><small>${l}</small><b>${v}</b></div>`;
+    const {ov} = sheet(`<h2>${esc(p.nom)}</h2>
+      <p class="sub">${autre ? 'Commandes venues de TikTok sans lien de promotion' : `n°${esc(p.code)} · ${esc(p.produit || 'Boutique')} · créée le ${esc(p.cree)} · ${esc(TTP[ttPer])}`}</p>
+      ${autre ? '' : verdict(p)}
+      <div class="mgrid">
+        ${autre ? '' : t('Dépensé', F(p.depense))}
+        ${autre ? '' : t('Visites', p.visites)}
+        ${t('Commandes', p.commandes)}
+        ${autre ? '' : t('Taux de commande', p.visites ? (p.commandes / p.visites * 100).toFixed(1).replace('.', ',') + ' %' : '–')}
+        ${autre ? '' : t('Coût par commande', p.commandes && p.depense ? F(cpa) : '–', TT.cible && p.commandes && cpa > TT.cible ? 'warn' : '')}
+        ${autre ? '' : t('Coût par livraison', p.livrees && p.depense ? F(cpl) : '–')}
+        ${t('À confirmer', p.aConfirmer)}
+        ${t('En cours', p.enCours)}
+        ${t('Livrées', p.livrees, 'yes')}
+        ${t('Annulées / injoignables', p.perdues, p.perdues ? 'warn' : '')}
+        ${t('Montant commandé', F(p.ca))}
+        ${t('Encaissé (livré)', F(p.caLivre), 'yes')}
+        ${autre ? '' : t('Rentabilité', p.depense ? 'x' + ratio(p.caLivre, p.depense).toFixed(1).replace('.', ',') : '–')}
+        ${autre ? '' : t('Coût par visite', p.visites && p.depense ? F(p.depense / p.visites) : '–')}
+      </div>
+      ${autre ? '' : `<label class="lbl" for="pdDep">Total dépensé sur TikTok pour cette promotion</label>
+        <div class="frow"><input class="field" id="pdDep" type="number" inputmode="decimal" value="${esc(p.depenseTotal || '')}" placeholder="0"><select class="field" id="pdDev">${['FCFA','USD','EUR'].map(d => `<option ${d === p.devise ? 'selected' : ''}>${d}</option>`).join('')}</select></div>
+        <p class="tag" style="margin-top:6px">Recopie le montant total affiché par TikTok. On calcule tout seul ce qui a été dépensé chaque jour.</p>
+        <button class="btn blue" id="pdSave" style="margin-top:10px">Mettre à jour la dépense</button>
+        <label class="lbl">Lien de la promotion</label>
+        <div class="linkbox">${esc(p.lien)}</div>
+        <button class="copy" data-copy="${esc(p.lien)}">📋 Copier le lien</button>`}
+      <div class="block" style="margin-top:6px"><h3>Commandes (${p.liste.length})</h3>
+        ${p.liste.length ? p.liste.map(o => `<button class="order" data-onum="${esc(o.numero)}"><div class="l1"><b>#${esc(o.numero)}</b><span>${esc(fmt(o.total, o.devise))}</span></div><div class="l2">${esc(o.nom || 'Sans nom')} · ${esc(dayName(o.date))} ${esc(o.heure)}</div><div class="l3">${badge(o.statut)}<span class="tag">${esc(o.pays)}</span></div></button>`).join('') : '<div class="empty">Aucune commande sur cette période.</div>'}
+      </div>
+      ${autre ? '' : `<button class="btn ghost" id="pdStat">${p.statut === 'Active' ? 'Marquer comme terminée' : 'Réactiver la promotion'}</button>`}
+      <button class="btn ghost" data-close style="margin-top:10px">Fermer</button>`);
+    ov.querySelectorAll('[data-onum]').forEach(b => b.onclick = () => { if (D && D.commandes.some(o => o.numero === b.dataset.onum)){ ov.remove(); detail(b.dataset.onum); } });
+    const sv = ov.querySelector('#pdSave');
+    if (sv) sv.onclick = async () => {
+      sv.textContent = 'Enregistrement…'; sv.disabled = true;
+      try { await call({type: 'tiktok', action: 'depense', code: p.code, total: ov.querySelector('#pdDep').value, devise: ov.querySelector('#pdDev').value}); sv.textContent = 'Dépense enregistrée ✓'; await loadTT(true); setTimeout(() => { ov.remove(); drawTT(); }, 600); }
+      catch(e){ sv.disabled = false; sv.textContent = 'Échec : réessayer'; }
+    };
+    const st = ov.querySelector('#pdStat');
+    if (st) st.onclick = async () => {
+      st.textContent = '…';
+      try { await call({type: 'tiktok', action: 'statut', code: p.code, statut: p.statut === 'Active' ? 'Terminée' : 'Active'}); await loadTT(true); ov.remove(); drawTT(); }
+      catch(e){ st.textContent = 'Échec : réessayer'; }
+    };
   }
 
   /* ---------- Réglages ---------- */
