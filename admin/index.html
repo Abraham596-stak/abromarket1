@@ -1248,20 +1248,27 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
     if (sv) sv.onclick = async () => {
       sv.textContent = 'Enregistrement…'; sv.disabled = true;
       try { await call({type: 'tiktok', action: 'depense', code: p.code, total: ov.querySelector('#pdDep').value, devise: ov.querySelector('#pdDev').value}); sv.textContent = 'Dépense enregistrée ✓'; await loadTT(true); setTimeout(() => { ov.remove(); drawTT(); }, 600); }
-      catch(e){ sv.disabled = false; sv.textContent = 'Échec : réessayer'; }
+      catch(e){ sv.disabled = false; sv.textContent = 'Échec : réessayer'; alert('Raison : ' + e.message); }
     };
     const st = ov.querySelector('#pdStat');
     if (st) st.onclick = async () => {
       st.textContent = '…';
       try { await call({type: 'tiktok', action: 'statut', code: p.code, statut: p.statut === 'Active' ? 'Terminée' : 'Active'}); await loadTT(true); ov.remove(); drawTT(); }
-      catch(e){ st.textContent = 'Échec : réessayer'; }
+      catch(e){ st.textContent = 'Échec : réessayer'; alert('Raison : ' + e.message); }
     };
     const del = ov.querySelector('#pdDel');
     if (del) del.onclick = async () => {
       if (!(await confirmer({titre: 'Supprimer cette promotion ?', texte: `Tu es sur le point de supprimer <b>« ${esc(p.nom)} »</b> (n°${esc(p.code)}) avec ses visites et ses dépenses.<br><br><b>Cette action est irréversible.</b>` + (p.commandes ? `<br>Ses ${p.commandes} commande(s) resteront dans tes commandes.` : ''), ok: 'Oui, supprimer définitivement'}))) return;
-      del.textContent = 'Suppression…';
-      try { await call({type: 'tiktok', action: 'supprimer', code: p.code}); await loadTT(true); ov.remove(); drawTT(); }
-      catch(e){ del.textContent = 'Échec : réessayer'; }
+      // Disparaît tout de suite ; l'effacement dans le Google Sheets continue en arrière-plan, avec nouveaux essais
+      TT.promos = TT.promos.filter(x => x.code !== p.code); try { S.set('adm_tt_' + ttPer, JSON.stringify(TT)); } catch(e){}
+      ov.remove(); drawTT(); toast('🗑 Promotion supprimée');
+      let err = null;
+      for (let i = 0; i < 4; i++){
+        try { await call({type: 'tiktok', action: 'supprimer', code: p.code}); err = null; break; }
+        catch(e){ err = e; if (/mot de passe/i.test(e.message)) break; await new Promise(r => setTimeout(r, 2500)); }
+      }
+      if (err){ alert('La suppression n’a pas pu être enregistrée dans le Google Sheets.\nRaison : ' + err.message + '\n\nRéessaie dans un instant.'); }
+      loadTT(true);
     };
   }
 
