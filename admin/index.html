@@ -1076,6 +1076,8 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
         <div class="row"><span>Produit</span><span>${esc(o.produit)}</span></div>
         <div class="row"><span>Offre</span><span>${esc(o.offre)}</span></div>
         <div class="row"><span>Livraison</span><span>${esc(o.livraison)}</span></div>
+        ${o.campagne ? `<div class="row"><span>Campagne</span><span>${esc(o.campagne)}</span></div>` : ''}
+        ${o.ensemble ? `<div class="row"><span>Ensemble de pub</span><span>${esc(o.ensemble)}</span></div>` : ''}
         ${o.pub ? `<div class="row"><span>Publicité</span><span>${esc(o.pub)}</span></div>` : ''}
         ${o.commentaire ? `<div class="row"><span>Commentaire</span><span>${esc(o.commentaire)}</span></div>` : ''}
         <div class="row total"><span>À encaisser</span><span>${esc(fmt(o.total, o.devise))}</span></div>
