@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#12308F">
+<meta name="theme-color" content="#FFFFFF" id="couleurBarre">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="ABROMARKET">
@@ -436,6 +436,8 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
 </style>
 </head>
 <body>
+<!-- Écran de démarrage : logo seul au centre, fond blanc (comme Shopify) -->
+<div id="demarrage" style="position:fixed;inset:0;z-index:999;background:#fff;display:flex;align-items:center;justify-content:center;transition:opacity .25s"><img src="logo-v3-192.png" alt="ABROMARKET" width="132" height="132"></div>
 <div class="app" id="app"></div>
 <nav class="nav hidden" id="nav" aria-label="Navigation">
   <button data-v="home" aria-label="Accueil" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span class="nl">Accueil</span></button>
@@ -641,7 +643,15 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
   /* ---------- Navigation ---------- */
   function go(v){ clearTimeout(dvTimer); dvTimer = null; view = v; SS.set('adm_view', v); scrollAReprendre = 0; [...nav.children].forEach(b => b.classList.toggle('on', b.dataset.v === v)); render(); scrollTo({top:0}); }
   nav.addEventListener('click', e => { const b = e.target.closest('button'); if (b) go(b.dataset.v); });
+  let demarre = false;
+  function finDemarrage(){
+    if (demarre) return; demarre = true;
+    const d = document.getElementById('demarrage'), t0 = performance.now();
+    setTimeout(() => { const m = document.getElementById('couleurBarre'); if (m) m.content = '#12308F';
+      if (d){ d.style.opacity = '0'; setTimeout(() => d.remove(), 260); } }, Math.max(0, 700 - t0));
+  }
   function render(){
+    if (D || view === 'products' || view === 'tiktok' || view === 'apercu') finDemarrage();
     if (!D && view !== 'products' && view !== 'tiktok' && view !== 'apercu') { app.innerHTML = '<div class="loading">Chargement…</div>'; return; }
     appliquerVue();
     [...nav.children].forEach(b => b.classList.toggle('on', b.dataset.v === view));
@@ -1808,7 +1818,8 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
     setBusy(true);
     refresh().then(() => { if (key) schedule(); });
   }
-  else login();
+  else { login(); finDemarrage(); }
+  setTimeout(finDemarrage, 4000);
   let largeurAvant = innerWidth;
   addEventListener('resize', () => { if (innerWidth === largeurAvant) return; largeurAvant = innerWidth; if (view === 'home' && D) drawChart(); });
 })();
