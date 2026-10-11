@@ -1080,7 +1080,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
   /* ---------- Abandons ---------- */
   function abandons(){
     app.innerHTML = `<div class="page"><h1>Abandons</h1>
-      <p class="tag" style="margin:-6px 0 8px">Ces personnes ont donné leur numéro sans valider. Relance-les environ 5 minutes après.</p>
+      <p class="tag" style="margin:-6px 0 8px">Ces personnes ont donné leur numéro sans valider. 5 minutes après, tu reçois une alerte avec le message de relance déjà écrit : un clic et tu envoies.</p>
       ${D.abandons.length ? D.abandons.map(a => `<div class="ab">
         <div class="l1"><b>${esc(a.nom || 'Sans nom')}</b><span class="tag">${esc(dayName(a.date))} ${esc(a.heure)}</span></div>
         <p>${esc(a.produit)} · ${esc(a.offre)} · ${esc(a.prix)} · ${esc(a.pays)}${a.suivi ? ' · ' + esc(a.suivi) : ''}</p>
@@ -1716,7 +1716,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
         'Abonné : ' + (os ? (os.optedIn ? 'oui' : 'non') + (os.id ? ' (id ' + os.id.slice(0, 8) + '…)' : ' (aucun id)') : '?'),
         'Services : ' + (regs.join(', ') || 'aucun')
       ];
-      try { const r = await call({type: 'testpush'}); lignes.push('Envoi : ' + (r.resultat || r.code)); if (r.whatsapp) lignes.push('WhatsApp (test) : ' + r.whatsapp); if (r.dernierWhatsapp) lignes.push('WhatsApp (dernière commande) : ' + r.dernierWhatsapp); if (r.dernierPush) lignes.push('Notification (dernière commande) : ' + r.dernierPush); }
+      try { const r = await call({type: 'testpush'}); lignes.push('Envoi : ' + (r.resultat || r.code)); if (r.whatsapp) lignes.push('WhatsApp (test) : ' + r.whatsapp); if (r.dernierWhatsapp) lignes.push('WhatsApp (dernière commande) : ' + r.dernierWhatsapp); if (r.dernierPush) lignes.push('Notification (dernière commande) : ' + r.dernierPush); if (r.green) lignes.push('WhatsApp perso (test) : ' + r.green); if (r.dernierGreen) lignes.push('WhatsApp perso (dernier envoi) : ' + r.dernierGreen); }
       catch(err){ lignes.push('Envoi : erreur ' + err.message); }
       dg.innerHTML = lignes.map(esc).join('<br>'); b.textContent = 'Tester';
     };
