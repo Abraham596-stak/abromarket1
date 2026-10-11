@@ -229,6 +229,50 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
 .prow{display:flex;justify-content:space-between;align-items:baseline;margin:14px 0 8px}
 .prow .lbl{margin:0}
 .prow button{font-weight:600;font-size:14px;color:var(--main)}
+/* Éditeur de produits */
+.prhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.prhead h1{font-size:30px}
+.btn.small{display:inline-block;width:auto;padding:10px 16px;font-size:15px;border-radius:12px}
+.prod .pimg{flex:0 0 64px;padding:0}
+.prod .pname{text-align:left;padding:0}
+.pst{color:#B45309;font-weight:700}.pst.on{color:#0B6B35}
+.editor{position:fixed;inset:0;z-index:50;background:var(--surface);overflow-y:auto;-webkit-overflow-scrolling:touch}
+.edbar{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fff;padding:calc(env(safe-area-inset-top) + 10px) 12px 10px;border-bottom:1px solid var(--line)}
+.edbar b{font-size:17px}
+.iconbtn2{width:42px;height:42px;border-radius:50%;background:var(--surface);font-size:18px}
+.edbody{max-width:600px;margin:0 auto;padding:12px 12px calc(40px + env(safe-area-inset-bottom))}
+.card{background:#fff;border-radius:18px;padding:16px;margin-bottom:12px;border:1px solid var(--line)}
+.card h3{font-size:18px;margin-bottom:4px}
+.card .lbl:first-child{margin-top:0}
+.okmsg{background:var(--okbg);color:#0B6B35;font-weight:700;border-radius:14px;padding:12px 14px;margin-bottom:12px}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--surface);border-radius:14px;padding:4px}
+.seg button{padding:12px;border-radius:11px;font-weight:700;color:var(--soft)}
+.seg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 4px rgba(14,31,99,.15)}
+.phgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.ph{position:relative;aspect-ratio:1;border-radius:14px;overflow:hidden;background:var(--surface)}
+.ph img{width:100%;height:100%;object-fit:cover;display:block}
+.phb{position:absolute;left:4px;right:4px;bottom:4px;display:flex;justify-content:space-between;gap:4px}
+.phb button{width:30px;height:30px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;font-size:13px}
+.ph:first-child::before{content:"Principale";position:absolute;top:6px;left:6px;background:var(--sun);color:var(--deep);font-size:11px;font-weight:700;padding:2px 7px;border-radius:999px}
+.ph.add{border:2px dashed var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:28px;color:var(--main);background:#fff}
+.ph.add::before{display:none}
+.ph.add span{font-size:13px;font-weight:700}
+.lnk{color:var(--main);font-weight:600;font-size:14px;margin-top:10px;padding:4px 0}
+.blk{border:1px solid var(--line);border-radius:14px;padding:10px;margin-top:10px}
+.blkh{display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:700;color:var(--soft);margin-bottom:6px}
+.blkh button{width:32px;height:32px;border-radius:8px;background:var(--surface);margin-left:4px;font-size:14px}
+.blkimg{width:100%;max-height:260px;object-fit:contain;border-radius:10px;background:var(--surface);display:block}
+textarea.field{resize:vertical;line-height:1.45;font-weight:500}
+textarea.ttl{font-weight:800;font-size:18px}
+.addrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.addrow button,.addrow a{padding:10px 14px;border-radius:12px;background:var(--surface);font-weight:700;font-size:14px}
+.addrow .danger{background:var(--errbg);color:#9B1C1C}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.g2 label{font-size:13px;font-weight:600;color:var(--soft)}
+.g2 label .field{margin-top:4px;padding:11px}
+.pays1{border:1px solid var(--line);border-radius:14px;padding:12px;margin-top:10px}
+.pays1 summary{display:flex;justify-content:space-between;gap:8px;cursor:pointer;list-style:none}
+.pays1 summary::-webkit-details-marker{display:none}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 @media (min-width:700px){.app{max-width:560px;margin:0 auto}}
 </style>
@@ -259,7 +303,7 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
   let scrollAReprendre = Number(SS.get('adm_scroll')) || 0;
   addEventListener('pagehide', () => { SS.set('adm_view', view); SS.set('adm_scroll', String(Math.round(scrollY))); SS.set('adm_filtre', filtre); SS.set('adm_periode', periode); });
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden'){ SS.set('adm_view', view); SS.set('adm_scroll', String(Math.round(scrollY))); } });
-  let sound = S.get('adm_sound') !== '0', lastNum = S.get('adm_last') || '', pubData = null, timer = null, busy = false;
+  let precharge = false, sound = S.get('adm_sound') !== '0', lastNum = S.get('adm_last') || '', pubData = null, timer = null, busy = false;
 
   /* ---------- Son de nouvelle commande ---------- */
   let ctx = null, buf = null, unlocked = false;
@@ -332,6 +376,7 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
       const da = document.getElementById('dotAb'); da.textContent = ar > 99 ? '99+' : ar; da.classList.toggle('hidden', !ar);
       if (!pareil && !document.querySelector('.overlay') && !(view === 'orders' && document.activeElement && document.activeElement.id === 'q')) render();
       openFromLink();
+      if (!precharge){ precharge = true; setTimeout(() => { loadPub(); loadPR(); loadTT(); }, 400); }
     } catch(e){
       if (/mot de passe/i.test(e.message)){ logout('Mot de passe incorrect.'); }
       else if (!silent && !D){ app.innerHTML = `<div class="login"><h1>Connexion impossible</h1><p>Vérifie ta connexion internet, puis réessaie.</p><button class="btn" id="retry">Réessayer</button></div>`; document.getElementById('retry').onclick = () => refresh(); }
@@ -376,7 +421,7 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
   function go(v){ view = v; SS.set('adm_view', v); scrollAReprendre = 0; [...nav.children].forEach(b => b.classList.toggle('on', b.dataset.v === v)); render(); scrollTo({top:0}); }
   nav.addEventListener('click', e => { const b = e.target.closest('button'); if (b) go(b.dataset.v); });
   function render(){
-    if (!D) { app.innerHTML = '<div class="loading">Chargement…</div>'; return; }
+    if (!D && view !== 'products' && view !== 'tiktok') { app.innerHTML = '<div class="loading">Chargement…</div>'; return; }
     [...nav.children].forEach(b => b.classList.toggle('on', b.dataset.v === view));
     ({home, orders, abandons, products, settings, tiktok}[view])();
     if (scrollAReprendre){ const y = scrollAReprendre; requestAnimationFrame(() => scrollTo(0, y)); if (view !== 'tiktok' || TT) scrollAReprendre = 0; }
@@ -594,25 +639,251 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
     bindCopy(app);
   }
 
-  /* ---------- Produits ---------- */
-  async function products(){
-    app.innerHTML = `<div class="page"><h1>Produits</h1><div id="pl" class="empty">Chargement…</div>
-      <a class="btn blue" style="margin-top:18px" href="${esc(D.sheetUrl)}" target="_blank" rel="noopener">Ajouter ou modifier dans Google Sheets</a></div>`;
-    try {
-      if (!pubData) pubData = await (await fetch(API + '?t=' + Date.now())).json();
-      const pl = document.getElementById('pl'); if (!pl) return;
-      pl.className = '';
-      pl.innerHTML = pubData.produits.length ? pubData.produits.map(p => {
-        const pays = Object.keys(p.prix).map(c => { const pp = pubData.pays.find(x => x.code === c); return `${pp ? pp.nom : c} : ${fmt(p.prix[c].offres[0].prix, pp ? pp.devise : '')}`; }).join(' · ');
-        const url = SITE + '?p=' + encodeURIComponent(p.id);
-        let img = p.photos[0] || '';
-        const m = img.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:export=\w+&)?id=)([\w-]{20,})/); if (m) img = 'https://drive.google.com/thumbnail?id=' + m[1] + '&sz=w300';
-        return `<div class="prod"><img src="${esc(img)}" alt="" loading="lazy"><div class="info"><b>${esc(p.nom)}</b><small>${esc(pays || 'Aucun prix renseigné')}</small>
-          <div class="links"><a href="${esc(url)}" target="_blank" rel="noopener">Voir la page</a><button data-copy="${esc(url)}">Copier le lien</button></div></div></div>`;
-      }).join('') : `<div class="empty">Aucun produit actif. Ajoute-en un dans l'onglet « Produits » du Google Sheets.</div>`;
-      pl.querySelectorAll('[data-copy]').forEach(b => b.onclick = async () => { try { await navigator.clipboard.writeText(b.dataset.copy); b.textContent = 'Lien copié ✓'; } catch(e){ prompt('Copie ce lien :', b.dataset.copy); } });
-    } catch(e){ const pl = document.getElementById('pl'); if (pl) pl.textContent = 'Impossible de charger les produits.'; }
+  /* ---------- Produits (liste instantanée + éditeur) ---------- */
+  try { pubData = JSON.parse(S.get('adm_pub') || 'null'); } catch(e){}
+  let pubP = null;
+  function loadPub(){
+    return pubP = pubP || fetch(SITE + 'data.json?t=' + Date.now()).then(r => r.json()).then(j => {
+      pubData = j;
+      try { S.set('adm_pub', JSON.stringify({ pays: j.pays, imgs: j.imgs || {}, produits: j.produits.map(p => ({ id: p.id, nom: p.nom, photos: p.photos.slice(0, 1), prix: p.prix })) })); } catch(e){}
+      return j;
+    }).catch(() => { pubP = null; return pubData; });
   }
+  const DRIVE = /drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:export=\w+&)?id=)([\w-]{20,})/;
+  function vignette(u, w){
+    u = String(u || '').trim(); if (!u) return '';
+    const im = pubData && pubData.imgs && pubData.imgs[u]; if (im) return SITE + im;
+    const m = u.match(DRIVE); return m ? 'https://drive.google.com/thumbnail?id=' + m[1] + '&sz=w' + (w || 300) : u;
+  }
+  let PR = null, prBusy = false, prFiltre = 'tous';
+  try { PR = JSON.parse(S.get('adm_prods') || 'null'); } catch(e){}
+  async function loadPR(){
+    if (prBusy) return; prBusy = true;
+    try {
+      const j = await call({type: 'produits'});
+      const pareil = PR && JSON.stringify(PR) === JSON.stringify(j);
+      PR = j; try { S.set('adm_prods', JSON.stringify(j)); } catch(e){}
+      if (!pareil && view === 'products' && !document.querySelector('.overlay, .editor')) drawProducts();
+    } catch(e){
+      if (!PR && view === 'products'){ const pl = document.getElementById('pl'); if (pl) pl.innerHTML = /introuvable|inconnu/i.test(e.message) ? 'Mets à jour le code Apps Script (Code.gs), puis crée une nouvelle version.' : 'Connexion impossible. Réessaie.'; }
+    } finally { prBusy = false; }
+  }
+  function prixResume(p){
+    if (!PR) return '';
+    const l = (p.prix || []).filter(x => Number(String(x.p1).replace(/[^\d.]/g, '')) > 0);
+    if (!l.length) return 'Aucun prix';
+    return l.slice(0, 2).map(x => { const pp = PR.pays.find(q => q.nom.toLowerCase() === String(x.pays).toLowerCase()); return `${x.pays} : ${fmt(String(x.p1).replace(/[^\d.,]/g, ''), pp ? pp.devise : '')}`; }).join(' · ') + (l.length > 2 ? ` +${l.length - 2}` : '');
+  }
+  function products(){ drawProducts(); loadPR(); loadPub().then(() => { if (view === 'products' && !document.querySelector('.overlay, .editor')) drawProducts(); }); }
+  function drawProducts(){
+    if (view !== 'products') return;
+    let liste;
+    if (PR) liste = PR.produits;
+    else if (pubData) liste = pubData.produits.map(p => ({ id: p.id, nom: p.nom, photos: p.photos, enLigne: true, prix: [] }));
+    const nbB = liste ? liste.filter(p => !p.enLigne).length : 0;
+    const vis = liste ? liste.filter(p => prFiltre === 'tous' || (prFiltre === 'ligne' ? p.enLigne : !p.enLigne)) : [];
+    app.innerHTML = `<div class="page"><div class="prhead"><h1>Produits</h1><button class="btn blue small" id="prNew">+ Ajouter</button></div>
+      <div class="filters">${[['tous', 'Tous'], ['ligne', 'En ligne'], ['brouillon', 'Brouillons' + (nbB ? ' (' + nbB + ')' : '')]].map(([k, l]) => `<button class="${k === prFiltre ? 'on' : ''}" data-pf="${k}">${l}</button>`).join('')}</div>
+      <div id="pl">${!liste ? '<div class="empty">Chargement…</div>' : vis.length ? vis.map(p => {
+        const url = SITE + '?p=' + encodeURIComponent(p.id);
+        return `<div class="prod"><button class="pimg" data-edit="${esc(p.id)}" aria-label="Modifier ${esc(p.nom)}"><img src="${esc(vignette(p.photos[0]))}" alt="" loading="lazy"></button><div class="info">
+          <button class="pname" data-edit="${esc(p.id)}"><b>${esc(p.nom)}</b></button>
+          <small>${p.enLigne ? '<span class="pst on">● En ligne</span>' : '<span class="pst">● Brouillon</span>'} ${esc(prixResume(p))}</small>
+          <div class="links"><button data-edit="${esc(p.id)}">✏️ Modifier</button><button data-dup="${esc(p.id)}">⧉ Dupliquer</button><button data-copy="${esc(url)}">🔗 Lien</button><a href="${esc(url)}" target="_blank" rel="noopener">Voir</a></div></div></div>`;
+      }).join('') : `<div class="empty">${prFiltre === 'brouillon' ? 'Aucun brouillon.' : 'Aucun produit. Appuie sur « + Ajouter ».'}</div>`}</div>
+      <a class="btn ghost" style="margin-top:18px" href="${esc(D ? D.sheetUrl : '#')}" target="_blank" rel="noopener">Ouvrir le Google Sheets</a></div>`;
+    app.querySelectorAll('[data-pf]').forEach(b => b.onclick = () => { prFiltre = b.dataset.pf; drawProducts(); });
+    app.querySelectorAll('[data-copy]').forEach(b => b.onclick = async () => { try { await navigator.clipboard.writeText(b.dataset.copy); b.textContent = '✓ Copié'; } catch(e){ prompt('Copie ce lien :', b.dataset.copy); } });
+    app.querySelectorAll('[data-edit]').forEach(b => b.onclick = () => { if (!PR){ alert('Encore une seconde, les détails du produit arrivent…'); return; } editer(PR.produits.find(p => p.id === b.dataset.edit)); });
+    app.querySelectorAll('[data-dup]').forEach(b => b.onclick = () => dupliquer(b.dataset.dup, b));
+    document.getElementById('prNew').onclick = () => { if (!PR){ alert('Encore une seconde, la liste des pays arrive…'); return; } editer(null); };
+  }
+  async function dupliquer(id, b){
+    const t = b ? b.textContent : ''; if (b){ b.textContent = 'Copie…'; b.disabled = true; }
+    try { const r = await call({type: 'produits', action: 'dupliquer', id}); await loadPR(); if (b){ b.textContent = t; b.disabled = false; } const p = PR.produits.find(x => x.id === r.id); if (p) editer(p, 'Copie créée en brouillon ✓ Modifie-la puis mets-la en ligne.'); }
+    catch(e){ if (b){ b.disabled = false; b.textContent = 'Échec'; } alert('Duplication impossible : ' + e.message); }
+  }
+
+  // Réduit la photo sur le téléphone avant l'envoi (rapide, même en 3G)
+  function lirePhoto(file){
+    return new Promise((ok, ko) => {
+      const fr = new FileReader();
+      fr.onerror = ko;
+      fr.onload = () => { const im = new Image(); im.onerror = ko; im.onload = () => {
+        const k = Math.min(1, 1400 / Math.max(im.width, im.height)), c = document.createElement('canvas');
+        c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+        const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(im, 0, 0, c.width, c.height);
+        ok(c.toDataURL('image/jpeg', 0.84)); }; im.src = fr.result; };
+      fr.readAsDataURL(file);
+    });
+  }
+  async function envoyerPhoto(file, nom){
+    const b64 = await lirePhoto(file);
+    const r = await call({type: 'produits', action: 'image', b64, mime: 'image/jpeg', nom});
+    return {url: r.url, apercu: b64};
+  }
+  function choisirPhotos(multiple){
+    return new Promise(ok => { const i = document.createElement('input'); i.type = 'file'; i.accept = 'image/*'; i.multiple = !!multiple; i.onchange = () => ok([...i.files]); i.click(); });
+  }
+
+  function editer(src, message){
+    const neuf = !src;
+    const P = JSON.parse(JSON.stringify(src || { id: '', enLigne: false, nom: '', accroche: '', photos: [], description: '', avantages: '', boite: '', stock: '', faq: '', prix: [], avis: [] }));
+    const apercus = {};
+    // Description → blocs (texte, image, titre)
+    let blocs = String(P.description || '').split(/\n/).map(l => l.trim()).filter(Boolean).map(l => /^https?:\/\/\S+$/.test(l) ? {t: 'img', v: l} : /^##\s*/.test(l) ? {t: 'titre', v: l.replace(/^##\s*/, '')} : {t: 'txt', v: l});
+    let faq = String(P.faq || '').split(/\n/).map(l => l.split('>>')).filter(x => x[0].trim()).map(x => ({q: x[0].trim(), r: x.slice(1).join('>>').trim()}));
+    const paysTous = PR.pays.filter(p => p.actif || P.prix.some(x => x.pays.toLowerCase() === p.nom.toLowerCase()));
+    const prixDe = nom => P.prix.find(x => x.pays.toLowerCase() === nom.toLowerCase());
+    let sale = false;
+    const ed = document.createElement('div'); ed.className = 'editor'; ed.setAttribute('role', 'dialog'); ed.setAttribute('aria-modal', 'true');
+    document.body.appendChild(ed); document.body.style.overflow = 'hidden';
+    const fermer = force => { if (!force && sale && !confirm('Quitter sans enregistrer les modifications ?')) return; ed.remove(); document.body.style.overflow = ''; drawProducts(); };
+    const img = u => apercus[u] || vignette(u, 400);
+
+    let ouverts = [];
+    function dessiner(){
+      const y = ed.scrollTop;
+      ed.querySelectorAll('details[data-p]').forEach(d => { const i = ouverts.indexOf(d.dataset.p); if (d.open && i < 0) ouverts.push(d.dataset.p); if (!d.open && i >= 0) ouverts.splice(i, 1); });
+      ed.innerHTML = `<div class="edbar"><button class="iconbtn2" id="edX" aria-label="Fermer">✕</button><b>${neuf ? 'Nouveau produit' : 'Modifier le produit'}</b><button class="btn blue small" id="edSave">Enregistrer</button></div>
+      <div class="edbody">
+        ${message ? `<div class="okmsg">${esc(message)}</div>` : ''}
+        <div class="card"><div class="seg" role="radiogroup" aria-label="Statut">
+          <button class="${P.enLigne ? 'on' : ''}" data-st="1">🟢 En ligne</button><button class="${!P.enLigne ? 'on' : ''}" data-st="0">📝 Brouillon</button></div>
+          <p class="tag" style="margin-top:8px">${P.enLigne ? 'Visible sur le site par tes clients.' : 'Caché du site. Tu recevras un rappel chaque matin pour le mettre en ligne.'}</p></div>
+
+        <div class="card"><label class="lbl" for="eNom">Titre</label><input class="field" id="eNom" value="${esc(P.nom)}" placeholder="Ex : Calcium Complexe Premium">
+          <label class="lbl" for="eAcc">Accroche (sous le titre)</label><input class="field" id="eAcc" value="${esc(P.accroche)}" placeholder="Ex : Marcher enfin librement sans douleur"></div>
+
+        <div class="card"><h3>Photos</h3><p class="tag">La première photo est la photo principale.</p>
+          <div class="phgrid">${P.photos.map((u, i) => `<div class="ph"><img src="${esc(img(u))}" alt=""><div class="phb">${i ? `<button data-pl="${i}" aria-label="Avancer">◀</button>` : ''}<button data-pd="${i}" aria-label="Supprimer">✕</button>${i < P.photos.length - 1 ? `<button data-pr="${i}" aria-label="Reculer">▶</button>` : ''}</div></div>`).join('')}
+            <button class="ph add" id="phAdd">＋<span>Ajouter</span></button></div>
+          <button class="lnk" id="phUrl">Ou coller le lien d'une photo</button></div>
+
+        <div class="card"><h3>Description</h3><p class="tag">Ajoute des paragraphes, des images et des titres dans l'ordre que tu veux.</p>
+          ${blocs.map((b, i) => `<div class="blk"><div class="blkh"><span>${b.t === 'img' ? '🖼 Image' : b.t === 'titre' ? 'Titre' : '¶ Paragraphe'}</span><span>${i ? `<button data-bu="${i}" aria-label="Monter">↑</button>` : ''}${i < blocs.length - 1 ? `<button data-bd="${i}" aria-label="Descendre">↓</button>` : ''}<button data-bx="${i}" aria-label="Supprimer">✕</button></span></div>
+            ${b.t === 'img' ? `<img class="blkimg" src="${esc(img(b.v))}" alt="">` : `<textarea class="field ${b.t === 'titre' ? 'ttl' : ''}" data-bv="${i}" rows="${b.t === 'titre' ? 1 : 4}">${esc(b.v)}</textarea>`}</div>`).join('')}
+          <div class="addrow"><button data-add="txt">+ Paragraphe</button><button data-add="img">+ Image</button><button data-add="titre">+ Titre</button></div></div>
+
+        <div class="card"><h3>Prix par pays</h3><p class="tag">Laisse vide un pays où tu ne vends pas ce produit.</p>
+          ${paysTous.map(p => { const x = prixDe(p.nom) || {}; const k = esc(p.nom); return `<details class="pays1" data-p="${k}" ${x.p1 || ouverts.includes(p.nom) ? 'open' : ''}><summary><b>${esc(p.nom)}</b>${p.actif ? '' : ' <span class="tag">(pays inactif)</span>'}<span class="tag">${x.p1 ? esc(fmt(String(x.p1).replace(/[^\d.,]/g, ''), p.devise)) : 'pas de prix'}</span></summary>
+            <div class="g2"><label>Prix 1 pièce<input class="field" inputmode="numeric" data-px="${k}|p1" value="${esc(x.p1 || '')}"></label><label>Ancien prix (barré)<input class="field" inputmode="numeric" data-px="${k}|ancien" value="${esc(x.ancien || '')}"></label>
+            <label>Prix 2 pièces (ou %)<input class="field" data-px="${k}|p2" value="${esc(x.p2 || '')}" placeholder="ex : 35000 ou 10%"></label><label>Prix 3 pièces (ou %)<input class="field" data-px="${k}|p3" value="${esc(x.p3 || '')}" placeholder="ex : 50000 ou 15%"></label>
+            <label>Réduction si livré aujourd'hui<input class="field" inputmode="numeric" data-px="${k}|jour" value="${esc(x.jour || '')}"></label><label>Offre : achetés<input class="field" inputmode="numeric" data-px="${k}|oa" value="${esc(x.oa || '')}" placeholder="ex : 2"></label>
+            <label>Offre : offerts<input class="field" inputmode="numeric" data-px="${k}|oo" value="${esc(x.oo || '')}" placeholder="ex : 1"></label><label>Offre : prix<input class="field" inputmode="numeric" data-px="${k}|op" value="${esc(x.op || '')}" placeholder="auto"></label></div>
+            <button class="lnk" data-cp="${k}">Copier ces prix dans tous les pays ${esc(p.devise)}</button></details>`; }).join('')}</div>
+
+        <div class="card"><h3>Avantages</h3><textarea class="field" id="eAv" rows="4" placeholder="Un avantage par ligne">${esc(P.avantages)}</textarea>
+          <label class="lbl" for="eBo">Dans la boîte</label><textarea class="field" id="eBo" rows="2" placeholder="Un élément par ligne">${esc(P.boite)}</textarea>
+          <label class="lbl" for="eSt">Stock affiché (vide = caché)</label><input class="field" id="eSt" inputmode="numeric" value="${esc(P.stock)}"></div>
+
+        <div class="card"><h3>Questions fréquentes</h3>
+          ${faq.map((f, i) => `<div class="blk"><div class="blkh"><span>Question ${i + 1}</span><button data-fx="${i}" aria-label="Supprimer">✕</button></div><input class="field" data-fq="${i}" value="${esc(f.q)}" placeholder="Question"><textarea class="field" data-fr="${i}" rows="2" placeholder="Réponse" style="margin-top:6px">${esc(f.r)}</textarea></div>`).join('')}
+          <div class="addrow"><button id="fAdd">+ Ajouter une question</button></div></div>
+
+        <div class="card"><h3>Avis clients</h3>
+          ${P.avis.map((a, i) => `<div class="blk"><div class="blkh"><span>Avis ${i + 1}</span><button data-ax="${i}" aria-label="Supprimer">✕</button></div>
+            <div class="g2"><input class="field" data-an="${i}" value="${esc(a.nom)}" placeholder="Nom affiché (ex : Maman, 53 ans)"><select class="field" data-ano="${i}">${[5,4,3,2,1].map(n => `<option value="${n}" ${Number(a.note) === n ? 'selected' : ''}>${'★'.repeat(n)}</option>`).join('')}</select></div>
+            <textarea class="field" data-at="${i}" rows="3" placeholder="Ce que dit le client" style="margin-top:6px">${esc(a.texte)}</textarea>
+            ${a.photo ? `<img class="blkimg" src="${esc(img(a.photo))}" alt="">` : ''}<button class="lnk" data-ap="${i}">${a.photo ? 'Changer la photo' : '+ Photo (optionnel)'}</button></div>`).join('')}
+          <div class="addrow"><button id="aAdd">+ Ajouter un avis</button></div></div>
+
+        <div class="card"><h3>Lien du produit</h3><label class="lbl" for="eId">Fin du lien (sans espace ni accent)</label><input class="field" id="eId" value="${esc(P.id)}" placeholder="automatique d'après le titre">
+          ${P.id ? `<div class="linkbox">${esc(SITE + '?p=' + P.id)}</div><div class="addrow"><button data-copy="${esc(SITE + '?p=' + P.id)}">🔗 Copier le lien</button><a href="${esc(SITE + '?p=' + P.id)}" target="_blank" rel="noopener">Voir sur le site</a></div>` : ''}</div>
+
+        ${neuf ? '' : `<div class="card"><div class="addrow"><button id="eDup">⧉ Dupliquer ce produit</button><button id="eDel" class="danger">🗑 Supprimer</button></div></div>`}
+        <button class="btn blue" id="edSave2">Enregistrer</button>
+      </div>`;
+      ed.scrollTop = y;
+      lier();
+    }
+    function lire(){
+      const v = id => { const e = ed.querySelector('#' + id); return e ? e.value : ''; };
+      P.nom = v('eNom'); P.accroche = v('eAcc'); P.avantages = v('eAv'); P.boite = v('eBo'); P.stock = v('eSt'); P.id = v('eId');
+      ed.querySelectorAll('[data-bv]').forEach(t => blocs[t.dataset.bv].v = t.value);
+      ed.querySelectorAll('[data-fq]').forEach(t => faq[t.dataset.fq].q = t.value);
+      ed.querySelectorAll('[data-fr]').forEach(t => faq[t.dataset.fr].r = t.value);
+      ed.querySelectorAll('[data-an]').forEach(t => P.avis[t.dataset.an].nom = t.value);
+      ed.querySelectorAll('[data-at]').forEach(t => P.avis[t.dataset.at].texte = t.value);
+      ed.querySelectorAll('[data-ano]').forEach(t => P.avis[t.dataset.ano].note = Number(t.value));
+      ed.querySelectorAll('[data-px]').forEach(t => {
+        const [pays, champ] = t.dataset.px.split('|');
+        let x = prixDe(pays); if (!x){ if (!t.value.trim()) return; x = {pays}; P.prix.push(x); }
+        x[champ] = t.value.trim();
+      });
+    }
+    const maj = fn => () => { lire(); fn(); sale = true; dessiner(); };
+    async function ajouterImages(cible, bouton){
+      const files = await choisirPhotos(cible === 'photos'); if (!files.length) return;
+      lire(); if (bouton){ bouton.disabled = true; bouton.textContent = 'Envoi…'; }
+      for (const f of files){
+        try {
+          const r = await envoyerPhoto(f, P.nom || 'produit'); apercus[r.url] = r.apercu;
+          if (cible === 'photos') P.photos.push(r.url);
+          else if (cible === 'bloc') blocs.push({t: 'img', v: r.url});
+          else if (typeof cible === 'number') P.avis[cible].photo = r.url;
+          sale = true;
+        } catch(e){ alert('Envoi de la photo impossible : ' + e.message); }
+      }
+      dessiner();
+    }
+    function lier(){
+      ed.querySelector('#edX').onclick = () => fermer();
+      ed.querySelectorAll('[data-st]').forEach(b => b.onclick = maj(() => P.enLigne = b.dataset.st === '1'));
+      ed.querySelectorAll('[data-pd]').forEach(b => b.onclick = maj(() => P.photos.splice(+b.dataset.pd, 1)));
+      ed.querySelectorAll('[data-pl]').forEach(b => b.onclick = maj(() => { const i = +b.dataset.pl; [P.photos[i - 1], P.photos[i]] = [P.photos[i], P.photos[i - 1]]; }));
+      ed.querySelectorAll('[data-pr]').forEach(b => b.onclick = maj(() => { const i = +b.dataset.pr; [P.photos[i + 1], P.photos[i]] = [P.photos[i], P.photos[i + 1]]; }));
+      ed.querySelector('#phAdd').onclick = e => ajouterImages('photos', e.currentTarget);
+      ed.querySelector('#phUrl').onclick = () => { const u = prompt('Colle le lien de la photo :'); if (u && /^https?:\/\//.test(u.trim())) maj(() => P.photos.push(u.trim()))(); };
+      ed.querySelectorAll('[data-bu]').forEach(b => b.onclick = maj(() => { const i = +b.dataset.bu; [blocs[i - 1], blocs[i]] = [blocs[i], blocs[i - 1]]; }));
+      ed.querySelectorAll('[data-bd]').forEach(b => b.onclick = maj(() => { const i = +b.dataset.bd; [blocs[i + 1], blocs[i]] = [blocs[i], blocs[i + 1]]; }));
+      ed.querySelectorAll('[data-bx]').forEach(b => b.onclick = maj(() => blocs.splice(+b.dataset.bx, 1)));
+      ed.querySelectorAll('[data-add]').forEach(b => b.onclick = e => { if (b.dataset.add === 'img') ajouterImages('bloc', e.currentTarget); else maj(() => blocs.push({t: b.dataset.add, v: ''}))(); });
+      ed.querySelectorAll('[data-cp]').forEach(b => b.onclick = maj(() => {
+        const srcP = prixDe(b.dataset.cp); if (!srcP) return;
+        const dev = (PR.pays.find(p => p.nom === b.dataset.cp) || {}).devise;
+        paysTous.filter(p => p.nom !== b.dataset.cp && p.devise === dev).forEach(p => { let x = prixDe(p.nom); if (!x){ x = {pays: p.nom}; P.prix.push(x); } Object.assign(x, srcP, {pays: p.nom}); });
+      }));
+      ed.querySelector('#fAdd').onclick = maj(() => faq.push({q: '', r: ''}));
+      ed.querySelectorAll('[data-fx]').forEach(b => b.onclick = maj(() => faq.splice(+b.dataset.fx, 1)));
+      ed.querySelector('#aAdd').onclick = maj(() => P.avis.push({nom: '', texte: '', note: 5, photo: ''}));
+      ed.querySelectorAll('[data-ax]').forEach(b => b.onclick = maj(() => P.avis.splice(+b.dataset.ax, 1)));
+      ed.querySelectorAll('[data-ap]').forEach(b => b.onclick = e => ajouterImages(+b.dataset.ap, e.currentTarget));
+      ed.querySelectorAll('[data-copy]').forEach(b => b.onclick = async () => { try { await navigator.clipboard.writeText(b.dataset.copy); b.textContent = '✓ Lien copié'; } catch(e){ prompt('Copie ce lien :', b.dataset.copy); } });
+      ed.querySelectorAll('input, textarea, select').forEach(i => i.addEventListener('input', () => sale = true));
+      ed.querySelectorAll('textarea').forEach(t => { const a = () => { t.style.height = 'auto'; t.style.height = t.scrollHeight + 2 + 'px'; }; t.addEventListener('input', a); a(); });
+      [ed.querySelector('#edSave'), ed.querySelector('#edSave2')].forEach(b => b.onclick = enregistrer);
+      const dup = ed.querySelector('#eDup'); if (dup) dup.onclick = async () => { if (sale && !confirm('Les modifications non enregistrées ne seront pas copiées. Continuer ?')) return; ed.remove(); document.body.style.overflow = ''; dupliquer(src.id); };
+      const del = ed.querySelector('#eDel'); if (del) del.onclick = async () => {
+        if (!confirm(`Supprimer définitivement « ${P.nom} » ? Ses prix et avis seront supprimés aussi.`)) return;
+        del.textContent = 'Suppression…';
+        try { await call({type: 'produits', action: 'supprimer', id: src.id}); PR.produits = PR.produits.filter(p => p.id !== src.id); try { S.set('adm_prods', JSON.stringify(PR)); } catch(e){} fermer(true); loadPR(); }
+        catch(e){ del.textContent = 'Échec : réessayer'; }
+      };
+    }
+    async function enregistrer(){
+      lire();
+      if (!P.nom.trim()){ alert('Donne un titre au produit.'); ed.querySelector('#eNom').focus(); return; }
+      const bs = [ed.querySelector('#edSave'), ed.querySelector('#edSave2')]; bs.forEach(b => { b.disabled = true; b.textContent = 'Enregistrement…'; });
+      const envoi = Object.assign({}, P, {
+        description: blocs.filter(b => String(b.v).trim()).map(b => b.t === 'titre' ? '## ' + b.v.trim() : b.t === 'img' ? b.v.trim() : b.v.replace(/\n+/g, ' ').trim()).join('\n'),
+        faq: faq.filter(f => f.q.trim() && f.r.trim()).map(f => f.q.trim().replace(/>>/g, '>') + ' >> ' + f.r.trim().replace(/\n+/g, ' ')).join('\n')
+      });
+      try {
+        const r = await call({type: 'produits', action: 'sauver', produit: envoi, ancienId: neuf ? '' : src.id});
+        sale = false;
+        const fait = Object.assign({}, envoi, {id: r.id});
+        if (neuf) PR.produits.push(fait); else PR.produits[PR.produits.findIndex(p => p.id === src.id)] = fait;
+        try { S.set('adm_prods', JSON.stringify(PR)); } catch(e){}
+        pubP = null; loadPub();
+        fermer(true);
+        toast(P.enLigne ? '✅ Enregistré et en ligne sur le site' : '📝 Enregistré en brouillon');
+        loadPR();
+      } catch(e){ bs.forEach(b => { b.disabled = false; b.textContent = 'Réessayer'; }); alert('Enregistrement impossible : ' + e.message); }
+    }
+    dessiner();
+  }
+  function toast(t){ const el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role', 'status'); el.innerHTML = `<div><b>${esc(t)}</b></div>`; document.body.appendChild(el); setTimeout(() => el.remove(), 3500); }
 
   /* ---------- Promotions TikTok ---------- */
   let TT = null, ttPer = S.get('adm_ttper') || '7j', ttBusy = false;
@@ -707,7 +978,7 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
       if (!TT && view === 'tiktok') app.innerHTML = ttTop() + `<div class="sheet"><div class="empty">${/mot de passe/i.test(e.message) ? 'Mot de passe incorrect.' : /inconnu|Produit introuvable|tiktok/i.test(e.message) ? 'Mets à jour le code Apps Script (Code.gs) puis crée une nouvelle version.' : 'Connexion impossible. Réessaie.'}</div></div>`;
     } finally { ttBusy = false; }
   }
-  function tiktok(){ if (!TT) TT = ttCache(); drawTT(); loadTT(); if (!pubData) fetch(API + '?t=' + Date.now()).then(r => r.json()).then(j => { pubData = j; if (view === 'tiktok' && !document.querySelector('.overlay')) drawTT(); }).catch(() => {}); }
+  function tiktok(){ if (!TT) TT = ttCache(); drawTT(); loadTT(); loadPub().then(() => { if (view === 'tiktok' && !document.querySelector('.overlay')) drawTT(); }); }
 
   function sheet(html){
     const ov = document.createElement('div'); ov.className = 'overlay';
@@ -738,7 +1009,7 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
       <button class="btn tt" id="npGo">Créer le lien</button>
       <button class="btn ghost" data-close style="margin-top:10px">Annuler</button>`);
     try {
-      if (!pubData) pubData = await (await fetch(API + '?t=' + Date.now())).json();
+      if (!pubData) await loadPub();
       ov.querySelector('#npProd').innerHTML = pubData.produits.map(p => `<option value="${esc(p.id)}">${esc(p.nom)}</option>`).join('') + '<option value="">Page d’accueil (tous les produits)</option>';
     } catch(e){ ov.querySelector('#npProd').innerHTML = '<option value="">Page d’accueil (tous les produits)</option>'; }
     const box = ov.querySelector('#npPays'), nb = ov.querySelector('#npNb'), tous = ov.querySelector('#npTous');
@@ -870,7 +1141,7 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
   if (key){
     nav.classList.remove('hidden');
     D = fromCache(periode);
-    if (D) render(); else app.innerHTML = '<div class="loading">Chargement…</div>';
+    render();
     setBusy(true);
     refresh().then(() => { if (key) schedule(); });
   }
