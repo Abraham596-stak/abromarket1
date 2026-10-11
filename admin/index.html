@@ -251,7 +251,13 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
   const fmt = (n, d) => (Number(n)||0).toLocaleString('fr-FR', {maximumFractionDigits: 2}).replace(/[  ]/g, ' ') + (d ? ' ' + d : '');
   const short = n => { n = Number(n)||0; return n >= 1e6 ? (n/1e6).toFixed(1).replace('.0','') + ' M' : n >= 1e3 ? Math.round(n/1e3) + ' k' : String(Math.round(n)); };
 
-  let key = S.get('adm_key') || '', D = null, view = ['tiktok','orders','abandons'].indexOf(new URLSearchParams(location.search).get('v')) >= 0 ? new URLSearchParams(location.search).get('v') : 'home', metric = 'ventes', periode = 'jour', filtre = 'Toutes', q = '';
+  const SS = { get(k){ try{return sessionStorage.getItem(k)}catch(e){return null} }, set(k,v){ try{sessionStorage.setItem(k,v)}catch(e){} } };
+  const VUES = ['home','orders','abandons','tiktok','products','settings'];
+  const vueDemandee = new URLSearchParams(location.search).get('v');
+  let key = S.get('adm_key') || '', D = null, view = VUES.includes(vueDemandee) ? vueDemandee : (VUES.includes(SS.get('adm_view')) ? SS.get('adm_view') : 'home'), metric = 'ventes', periode = SS.get('adm_periode') || 'jour', filtre = SS.get('adm_filtre') || 'Toutes', q = '';
+  let scrollAReprendre = Number(SS.get('adm_scroll')) || 0;
+  addEventListener('pagehide', () => { SS.set('adm_view', view); SS.set('adm_scroll', String(Math.round(scrollY))); SS.set('adm_filtre', filtre); SS.set('adm_periode', periode); });
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden'){ SS.set('adm_view', view); SS.set('adm_scroll', String(Math.round(scrollY))); } });
   let sound = S.get('adm_sound') !== '0', lastNum = S.get('adm_last') || '', pubData = null, timer = null, busy = false;
 
   /* ---------- Son de nouvelle commande ---------- */
@@ -366,12 +372,13 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
   function start(){ nav.classList.remove('hidden'); render(); schedule(); }
 
   /* ---------- Navigation ---------- */
-  function go(v){ view = v; [...nav.children].forEach(b => b.classList.toggle('on', b.dataset.v === v)); render(); scrollTo({top:0}); }
+  function go(v){ view = v; SS.set('adm_view', v); scrollAReprendre = 0; [...nav.children].forEach(b => b.classList.toggle('on', b.dataset.v === v)); render(); scrollTo({top:0}); }
   nav.addEventListener('click', e => { const b = e.target.closest('button'); if (b) go(b.dataset.v); });
   function render(){
     if (!D) { app.innerHTML = '<div class="loading">Chargement…</div>'; return; }
     [...nav.children].forEach(b => b.classList.toggle('on', b.dataset.v === view));
     ({home, orders, abandons, products, settings, tiktok}[view])();
+    if (scrollAReprendre){ const y = scrollAReprendre; requestAnimationFrame(() => scrollTo(0, y)); if (view !== 'tiktok' || TT) scrollAReprendre = 0; }
   }
 
   /* ---------- Accueil ---------- */
