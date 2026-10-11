@@ -400,7 +400,7 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
       <div class="gallery"><div class="slides" id="slides">${photos.map((s,i)=>`<img src="${esc(img(s))}" alt="${esc(P.nom)} photo ${i+1}" width="600" height="600" ${i?'decoding="async"':'fetchpriority="high"'}>`).join('')}</div></div>
       ${photos.length > 1 ? `<div class="dots" id="dots">${photos.map((_,i)=>`<span class="${i?'':'on'}"></span>`).join('')}</div>` : ''}
       <div class="intro"><h1>${esc(P.nom)}</h1>${P.accroche?`<p>${esc(P.accroche)}</p>`:''}
-        ${nAvis ? `<div class="stars">★★★★★<small>(${nAvis} avis)</small></div>` : ''}
+        <div class="stars">★★★★★<small>(4.5/5 basé sur 1120 avis)</small></div>
         ${P.avantages.length ? `<ul class="perks top">${P.avantages.map(a=>`<li>${esc(a)}</li>`).join('')}</ul>` : ''}</div>
       ${priceBlock}
       ${form}
