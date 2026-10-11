@@ -184,7 +184,41 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
 .spin{width:34px;height:34px;border:4px solid var(--line);border-top-color:var(--main);border-radius:50%;margin:0 auto 14px;animation:s 1s linear infinite}
 @keyframes s{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
-@media (min-width:600px){.prod .wrap{border-left:1px solid var(--line);border-right:1px solid var(--line)}.sticky{max-width:560px;margin:0 auto}}
+@media (min-width:600px) and (max-width:999px){.prod .wrap{border-left:1px solid var(--line);border-right:1px solid var(--line)}.sticky{max-width:560px;margin:0 auto}}
+.thumbs{display:none}
+/* ---------- Version ordinateur ---------- */
+@media (min-width:1000px){
+  body{background:var(--surface)}
+  .wrap,.home .wrap{max-width:1200px;box-shadow:0 0 0 1px var(--line)}
+  header{padding:16px 32px}
+  .brand{font-size:24px}.brand img{height:42px}
+  .hero{padding:40px 32px 10px}.hero h1{font-size:40px}
+  .grid{grid-template-columns:repeat(4,1fr);gap:22px;padding:24px 32px 32px}
+  .card .cn{font-size:16px}
+  .ptop{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:44px;padding:32px 32px 8px;align-items:start}
+  .pgal{position:sticky;top:96px}
+  .gallery{border-radius:20px;overflow:hidden}
+  .dots{display:none}
+  .thumbs{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+  .thumbs button{width:76px;height:76px;border-radius:12px;overflow:hidden;border:2px solid transparent;padding:0;cursor:pointer;background:var(--surface)}
+  .thumbs button.on{border-color:var(--main)}
+  .thumbs img{width:100%;height:100%;object-fit:cover}
+  .intro{padding:0}
+  .intro h1{font-size:36px}
+  .pricetag,.stock,.unavail{margin-left:0;margin-right:0}
+  #commande{border-radius:22px;margin-top:22px;padding:26px 24px}
+  .pbelow{max-width:860px;margin:0 auto;padding:10px 32px 0}
+  .pbelow section{padding:36px 0}
+  .pbelow section h2{font-size:28px}
+  .reviews{display:grid;grid-template-columns:repeat(3,1fr);overflow:visible;margin:0;padding:0}
+  .review{flex:none}
+  .rdots{display:none}
+  .trust{grid-template-columns:repeat(4,1fr)}
+  .sticky{display:none}
+  body.has-sticky{padding-bottom:0}
+  footer{padding:30px 32px 40px}
+  section{padding:32px}
+}
 </style>
 </head>
 <body>
@@ -397,24 +431,34 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
     const desc = P.description || P.boite.length;
     const nAvis = P.avis.length;
     app.innerHTML = `<div class="wrap">${header(avail)}
+      <div class="ptop"><div class="pgal">
       <div class="gallery"><div class="slides" id="slides">${photos.map((s,i)=>`<img src="${esc(img(s))}" alt="${esc(P.nom)} photo ${i+1}" width="600" height="600" ${i?'decoding="async"':'fetchpriority="high"'}>`).join('')}</div></div>
-      ${photos.length > 1 ? `<div class="dots" id="dots">${photos.map((_,i)=>`<span class="${i?'':'on'}"></span>`).join('')}</div>` : ''}
+      ${photos.length > 1 ? `<div class="dots" id="dots">${photos.map((_,i)=>`<span class="${i?'':'on'}"></span>`).join('')}</div>
+        <div class="thumbs" id="thumbs">${photos.map((s,i)=>`<button type="button" data-i="${i}" class="${i?'':'on'}" aria-label="Photo ${i+1}"><img src="${esc(img(s))}" alt="" loading="lazy"></button>`).join('')}</div>` : ''}
+      </div><div class="pinfo">
       <div class="intro"><h1>${esc(P.nom)}</h1>${P.accroche?`<p>${esc(P.accroche)}</p>`:''}
         <div class="stars">★★★★★<small>(4.5/5 basé sur 1120 avis)</small></div>
         ${P.avantages.length ? `<ul class="perks top">${P.avantages.map(a=>`<li>${esc(a)}</li>`).join('')}</ul>` : ''}</div>
       ${priceBlock}
       ${form}
+      </div></div><div class="pbelow">
       ${desc ? `<section><h2>Description</h2><div class="rich">${rich(P.description)}</div>
         ${P.boite.length ? `<div class="box"><h3>Dans la boîte</h3><ul>${P.boite.map(a=>`<li>${esc(a)}</li>`).join('')}</ul></div>` : ''}</section>` : ''}
       ${nAvis ? `<section><h2>Ils l'ont déjà reçu</h2><div class="reviews" id="revs">${P.avis.map(a=>`<div class="review"><div class="rs">${'★'.repeat(a.note)}${'☆'.repeat(5-a.note)}</div><p>${esc(a.texte)}</p><div class="who">${esc(a.nom)}</div>${a.photo?`<img src="${esc(img(a.photo))}" alt="" loading="lazy">`:''}</div>`).join('')}</div>
         ${nAvis > 1 ? `<div class="rdots" id="rdots">${P.avis.map((_,i)=>`<span class="${i?'':'on'}"></span>`).join('')}</div>` : ''}</section>` : ''}
       ${P.faq.length ? `<section><h2>Questions fréquentes</h2>${P.faq.map(f=>`<details><summary>${esc(f.q)}</summary><p>${esc(f.r)}</p></details>`).join('')}</section>` : ''}
       ${trust()}
+      </div>
       <footer><a href="./">← Voir tous nos produits</a><br>© ${new Date().getFullYear()} ${esc(R('Nom de la boutique'))}</footer></div>
       ${px ? `<div class="sticky" id="sticky"><div class="sp">${money(o1.prix, dev)}</div><a href="#commande" class="cta attn">Je commande</a></div>` : ''}`;
 
     bindCountry();
     slider($('slides'), $('dots'), false);
+    const th = $('thumbs'), sl = $('slides');
+    if (th && sl){
+      th.onclick = e => { const b = e.target.closest('[data-i]'); if (!b) return; const i = +b.dataset.i; sl.scrollTo({left: sl.children[i].offsetLeft - sl.children[0].offsetLeft, behavior: 'smooth'}); };
+      sl.addEventListener('scroll', () => { const i = Math.round(sl.scrollLeft / (sl.children[0].getBoundingClientRect().width || 1)); [...th.children].forEach((b, k) => b.classList.toggle('on', k === i)); }, {passive: true});
+    }
     slider($('revs'), $('rdots'), true);
     if (px) bindForm(P, pays, px);
   }
@@ -617,7 +661,9 @@ Heure de la livraison : ${r.livraison}`;
     $('commande').scrollIntoView({behavior:'smooth', block:'start'});
   }
 
+  const APERCU = params.get('apercu') === '1';
   function pixels(){
+    if (APERCU) return;
     if (pixelsOn) return;
     const fb = R('Pixel Facebook (ID)'), tt = R('Pixel TikTok (ID)');
     if (!fb && !tt) return;
@@ -722,7 +768,7 @@ Heure de la livraison : ${r.livraison}`;
     if (ready) await ready;
     if (!D) app.innerHTML = '<div class="empty">Impossible de charger la boutique. Vérifiez votre connexion et actualisez la page.</div>';
   }
-  load().then(() => { if (D) startTracking(); });
+  load().then(() => { if (D && !APERCU) startTracking(); });
 })();
 </script>
 </body>
