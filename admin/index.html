@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0E1F63">
+<meta name="theme-color" content="#12308F">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="ABROMARKET">
@@ -25,7 +25,7 @@ const SITE = "https://abraham596-stak.github.io/abromarket1/boutique/";
 </script>
 <style>
 :root{
-  --deep:#0E1F63; --main:#1736A6; --sun:#FFC93C; --ink:#141A2E; --soft:#5A6178; --line:#E3E6EF;
+  --deep:#12308F; --main:#2350D8; --sun:#FFC93C; --ink:#141A2E; --soft:#5A6178; --line:#E3E6EF;
   --surface:#F3F5FB; --bg:#FFFFFF; --ok:#12A150; --okbg:#DDF5E7; --err:#C62828; --errbg:#FBE3E3;
   --onDeep:#FFFFFF; --onDeepSoft:rgba(255,255,255,.66);
 }
@@ -125,13 +125,13 @@ body{touch-action:manipulation}
 .order .l3{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 .daysep{background:var(--surface);color:var(--soft);font-weight:600;font-size:14px;padding:8px 12px;margin:10px -16px 0}
 .badge{display:inline-block;padding:4px 10px;border-radius:999px;font-size:14px;font-weight:600;background:#FFF1BF;color:#6B4E00}
-.b-Confirmée{background:#DCE6FF;color:#1736A6}.b-Livrée{background:var(--okbg);color:#0B6B35}
+.b-Confirmée{background:#DCE6FF;color:#2350D8}.b-Livrée{background:var(--okbg);color:#0B6B35}
 .b-Annulée,.b-Retournée{background:var(--errbg);color:#9B1C1C}.b-Injoignable{background:#ECEDF2;color:#4A5068}
 .b-En{background:#E9E2FF;color:#4B2BA8}.b-Expédition{background:#FFE6D1;color:#8A3D00}
 .tag{font-size:13px;color:var(--soft)}
 
 /* Détail */
-.overlay{position:fixed;inset:0;background:rgba(14,31,99,.45);z-index:40;display:flex;align-items:flex-end;justify-content:center}
+.overlay{position:fixed;inset:0;background:rgba(18,48,143,.45);z-index:40;display:flex;align-items:flex-end;justify-content:center}
 .detail{background:#fff;width:100%;max-width:560px;border-radius:24px 24px 0 0;padding:20px 18px calc(24px + env(safe-area-inset-bottom));max-height:88vh;overflow:auto;animation:up .22s ease-out}
 @keyframes up{from{transform:translateY(40px);opacity:.4}}
 .detail .grab{width:44px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 14px}
@@ -178,14 +178,14 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
 .help b{color:var(--ink)}
 
 /* Navigation */
-.nav{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom));display:flex;gap:4px;background:#fff;border-radius:999px;padding:6px;box-shadow:0 8px 30px rgba(14,31,99,.22);z-index:30}
+.nav{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom));display:flex;gap:4px;background:#fff;border-radius:999px;padding:6px;box-shadow:0 8px 30px rgba(18,48,143,.22);z-index:30}
 .nav button{width:52px;height:50px;border-radius:999px;display:grid;place-items:center;position:relative;color:var(--soft)}
 .nav button.on{background:var(--surface);color:var(--deep)}
 .nav svg{width:24px;height:24px}
 .nav .dot{position:absolute;top:7px;right:12px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--err);color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center}
 
 /* Alerte nouvelle commande */
-.toast{position:fixed;left:12px;right:12px;top:calc(12px + env(safe-area-inset-top));z-index:60;max-width:520px;margin:0 auto;background:var(--sun);color:var(--deep);border-radius:18px;padding:14px 16px;display:flex;gap:12px;align-items:center;box-shadow:0 10px 30px rgba(14,31,99,.35);animation:drop .35s cubic-bezier(.2,1.4,.4,1)}
+.toast{position:fixed;left:12px;right:12px;top:calc(12px + env(safe-area-inset-top));z-index:60;max-width:520px;margin:0 auto;background:var(--sun);color:var(--deep);border-radius:18px;padding:14px 16px;display:flex;gap:12px;align-items:center;box-shadow:0 10px 30px rgba(18,48,143,.35);animation:drop .35s cubic-bezier(.2,1.4,.4,1)}
 @keyframes drop{from{transform:translateY(-120%)}}
 .toast .e{font-size:30px}
 .toast b{display:block;font:800 18px "Bricolage Grotesque",sans-serif}
@@ -319,7 +319,7 @@ html.ordi .dvgrid{grid-template-columns:repeat(4,minmax(0,1fr))}
 .login .logo{background:none;width:88px;height:88px;border-radius:24px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.35)}
 .login .logo img{width:100%;height:100%;display:block}
 /* Confirmation */
-.cfov{position:fixed;inset:0;z-index:90;background:rgba(14,31,99,.55);display:flex;align-items:center;justify-content:center;padding:20px;animation:fd .15s ease-out}
+.cfov{position:fixed;inset:0;z-index:90;background:rgba(18,48,143,.55);display:flex;align-items:center;justify-content:center;padding:20px;animation:fd .15s ease-out}
 @keyframes fd{from{opacity:0}}
 .cfbox{background:#fff;border-radius:22px;padding:22px 20px 18px;width:100%;max-width:400px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.3);animation:up .2s ease-out}
 .cfic{width:56px;height:56px;border-radius:50%;margin:0 auto 12px;display:grid;place-items:center;font-size:26px;background:#DCE6FF}
@@ -330,7 +330,7 @@ html.ordi .dvgrid{grid-template-columns:repeat(4,minmax(0,1fr))}
 .cfbtns{display:grid;gap:10px;margin-top:18px}
 .btn.dang{background:var(--err);color:#fff}
 /* Éditeur de produits */
-.savebadge{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom));z-index:70;background:var(--deep);color:#fff;font-size:13px;font-weight:600;padding:8px 14px;border-radius:999px;box-shadow:0 6px 20px rgba(14,31,99,.3);white-space:nowrap}
+.savebadge{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom));z-index:70;background:var(--deep);color:#fff;font-size:13px;font-weight:600;padding:8px 14px;border-radius:999px;box-shadow:0 6px 20px rgba(18,48,143,.3);white-space:nowrap}
 .savebadge.err{background:#9B1C1C}
 .prhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
 .prhead h1{font-size:30px}
@@ -349,7 +349,7 @@ html.ordi .dvgrid{grid-template-columns:repeat(4,minmax(0,1fr))}
 .okmsg{background:var(--okbg);color:#0B6B35;font-weight:700;border-radius:14px;padding:12px 14px;margin-bottom:12px}
 .seg{display:grid;grid-template-columns:1fr 1fr;background:var(--surface);border-radius:14px;padding:4px}
 .seg button{padding:12px;border-radius:11px;font-weight:700;color:var(--soft)}
-.seg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 4px rgba(14,31,99,.15)}
+.seg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 4px rgba(18,48,143,.15)}
 .phgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
 .ph{position:relative;aspect-ratio:1;border-radius:14px;overflow:hidden;background:var(--surface)}
 .ph img{width:100%;height:100%;object-fit:cover;display:block}
@@ -389,12 +389,12 @@ textarea.ttl{font-weight:800;font-size:18px}
 .apframe{position:relative;overflow:hidden;background:#fff}
 .apframe iframe{border:0;display:block;transform-origin:0 0;width:100%;height:100%}
 .apstage.ordi .apframe{width:100%;height:calc(100vh - 290px);min-height:420px;border-radius:12px;border:1px solid var(--line)}
-.apstage.mobile .apframe{width:min(390px,100%);height:min(780px,calc(100vh - 260px));min-height:480px;margin:0 auto;border:10px solid #111;border-radius:40px;box-shadow:0 18px 40px rgba(14,31,99,.25)}
+.apstage.mobile .apframe{width:min(390px,100%);height:min(780px,calc(100vh - 260px));min-height:480px;margin:0 auto;border:10px solid #111;border-radius:40px;box-shadow:0 18px 40px rgba(18,48,143,.25)}
 /* Bascule d'affichage */
 .vuebar{position:fixed;left:12px;bottom:16px;width:212px;z-index:31}
 .vuebar small{display:block;color:var(--soft);font-weight:600;font-size:12px;margin:0 0 6px 4px}
 .vuebar .seg button{padding:9px 6px;font-size:13px}
-.vueflot{position:fixed;top:14px;right:14px;z-index:35;background:#fff;color:var(--deep);border-radius:999px;padding:10px 16px;font-weight:700;font-size:14px;box-shadow:0 6px 20px rgba(14,31,99,.25)}
+.vueflot{position:fixed;top:14px;right:14px;z-index:35;background:#fff;color:var(--deep);border-radius:999px;padding:10px 16px;font-weight:700;font-size:14px;box-shadow:0 6px 20px rgba(18,48,143,.25)}
 /* ---------- Version ordinateur de l'application ---------- */
 html.ordi body{background:var(--surface)}
 html.ordi .app{max-width:none;margin:0 0 0 236px;min-height:100vh}
