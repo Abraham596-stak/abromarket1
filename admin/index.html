@@ -229,6 +229,17 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
 .prow{display:flex;justify-content:space-between;align-items:baseline;margin:14px 0 8px}
 .prow .lbl{margin:0}
 .prow button{font-weight:600;font-size:14px;color:var(--main)}
+/* Confirmation */
+.cfov{position:fixed;inset:0;z-index:90;background:rgba(14,31,99,.55);display:flex;align-items:center;justify-content:center;padding:20px;animation:fd .15s ease-out}
+@keyframes fd{from{opacity:0}}
+.cfbox{background:#fff;border-radius:22px;padding:22px 20px 18px;width:100%;max-width:400px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.3);animation:up .2s ease-out}
+.cfic{width:56px;height:56px;border-radius:50%;margin:0 auto 12px;display:grid;place-items:center;font-size:26px;background:#DCE6FF}
+.cfic.d{background:var(--errbg)}
+.cfbox h2{font-size:22px;margin-bottom:8px}
+.cfbox p{color:var(--soft);font-size:15px;line-height:1.5}
+.cfbox p b{color:var(--ink)}
+.cfbtns{display:grid;gap:10px;margin-top:18px}
+.btn.dang{background:var(--err);color:#fff}
 /* Éditeur de produits */
 .savebadge{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom));z-index:70;background:var(--deep);color:#fff;font-size:13px;font-weight:600;padding:8px 14px;border-radius:999px;box-shadow:0 6px 20px rgba(14,31,99,.3);white-space:nowrap}
 .savebadge.err{background:#9B1C1C}
@@ -813,7 +824,7 @@ textarea.ttl{font-weight:800;font-size:18px}
     let sale = false;
     const ed = document.createElement('div'); ed.className = 'editor'; ed.setAttribute('role', 'dialog'); ed.setAttribute('aria-modal', 'true');
     document.body.appendChild(ed); document.body.style.overflow = 'hidden';
-    const fermer = force => { if (!force && sale && !confirm('Quitter sans enregistrer les modifications ?')) return; ed.remove(); document.body.style.overflow = ''; drawProducts(); };
+    const fermer = async force => { if (!force && sale && !(await confirmer({titre: 'Quitter sans enregistrer ?', texte: 'Tes dernières modifications de ce produit seront perdues.', ok: 'Quitter sans enregistrer', annuler: 'Continuer à modifier'}))) return; ed.remove(); document.body.style.overflow = ''; drawProducts(); };
     const img = u => apercus[u] || vignette(u, 400);
 
     let ouverts = [];
@@ -906,7 +917,7 @@ textarea.ttl{font-weight:800;font-size:18px}
     function lier(){
       ed.querySelector('#edX').onclick = () => fermer();
       ed.querySelectorAll('[data-st]').forEach(b => b.onclick = maj(() => P.enLigne = b.dataset.st === '1'));
-      ed.querySelectorAll('[data-pd]').forEach(b => b.onclick = maj(() => P.photos.splice(+b.dataset.pd, 1)));
+      ed.querySelectorAll('[data-pd]').forEach(b => b.onclick = async () => { if (await confirmer({titre: 'Retirer cette photo ?', texte: 'La photo sera retirée du produit quand tu enregistreras.', ok: 'Retirer la photo'})) maj(() => P.photos.splice(+b.dataset.pd, 1))(); });
       ed.querySelectorAll('[data-pl]').forEach(b => b.onclick = maj(() => { const i = +b.dataset.pl; [P.photos[i - 1], P.photos[i]] = [P.photos[i], P.photos[i - 1]]; }));
       ed.querySelectorAll('[data-pr]').forEach(b => b.onclick = maj(() => { const i = +b.dataset.pr; [P.photos[i + 1], P.photos[i]] = [P.photos[i], P.photos[i + 1]]; }));
       ed.querySelector('#phAdd').onclick = e => ajouterImages('photos', e.currentTarget);
@@ -923,15 +934,15 @@ textarea.ttl{font-weight:800;font-size:18px}
       ed.querySelector('#fAdd').onclick = maj(() => faq.push({q: '', r: ''}));
       ed.querySelectorAll('[data-fx]').forEach(b => b.onclick = maj(() => faq.splice(+b.dataset.fx, 1)));
       ed.querySelector('#aAdd').onclick = maj(() => P.avis.push({nom: '', texte: '', note: 5, photo: ''}));
-      ed.querySelectorAll('[data-ax]').forEach(b => b.onclick = maj(() => P.avis.splice(+b.dataset.ax, 1)));
+      ed.querySelectorAll('[data-ax]').forEach(b => b.onclick = async () => { if (await confirmer({titre: 'Retirer cet avis ?', texte: 'L’avis sera retiré du produit quand tu enregistreras.', ok: 'Retirer l’avis'})) maj(() => P.avis.splice(+b.dataset.ax, 1))(); });
       ed.querySelectorAll('[data-ap]').forEach(b => b.onclick = e => ajouterImages(+b.dataset.ap, e.currentTarget));
       ed.querySelectorAll('[data-copy]').forEach(b => b.onclick = async () => { try { await navigator.clipboard.writeText(b.dataset.copy); b.textContent = '✓ Lien copié'; } catch(e){ prompt('Copie ce lien :', b.dataset.copy); } });
       ed.querySelectorAll('input, textarea, select').forEach(i => i.addEventListener('input', () => sale = true));
       ed.querySelectorAll('textarea').forEach(t => { const a = () => { t.style.height = 'auto'; t.style.height = t.scrollHeight + 2 + 'px'; }; t.addEventListener('input', a); a(); });
       [ed.querySelector('#edSave'), ed.querySelector('#edSave2')].forEach(b => b.onclick = enregistrer);
-      const dup = ed.querySelector('#eDup'); if (dup) dup.onclick = () => { if (sale && !confirm('Les modifications non enregistrées ne seront pas copiées. Continuer ?')) return; ed.remove(); document.body.style.overflow = ''; dupliquer(src.id); };
+      const dup = ed.querySelector('#eDup'); if (dup) dup.onclick = async () => { if (sale && !(await confirmer({titre: 'Dupliquer sans enregistrer ?', texte: 'Les modifications pas encore enregistrées ne seront pas copiées.', ok: 'Dupliquer quand même', danger: false, icone: '⧉'}))) return; ed.remove(); document.body.style.overflow = ''; dupliquer(src.id); };
       const del = ed.querySelector('#eDel'); if (del) del.onclick = async () => {
-        if (!confirm(`Supprimer définitivement « ${P.nom} » ? Ses prix et avis seront supprimés aussi.`)) return;
+        if (!(await confirmer({titre: 'Supprimer ce produit ?', texte: `Tu es sur le point de supprimer <b>« ${esc(P.nom)} »</b> avec ses photos, ses prix et ses avis.<br><br><b>Cette action est irréversible :</b> le produit disparaîtra du site et du Google Sheets, et son lien ne marchera plus.`, ok: 'Oui, supprimer définitivement'}))) return;
         PR.produits = PR.produits.filter(p => p.id !== src.id); memoPR();
         enfiler({action: 'supprimer', id: src.id});
         fermer(true); toast('🗑 Produit supprimé');
@@ -955,6 +966,22 @@ textarea.ttl{font-weight:800;font-size:18px}
       toast(fait.enLigne ? '✅ Enregistré · en ligne sur le site dans quelques secondes' : '📝 Enregistré en brouillon');
     }
     dessiner();
+  }
+  // Fenêtre de confirmation claire (remplace la petite fenêtre du navigateur)
+  function confirmer({titre, texte, ok = 'Supprimer', annuler = 'Annuler', danger = true, icone = '⚠️'}){
+    return new Promise(fin => {
+      const ov = document.createElement('div'); ov.className = 'cfov';
+      ov.innerHTML = `<div class="cfbox" role="alertdialog" aria-modal="true" aria-labelledby="cfT" aria-describedby="cfD">
+        <div class="cfic ${danger ? 'd' : ''}" aria-hidden="true">${icone}</div>
+        <h2 id="cfT">${esc(titre)}</h2><p id="cfD">${texte}</p>
+        <div class="cfbtns"><button class="btn ${danger ? 'dang' : 'blue'}" data-r="1">${esc(ok)}</button><button class="btn ghost" data-r="0">${esc(annuler)}</button></div></div>`;
+      document.body.appendChild(ov);
+      const fermer = r => { ov.remove(); document.removeEventListener('keydown', k); fin(r); };
+      const k = e => { if (e.key === 'Escape') fermer(false); };
+      document.addEventListener('keydown', k);
+      ov.onclick = e => { if (e.target === ov) fermer(false); const b = e.target.closest('[data-r]'); if (b) fermer(b.dataset.r === '1'); };
+      ov.querySelector('[data-r="0"]').focus();
+    });
   }
   function toast(t){ const el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role', 'status'); el.innerHTML = `<div><b>${esc(t)}</b></div>`; document.body.appendChild(el); setTimeout(() => el.remove(), 3500); }
 
@@ -1167,7 +1194,7 @@ textarea.ttl{font-weight:800;font-size:18px}
     };
     const del = ov.querySelector('#pdDel');
     if (del) del.onclick = async () => {
-      if (!confirm(`Supprimer « ${p.nom} » (n°${p.code}) ?` + (p.commandes ? `\n${p.commandes} commande(s) y sont liées : elles resteront dans tes commandes.` : ''))) return;
+      if (!(await confirmer({titre: 'Supprimer cette promotion ?', texte: `Tu es sur le point de supprimer <b>« ${esc(p.nom)} »</b> (n°${esc(p.code)}) avec ses visites et ses dépenses.<br><br><b>Cette action est irréversible.</b>` + (p.commandes ? `<br>Ses ${p.commandes} commande(s) resteront dans tes commandes.` : ''), ok: 'Oui, supprimer définitivement'}))) return;
       del.textContent = 'Suppression…';
       try { await call({type: 'tiktok', action: 'supprimer', code: p.code}); await loadTT(true); ov.remove(); drawTT(); }
       catch(e){ del.textContent = 'Échec : réessayer'; }
