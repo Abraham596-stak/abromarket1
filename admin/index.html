@@ -68,8 +68,17 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
 .kpi b{font:800 24px "Bricolage Grotesque",sans-serif;white-space:nowrap}
 .kpi .d{font-size:13px;font-weight:700;margin-left:6px}
 .up{color:#5BE39B}.down{color:#FF9D9D}
-.pulse{display:inline-block;width:10px;height:10px;border-radius:50%;background:#5BE39B;margin-right:6px;box-shadow:0 0 0 0 rgba(91,227,155,.6);animation:p 1.8s infinite}
-@keyframes p{70%{box-shadow:0 0 0 8px rgba(91,227,155,0)}100%{box-shadow:0 0 0 0 rgba(91,227,155,0)}}
+.pulse{position:relative;display:inline-block;width:10px;height:10px;border-radius:50%;background:#5BE39B;margin-right:6px}
+.pulse::after{content:"";position:absolute;inset:0;border-radius:50%;background:#5BE39B;animation:p 1.8s infinite;will-change:transform,opacity}
+@keyframes p{0%{transform:scale(1);opacity:.6}70%,100%{transform:scale(2.6);opacity:0}}
+/* Défilement fluide : le navigateur saute ce qui est hors de l'écran */
+.order{content-visibility:auto;contain-intrinsic-size:auto 96px}
+.ab{content-visibility:auto;contain-intrinsic-size:auto 140px}
+.prod{content-visibility:auto;contain-intrinsic-size:auto 120px}
+.promo{content-visibility:auto;contain-intrinsic-size:auto 190px}
+.nav,.toast,.sync,.savebadge,.vueflot{will-change:transform}
+html{-webkit-text-size-adjust:100%}
+body{touch-action:manipulation}
 
 .chart{margin-top:10px;height:200px;position:relative}
 .chart svg{width:100%;height:100%;display:block;overflow:visible}
@@ -241,6 +250,66 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
 .pdopt{display:flex;align-items:center;gap:14px;padding:15px 4px;border-bottom:1px solid var(--line);font-size:17px;cursor:pointer}
 .pdopt input{width:22px;height:22px;accent-color:var(--deep);flex:0 0 22px}
 .pdbtn{font-weight:700}
+/* Vue en direct (comme Shopify) */
+.dv{background:#F1F1F1;min-height:100vh;color:#303030;padding-bottom:calc(120px + env(safe-area-inset-bottom))}
+.dvbar{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:16px;background:#fff;padding:calc(env(safe-area-inset-top) + 12px) 16px 12px}
+.dvbar h1{font:700 20px "Figtree",system-ui,sans-serif;color:#303030}
+.dvback{width:46px;height:46px;border-radius:50%;background:#EDEDED;font-size:22px;display:grid;place-items:center}
+.dvglobe{position:relative;height:min(92vw,470px);background:linear-gradient(#EEF0F2,#F1F1F1);overflow:hidden;contain:strict}
+.dvglobe canvas{position:absolute;inset:0;display:block}
+#glB{touch-action:pan-y;cursor:grab}
+.dvchips{position:absolute;left:16px;top:14px;right:126px;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;z-index:2}
+.dvchips::-webkit-scrollbar{display:none}
+.dvchip{flex:0 0 auto;display:flex;align-items:center;gap:9px;padding:9px 13px;border-radius:10px;background:rgba(255,255,255,.75);font-size:15px;color:#303030;opacity:.5}
+.dvchip.on{opacity:1}
+.dvchip i{width:13px;height:13px;border-radius:50%;background:#7B4DF0;box-shadow:0 0 0 3px #E6DDFE}
+.dvchip i.pv{border-radius:3px;background:#18A9EE;box-shadow:0 0 0 3px #D3EFFC;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%)}
+.dvmap{position:absolute;right:16px;top:12px;width:46px;height:46px;border-radius:14px;background:#fff;border:1px solid #E3E3E3;display:grid;place-items:center;color:#303030;z-index:2}
+.dvmap.on{background:#303030;color:#fff}
+.dvbody{padding:0 12px;margin-top:-6px;position:relative;z-index:1}
+.dvgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin-bottom:8px}
+.dvcard{background:#fff;border:1px solid #E3E3E3;border-radius:14px;padding:16px 16px;margin-bottom:8px;box-shadow:0 1px 0 rgba(0,0,0,.04)}
+.dvgrid .dvcard{margin:0}
+.dvl,.dvt{display:inline-block;font:600 17px "Figtree",system-ui,sans-serif;color:#303030;border-bottom:2px dotted #CCCCCC;padding-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.dvt{font-size:19px;margin-bottom:12px}
+.dvk b{display:block;font:500 20px "Figtree",system-ui,sans-serif;margin-top:8px;color:#303030}
+.dvk b .dvd{white-space:nowrap;display:inline-block}
+.dvd{font-size:15px;font-weight:600;margin-left:4px}
+.dvd.up{color:#0C8A4E}.dvd.down{color:#8E1F0B}
+.dvfun{display:grid;grid-template-columns:repeat(3,1fr)}
+.dvfun div{padding:0 10px;border-left:1px solid #EBEBEB}
+.dvfun div:first-child{padding-left:0;border-left:0}
+.dvfun span{display:block;font-size:15px;color:#303030;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dvfun b{display:block;font:500 19px "Figtree",sans-serif;margin-top:6px}
+.dvfgraph{display:grid;grid-template-columns:repeat(3,1fr);height:200px;margin-top:20px}
+.dvfcol{position:relative;border-left:1px solid #EBEBEB}
+.dvfcol:first-child{border-left:0}
+.dvfbar{position:absolute;left:0;bottom:0;width:62%;background:#3061E3;border-radius:3px 0 0 0}
+.dvftrap{position:absolute;left:62%;bottom:0;width:38%;background:#A9BDF5}
+.dvlieu{margin-bottom:14px}
+.dvlieu span{display:block;font-size:15px;color:#616161;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dvlrow{display:flex;align-items:center;gap:12px;margin-top:6px}
+.dvlrow i{display:block;height:20px;border-radius:3px;background:#13ABEB}
+.dvlrow em{font-style:normal;font-size:15px;color:#616161}
+.dvleg{display:flex;gap:30px;margin-bottom:16px}
+.dvleg span{display:grid;grid-template-columns:auto auto;column-gap:10px;align-items:center;font-size:15px;color:#616161}
+.dvleg i{width:12px;height:12px;border-radius:50%}
+.dvleg b{grid-column:2;font:500 16px "Figtree",sans-serif;color:#303030;margin-top:4px}
+.dvleg i.n,.dvstack i.n{background:#13ABEB}.dvleg i.r,.dvstack i.r{background:#6A3FE6}
+.dvstack{display:flex;gap:4px;height:84px;margin:6px 0 4px}
+.dvstack i{display:block;min-width:4px;border-radius:2px}
+.dvstack i.z{flex:1;background:#EBEBEB}
+.dvprod{display:grid;grid-template-columns:44px 1fr auto;gap:12px;align-items:center;padding:10px;border-radius:10px}
+.dvprod:nth-child(even){background:#F7F7F7}
+.dvprod img,.dvpi{width:44px;height:44px;border-radius:8px;object-fit:cover;background:#F1F1F1;display:grid;place-items:center}
+.dvprod u{font-size:16px;color:#303030;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-underline-offset:3px}
+.dvprod b{font:600 17px "Figtree",sans-serif;white-space:nowrap}
+.dvvide{color:#616161;font-size:15px;padding:6px 0}
+.kpi.dvgo{cursor:pointer}
+.kpi.dvgo small::after{content:" ›";font-weight:700}
+html.ordi .dvglobe{height:460px}
+html.ordi .dvbody{max-width:980px;margin-left:auto;margin-right:auto}
+html.ordi .dvgrid{grid-template-columns:repeat(4,minmax(0,1fr))}
 /* Confirmation */
 .cfov{position:fixed;inset:0;z-index:90;background:rgba(14,31,99,.55);display:flex;align-items:center;justify-content:center;padding:20px;animation:fd .15s ease-out}
 @keyframes fd{from{opacity:0}}
@@ -374,7 +443,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
   const short = n => { n = Number(n)||0; return n >= 1e6 ? (n/1e6).toFixed(1).replace('.0','') + ' M' : n >= 1e3 ? Math.round(n/1e3) + ' k' : String(Math.round(n)); };
 
   const SS = { get(k){ try{return sessionStorage.getItem(k)}catch(e){return null} }, set(k,v){ try{sessionStorage.setItem(k,v)}catch(e){} } };
-  const VUES = ['home','orders','abandons','tiktok','products','settings','apercu'];
+  const VUES = ['home','orders','abandons','tiktok','products','settings','apercu','direct'];
   /* ---------- Affichage Ordinateur / Mobile (sur PC) ---------- */
   const grandEcran = matchMedia('(min-width: 1000px)');
   function appliquerVue(){
@@ -464,13 +533,27 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
       const dn = document.getElementById('dotNew'); dn.textContent = nouv > 99 ? '99+' : nouv; dn.classList.toggle('hidden', !nouv);
       const ar = j.abandons.filter(a => !a.suivi || a.suivi === 'À relancer').length;
       const da = document.getElementById('dotAb'); da.textContent = ar > 99 ? '99+' : ar; da.classList.toggle('hidden', !ar);
-      if (!pareil && !document.querySelector('.overlay') && !(view === 'orders' && document.activeElement && document.activeElement.id === 'q')) render();
+      if (!pareil && !document.querySelector('.overlay') && !(view === 'orders' && document.activeElement && document.activeElement.id === 'q')) rendreQuandCalme();
       openFromLink();
       if (!precharge){ precharge = true; setTimeout(() => { traiterFile(); loadPub(); loadPR(); loadTT(); }, 400); }
     } catch(e){
       if (/mot de passe/i.test(e.message)){ logout('Mot de passe incorrect.'); }
       else if (!silent && !D){ app.innerHTML = `<div class="login"><h1>Connexion impossible</h1><p>Vérifie ta connexion internet, puis réessaie.</p><button class="btn" id="retry">Réessayer</button></div>`; document.getElementById('retry').onclick = () => refresh(); }
     } finally { busy = false; setBusy(false); }
+  }
+  // Mise à jour de l'écran seulement quand on ne défile pas : jamais de saccade pendant le défilement
+  let dernierDefile = 0, doigt = false, rendreEnAttente = false;
+  addEventListener('scroll', () => { dernierDefile = performance.now(); }, {passive: true});
+  addEventListener('touchstart', () => { doigt = true; }, {passive: true});
+  addEventListener('touchend', () => { doigt = false; dernierDefile = performance.now(); }, {passive: true});
+  addEventListener('touchcancel', () => { doigt = false; }, {passive: true});
+  function rendreQuandCalme(){
+    if (rendreEnAttente) return;
+    const calme = () => !doigt && performance.now() - dernierDefile > 600;
+    if (calme()) { render(); return; }
+    rendreEnAttente = true;
+    const essai = () => { if (!calme()) return setTimeout(essai, 250); rendreEnAttente = false; render(); };
+    setTimeout(essai, 250);
   }
   function setBusy(on){ const el = document.getElementById('sync'); if (el) el.classList.toggle('hidden', !on); }
   function fromCache(p){ try { const c = S.get('adm_dash_' + p); return c ? JSON.parse(c) : null; } catch(e){ return null; } }
@@ -508,13 +591,14 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
   function start(){ nav.classList.remove('hidden'); render(); schedule(); }
 
   /* ---------- Navigation ---------- */
-  function go(v){ view = v; SS.set('adm_view', v); scrollAReprendre = 0; [...nav.children].forEach(b => b.classList.toggle('on', b.dataset.v === v)); render(); scrollTo({top:0}); }
+  function go(v){ clearTimeout(dvTimer); dvTimer = null; view = v; SS.set('adm_view', v); scrollAReprendre = 0; [...nav.children].forEach(b => b.classList.toggle('on', b.dataset.v === v)); render(); scrollTo({top:0}); }
   nav.addEventListener('click', e => { const b = e.target.closest('button'); if (b) go(b.dataset.v); });
   function render(){
     if (!D && view !== 'products' && view !== 'tiktok' && view !== 'apercu') { app.innerHTML = '<div class="loading">Chargement…</div>'; return; }
     appliquerVue();
     [...nav.children].forEach(b => b.classList.toggle('on', b.dataset.v === view));
-    ({home, orders, abandons, products, settings, tiktok, apercu}[view])();
+    ({home, orders, abandons, products, settings, tiktok, apercu, direct}[view])();
+    if (view === 'direct' && !pubData) loadPub().then(() => { if (view === 'direct') dvRemplir(); });
     if (scrollAReprendre){ const y = scrollAReprendre; requestAnimationFrame(() => scrollTo(0, y)); if (view !== 'tiktok' || TT) scrollAReprendre = 0; }
   }
 
@@ -593,7 +677,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
         <div class="sync hidden" id="sync">Mise à jour…</div>
         ${pushBanner()}
         <div class="kpis" role="tablist">
-          <div class="kpi"><small>En direct</small><b><span class="pulse"></span>${D.live}</b></div>
+          <button class="kpi dvgo" data-go="direct"><small>En direct</small><b><span class="pulse"></span>${D.live}</b></button>
           <button class="kpi ${metric==='ventes'?'on':''}" data-m="ventes"><small>Ventes totales</small><b>${esc(fmt(ca, dev))}</b>${pct(ca, caP)}</button>
           <button class="kpi ${metric==='commandes'?'on':''}" data-m="commandes"><small>Commandes</small><b>${c.commandes}</b>${pct(c.commandes, p.commandes)}</button>
           <button class="kpi ${metric==='visites'?'on':''}" data-m="visites"><small>Visites</small><b>${c.visites}</b>${pct(c.visites, p.visites)}</button>
@@ -661,6 +745,217 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
     el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Évolution des ${esc(metric)} (${esc(unit)})">${grid}
       <path d="${path(b)}" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="2" stroke-dasharray="4 4"/>
       <path d="${path(a)}" fill="none" stroke="#FFC93C" stroke-width="3" stroke-linecap="round"/>${xl}</svg>`;
+  }
+
+  /* ---------- Vue en direct (comme Shopify) ---------- */
+  const TERRE = {pas:1.3,n:138,r:[[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[50,1],[50,2],[51,2,4,1],[52,3],[53,4],[55,5],[56,4,125,1],[59,3,128,2],[59,5,130,2],[62,5,119,1,14,1],[62,6,120,1,1,1,13,1,1,1],[64,6,124,1,15,2],[64,9,121,1,1,1,17,2],[66,10,121,6,15,1],[67,9,121,1,1,6,15,1],[69,11,108,2,10,1,1,8],[70,12,46,6,57,5,7,11],[71,13,46,7,57,8,2,14],[72,14,45,8,56,25],[73,15,44,10,56,26],[74,15,44,11,55,27],[75,16,43,13,55,27],[76,15,44,13,8,1,47,27],[77,17,43,15,6,2,47,27],[78,20,40,15,5,3,47,26],[79,21,39,16,6,3,48,25,11,1],[79,22,39,15,7,3,6,1,44,21,11,1],[80,23,38,17,6,3,53,18],[80,23,38,18,5,4,54,17,16,1,6,1],[79,26,37,21,3,4,55,10,3,3],[78,27,38,21,5,2,55,8,5,2],[78,28,38,21,6,1,60,5,4,1],[77,30,38,20,68,5,3,1],[78,30,39,20],[77,32,38,20,60,1,2,1,17,2],[77,34,37,19,57,1,2,1,1,1,1,1,12,2,3,1,2,1,4,1],[77,34,36,21,51,5,20,6,7,1],[76,35,36,21,76,6,2,2,2,1],[76,33,38,21,49,2,12,1,10,8,4,1],[77,31,39,22,46,5,4,1,1,2,2,2,3,1,1,2,1,8],[76,24,1,3,42,24,46,4,3,5,2,2,6,1,1,2,2,1,6,1],[69,1,7,26,43,26,44,3,4,6,8,1,2,2],[77,23,46,26,43,3,4,7,2,3],[79,21,47,27,41,2,1,1,6,5],[79,20,47,28,39,1,2,1,8,3],[79,20,33,1,10,32,37,2,2,2,8,3],[78,18,34,8,3,34,39,2,10,2],[79,14,36,47,23,2,13,1,12,1,5,2],[73,3,1,1,1,12,36,48,23,1,13,1,19,1],[72,2,6,2,1,7,37,49,19,2,20,1],[71,2,6,5,41,44,3,3,18,3,18,4,10,1],[70,3,50,45,24,4,13,2,1,5,9,2],[67,5,50,44,1,3,20,4,14,8,10,1],[65,7,44,1,4,43,2,5,18,4,14,8,8,2],[60,8,53,41,3,7,15,6,10,1,1,8,9,1],[58,10,53,40,2,10,13,8,8,9,10,1],[55,6,3,3,11,3,38,39,3,12,11,9,6,9,2,1],[54,7,4,2,8,2,42,38,2,13,11,10,5,9],[54,5,6,1,3,1,3,1,43,38,2,15,7,12,4,11,2,1],[53,6,10,2,45,37,3,14,8,32,3,1],[48,1,2,7,58,35,2,14,7,35,2,1],[50,8,11,1,45,35,1,10,3,1,1,5,1,37],[46,1,1,9,10,2,45,33,1,10,2,1,2,43,5,1],[45,1,1,10,9,2,46,42,1,47],[44,13,2,2,4,1,48,39,1,48],[43,1,1,21,47,19,1,67],[41,24,46,17,3,3,6,57,5,1],[39,1,1,24,46,13,15,55,6,1],[38,27,45,11,16,53,7,2,1,1],[37,28,48,6,2,1,13,52,4,2,4,3],[35,29,41,4,7,1,2,1,4,1,2,14,3,42,2,2,4,3],[35,29,39,6,13,2,1,13,3,39,4,2,7,1],[33,30,38,5,12,2,2,14,2,39,1,4,7,2],[33,29,38,6,4,1,2,2,1,11,2,5,3,43,6,1],[32,30,36,6,3,1,1,2,2,5,8,4,2,45],[32,29,39,5,1,2,1,7,6,5,2,47,3,2],[30,31,2,1,33,17,2,1,1,6,2,46,3,1,2,1],[30,27,1,5,32,17,1,2,1,6,2,45],[29,31,4,2,26,74,1,1],[28,31,3,2,27,71,1,1],[26,30,2,1,1,1,28,70],[25,23,1,10,26,2,1,67,6,1],[24,21,2,11,21,2,1,2,2,64,6,1],[23,21,2,10,21,2,1,1,6,56,1,1,7,2],[20,21,4,7,24,2,4,3,3,50,8,3],[9,1,9,1,1,18,5,7,23,1,5,1,1,2,1,50,7,3],[9,1,8,18,6,3,1,2,23,1,4,1,1,2,3,48,7,2],[8,4,4,18,7,3,1,1,27,5,2,47,3,2,2,1],[6,6,1,19,7,3,9,1,18,5,1,51,2,4],[6,26,5,2,2,1,6,2,17,5,1,51,1,4],[3,1,2,25,4,1,2,2,5,3,17,4,1,55],[2,1,2,1,1,26,1,4,5,4,6,2,9,3,1,51],[0,3,1,25,4,2,1,1,3,4,5,3,8,7,2,44],[0,2,3,25,3,2,3,6,14,8,1,8,1,31],[4,15,1,1,3,1,2,1,2,2,4,7,12,7,1,1,3,35],[5,6,2,2,2,5,1,1,4,3,3,8,11,3,8,1,1,25,2,3],[0,1,14,4,2,1,2,3,5,6,1,1,18,1,3,2,1,12,1,5],[13,5,1,2,2,2,5,7,23,13,2,2],[12,2,3,2,1,2,5,8,22,5,1,1],[13,2,2,3,5,7,16,1,5,5,5,1,1,1],[11,1,4,1,3,9,16,1,5,3],[11,1,2,1,1,1,2,8,5,2],[11,1,1,2,1,8,4,2,11,1],[12,9,10,1,4,1],[11,2,1,4],[11,1,2,2],[],[],[],[],[]]};
+  const CENTRES = {benin:[9.3,2.3],'cote d ivoire':[7.5,-5.5],togo:[8.6,.8],senegal:[14.5,-14.4],mali:[17.6,-4],'burkina faso':[12.2,-1.5],niger:[17.6,8.1],
+    guinee:[9.9,-9.7],cameroun:[7.4,12.4],gabon:[-.8,11.6],congo:[-.2,15.8],'rd congo':[-4,21.8],rdc:[-4,21.8],'republique democratique du congo':[-4,21.8],tchad:[15.4,18.7],
+    centrafrique:[6.6,20.9],madagascar:[-18.8,46.9],rwanda:[-1.9,29.9],burundi:[-3.4,29.9],djibouti:[11.8,42.6],mauritanie:[21,-10.9],comores:[-11.9,43.9],
+    'guinee equatoriale':[1.6,10.3],maroc:[31.8,-7.1],tunisie:[33.9,9.5],algerie:[28,1.7],france:[46.2,2.2],ghana:[7.9,-1],nigeria:[9.1,8.7]};
+  const sansAccent = v => String(v || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z]+/g, ' ').trim();
+  let DV = null, DJ = null, dvTimer = null, dvBusy = false, GL = null;
+  const auj = () => { const t = new Date(); return String(t.getDate()).padStart(2, '0') + '/' + String(t.getMonth() + 1).padStart(2, '0') + '/' + t.getFullYear(); };
+  const quandCmd = o => { const [d, m, y] = String(o.date).split('/').map(Number); const h = String(o.heure || '').match(/(\d{1,2}):(\d{2})/); return new Date(y, m - 1, d, h ? +h[1] : 0, h ? +h[2] : 0).getTime(); };
+  const telCle = t => String(t || '').replace(/\D/g, '').slice(-8);
+  function dvPct(a, b){ if (!b) return a ? '<span class="dvd up">↗ nouveau</span>' : ''; const p = Math.round((a - b) / b * 100); return `<span class="dvd ${p >= 0 ? 'up' : 'down'}">${p >= 0 ? '↗' : '↘'} ${Math.abs(p)} %</span>`; }
+  function dvMontant(n, dev){ n = Number(n) || 0; return (n >= 1e5 ? (n / 1e3).toFixed(1).replace('.', ',') + ' k' : fmt(n)) + ' ' + (dev === 'FCFA' ? 'XOF' : dev); }
+
+  function direct(){
+    if (!document.getElementById('dvRoot')){
+      app.innerHTML = `<div class="dv" id="dvRoot">
+        <div class="dvbar"><button class="dvback" id="dvBack" aria-label="Retour">←</button><h1>Vue en direct</h1></div>
+        <div class="dvglobe" id="dvGlobe">
+          <canvas id="glA" aria-hidden="true"></canvas><canvas id="glB" aria-label="Carte des visiteurs et des commandes"></canvas>
+          <div class="dvchips"><button class="dvchip on" data-couche="cmd"><i class="pc"></i>Commandes</button><button class="dvchip on" data-couche="vis"><i class="pv"></i>Visiteurs en ce moment</button></div>
+          <button class="dvmap" id="dvZoom" aria-label="Zoomer sur la carte"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15M15 6v15"/></svg></button>
+        </div>
+        <div class="dvbody" id="dvBody"></div></div>`;
+      document.getElementById('dvBack').onclick = () => go('home');
+      globe(document.getElementById('dvGlobe'));
+      app.querySelectorAll('[data-couche]').forEach(b => b.onclick = () => { b.classList.toggle('on'); GL && GL.couches(); });
+      document.getElementById('dvZoom').onclick = () => GL && GL.zoom();
+    }
+    dvRemplir();
+    if (!dvTimer) dvCharger();
+  }
+  async function dvCharger(){
+    clearTimeout(dvTimer); dvTimer = null;
+    if (view !== 'direct') return;
+    if (!dvBusy){
+      dvBusy = true;
+      try {
+        const [v, j] = await Promise.all([
+          call({type: 'direct'}).catch(e => ({ok: false, erreur: e.message})),
+          periode === 'jour' ? Promise.resolve(null) : call(Object.assign({type: 'dash', periode: 'jour'}, plage('jour'))).catch(() => null)]);
+        DV = v && v.ok ? v : (DV || {live: [], lieux: [], achats: [], ancien: true});
+        if (j) { DJ = j; try { S.set('adm_dash_jour', JSON.stringify(j)); } catch(e){} }
+        const calme = () => !doigt && performance.now() - dernierDefile > 600;
+        const remplir = () => { if (view !== 'direct') return; if (!calme()) return setTimeout(remplir, 250); dvRemplir(); };
+        remplir();
+      } finally { dvBusy = false; }
+    }
+    if (view === 'direct') dvTimer = setTimeout(dvCharger, document.visibilityState === 'visible' ? 8000 : 60000);
+  }
+  function dvRemplir(){
+    const body = document.getElementById('dvBody'); if (!body) return;
+    const J = periode === 'jour' ? D : (DJ || fromCache('jour'));
+    const V = DV || {live: [], lieux: [], achats: []};
+    if (!J){ body.innerHTML = '<div class="dvcard"><p class="dvvide">Chargement…</p></div>'; return; }
+    const dev = J.devise, now = Date.now(), jour = auj();
+    const hNow = new Date().getHours();
+    const prevJusque = arr => (arr || []).slice(0, hNow + 1).reduce((a, b) => a + b, 0);
+    const ca = J.cur.ca[dev] || 0, caP = prevJusque(J.serieP && J.serieP.ventes);
+    const nc = J.cur.commandes, ncP = prevJusque(J.serieP && J.serieP.commandes);
+    const vi = J.cur.visites, viP = prevJusque(J.serieP && J.serieP.visites);
+    const live = V.live || [];
+    const aujCmd = J.commandes.filter(o => o.date === jour);
+    // Comportement : sur une page produit / en train de remplir / achats des 10 dernières minutes
+    const paniers = live.filter(l => l.et === 'produit' || l.et === 'paiement').length;
+    const paiement = live.filter(l => l.et === 'paiement').length;
+    const achats = aujCmd.filter(o => now - quandCmd(o) < 6e5).length;
+    const fmax = Math.max(1, paniers, paiement, achats);
+    const col = (n, nxt) => `<div class="dvfcol"><div class="dvfbar" style="height:${n / fmax * 100}%"></div>${n && nxt < n ? `<div class="dvftrap" style="height:${n / fmax * 100}%;clip-path:polygon(0 0,100% ${100 - nxt / n * 100}%,100% 100%,0 100%)"></div>` : ''}</div>`;
+    // Nouveaux / récurrents (numéro de téléphone déjà vu avant aujourd'hui)
+    const avant = new Set(J.commandes.filter(o => o.date !== jour).map(o => telCle(o.tel)));
+    let nouv = 0, rec = 0; const vus = new Set();
+    aujCmd.slice().reverse().forEach(o => { const k = telCle(o.tel); if (!k) { nouv++; return; } if (avant.has(k) || vus.has(k)) rec++; else nouv++; vus.add(k); });
+    // Ventes par produit
+    const pp = {}; aujCmd.forEach(o => { const k = o.produit + '|' + o.devise; pp[k] = (pp[k] || 0) + Number(o.total || 0); });
+    const prods = Object.entries(pp).sort((a, b) => b[1] - a[1]);
+    const imgDe = nom => { const p = pubData && pubData.produits && pubData.produits.find(x => x.nom === nom); return p && p.photos && p.photos[0] ? vignette(p.photos[0], 120) : ''; };
+    const lieux = V.lieux || [], lmax = Math.max(1, ...lieux.map(l => l[1]));
+    body.innerHTML = `
+      <div class="dvgrid">
+        <div class="dvcard dvk"><span class="dvl">Visiteurs en ce moment</span><b>${live.length}</b></div>
+        <div class="dvcard dvk"><span class="dvl">Ventes totales</span><b>${esc(dvMontant(ca, dev))} ${dvPct(ca, caP)}</b></div>
+        <div class="dvcard dvk"><span class="dvl">Visites</span><b>${vi} ${dvPct(vi, viP)}</b></div>
+        <div class="dvcard dvk"><span class="dvl">Commandes</span><b>${nc} ${dvPct(nc, ncP)}</b></div>
+      </div>
+      <div class="dvcard"><h2 class="dvt">Comportement des clients</h2>
+        <div class="dvfun"><div><span>Paniers actifs</span><b>${paniers}</b></div><div><span>Au paiement</span><b>${paiement}</b></div><div><span>Achat effectué</span><b>${achats}</b></div></div>
+        <div class="dvfgraph">${col(paniers, paiement)}${col(paiement, achats)}${col(achats, 0)}</div></div>
+      <div class="dvcard"><h2 class="dvt">Visites par emplacement</h2>
+        ${lieux.length ? lieux.slice(0, 10).map(l => `<div class="dvlieu"><span>${esc(l[0])}</span><div class="dvlrow"><i style="width:${Math.max(3, l[1] / lmax * 88)}%"></i><em>${l[1]}</em></div></div>`).join('')
+          : `<p class="dvvide">${V.ancien ? 'Mets à jour le code Google Apps Script pour voir les emplacements.' : 'Les emplacements apparaissent dès les prochaines visites.'}</p>`}</div>
+      <div class="dvcard"><h2 class="dvt">Nouveaux clients et clients récurrents</h2>
+        <div class="dvleg"><span><i class="n"></i>Nouveau<b>${nouv}</b></span><span><i class="r"></i>Récurrent<b>${rec}</b></span></div>
+        <div class="dvstack">${nouv + rec ? `<i class="n" style="flex:${nouv}"></i><i class="r" style="flex:${rec}"></i>` : '<i class="z"></i>'}</div></div>
+      <div class="dvcard"><h2 class="dvt">Ventes totales par produit</h2>
+        ${prods.length ? prods.map(([k, v]) => { const [nom, d] = k.split('|'); const im = imgDe(nom); return `<div class="dvprod">${im ? `<img src="${esc(im)}" alt="" loading="lazy" decoding="async">` : '<span class="dvpi">🛍️</span>'}<u>${esc(nom)}</u><b>${esc(fmt(v) + ' ' + (d === 'FCFA' ? 'XOF' : d))}</b></div>`; }).join('')
+          : '<p class="dvvide">Aucune vente aujourd’hui pour l’instant.</p>'}</div>`;
+    // Points sur le globe
+    if (GL){
+      const vis = live.filter(l => l.g).map(l => [l.g[0], l.g[1]]);
+      const cmd = (V.achats || []).map(a => [a[0], a[1]]);
+      aujCmd.slice(0, Math.max(0, aujCmd.length - cmd.length)).forEach(o => { const c = CENTRES[sansAccent(o.pays)]; if (c) cmd.push([c[0] + (Math.random() - .5) * .6, c[1] + (Math.random() - .5) * .6]); });
+      GL.points(vis, cmd);
+    }
+  }
+
+  /* Globe en hexagones : dessiné seulement quand il bouge, les repères animés à part */
+  function globe(box){
+    const A = box.querySelector('#glA'), B = box.querySelector('#glB'), ca = A.getContext('2d'), cb = B.getContext('2d');
+    const RAD = Math.PI / 180, pts = [];
+    TERRE.r.forEach((runs, i) => {
+      const lat = -90 + (i + .5) * 180 / TERRE.n, nc = Math.max(1, Math.round(360 * Math.cos(lat * RAD) / TERRE.pas));
+      let j = 0, on = false;
+      runs.forEach(len => { if (on) for (let k = 0; k < len; k++){ const lon = -180 + (j + k + (i % 2) * .5) / nc * 360; pts.push(lat * RAD, lon * RAD); } j += len; on = !on; });
+    });
+    const P = new Float32Array(pts), N = P.length / 2;
+    const SL = new Float32Array(N), CL = new Float32Array(N);
+    for (let k = 0; k < N; k++){ SL[k] = Math.sin(P[2 * k]); CL[k] = Math.cos(P[2 * k]); }
+    let W = 0, H = 0, dpr = 1, lon0 = 4 * RAD, lat0 = 12 * RAD, zoom = 1, zoomCible = 1, sale = true, vis = [], cmd = [], raf = 0, vx = 0, vy = 0;
+    const sprites = [];
+    function faireSprites(r){
+      sprites.length = 0;
+      const teintes = ['#7FD6CF', '#6ACFC6', '#5BC7C0', '#4FBFBC', '#46B5BA', '#4AA6C2'];
+      teintes.forEach(c => {
+        const s = Math.ceil(r * 2 * dpr) + 2, cv = document.createElement('canvas'); cv.width = cv.height = s;
+        const x = cv.getContext('2d'); x.fillStyle = c; x.beginPath();
+        for (let a = 0; a < 6; a++){ const t = Math.PI / 6 + a * Math.PI / 3; x.lineTo(s / 2 + Math.cos(t) * r * dpr, s / 2 + Math.sin(t) * r * dpr); }
+        x.closePath(); x.fill(); sprites.push(cv);
+      });
+    }
+    function taille(){
+      dpr = Math.min(2, devicePixelRatio || 1);
+      W = box.clientWidth; H = box.clientHeight;
+      [A, B].forEach(c => { c.width = W * dpr; c.height = H * dpr; c.style.width = W + 'px'; c.style.height = H + 'px'; });
+      sale = true;
+    }
+    const R = () => Math.min(W * .46, (H - 64) * .47) * zoom, CY = () => zoom > 1.2 ? H / 2 : H / 2 + 30;
+    function proj(la, lo){
+      const sl = Math.sin(la), cl = Math.cos(la), d = lo - lon0, cd = Math.cos(d);
+      const cosc = Math.sin(lat0) * sl + Math.cos(lat0) * cl * cd;
+      const r = R(); return [W / 2 + r * cl * Math.sin(d), CY() - r * (Math.cos(lat0) * sl - Math.sin(lat0) * cl * cd), cosc];
+    }
+    let rSprite = 0;
+    function dessinerGlobe(){
+      const r = R(), cx = W / 2, cy = CY();
+      const pas = r * TERRE.pas * RAD, rh = pas * .5;
+      if (Math.abs(rh - rSprite) > .25){ rSprite = rh; faireSprites(rh * 1.02); }
+      ca.setTransform(dpr, 0, 0, dpr, 0, 0); ca.clearRect(0, 0, W, H);
+      if (zoom < 1.5){
+        const halo = ca.createRadialGradient(cx - r * .2, cy, r * .9, cx, cy, r * 1.12);
+        halo.addColorStop(0, 'rgba(150,230,190,.35)'); halo.addColorStop(1, 'rgba(150,230,190,0)');
+        ca.fillStyle = halo; ca.beginPath(); ca.arc(cx, cy, r * 1.12, 0, 7); ca.fill();
+      }
+      const fond = ca.createRadialGradient(cx - r * .3, cy - r * .35, r * .1, cx, cy, r);
+      fond.addColorStop(0, '#E4F1FB'); fond.addColorStop(1, '#BBDDF6');
+      ca.fillStyle = fond; ca.beginPath(); ca.arc(cx, cy, r, 0, 7); ca.fill();
+      const sp0 = Math.sin(lat0), cp0 = Math.cos(lat0), s = sprites[0].width / dpr;
+      ca.setTransform(1, 0, 0, 1, 0, 0);
+      for (let k = 0; k < N; k++){
+        const d = P[2 * k + 1] - lon0, cd = Math.cos(d), sl = SL[k], cl = CL[k];
+        const cosc = sp0 * sl + cp0 * cl * cd; if (cosc <= .02) continue;
+        const x = cx + r * cl * Math.sin(d), y = cy - r * (cp0 * sl - sp0 * cl * cd);
+        if (x < -s || x > W + s || y < -s || y > H + s) continue;
+        const f = .45 + .55 * Math.sqrt(cosc), w = s * f * dpr;
+        ca.drawImage(sprites[Math.min(5, Math.floor((1 - cosc) * 6))], (x - s * f / 2) * dpr, (y - s * f / 2) * dpr, w, w);
+      }
+    }
+    function dessinerPoints(t){
+      cb.setTransform(dpr, 0, 0, dpr, 0, 0); cb.clearRect(0, 0, W, H);
+      const onV = !box.parentNode.querySelector('[data-couche="vis"]:not(.on)'), onC = !box.parentNode.querySelector('[data-couche="cmd"]:not(.on)');
+      const ph = (t % 1800) / 1800;
+      if (onV) vis.forEach(([la, lo]) => { const [x, y, c] = proj(la * RAD, lo * RAD); if (c <= 0) return;
+        cb.fillStyle = `rgba(30,170,240,${.35 * (1 - ph)})`; cb.beginPath(); cb.arc(x, y, 6 + ph * 14, 0, 7); cb.fill();
+        cb.fillStyle = '#18A9EE'; cb.beginPath(); for (let a = 0; a < 6; a++){ const q = Math.PI / 6 + a * Math.PI / 3; cb.lineTo(x + Math.cos(q) * 7, y + Math.sin(q) * 7); } cb.closePath(); cb.fill();
+        cb.strokeStyle = '#fff'; cb.lineWidth = 2; cb.stroke(); });
+      if (onC) cmd.forEach(([la, lo]) => { const [x, y, c] = proj(la * RAD, lo * RAD); if (c <= 0) return;
+        cb.fillStyle = '#7B4DF0'; cb.strokeStyle = '#fff'; cb.lineWidth = 1.5;
+        cb.beginPath(); cb.moveTo(x, y); cb.bezierCurveTo(x - 7, y - 9, x - 7, y - 19, x, y - 19); cb.bezierCurveTo(x + 7, y - 19, x + 7, y - 9, x, y); cb.fill(); cb.stroke();
+        cb.fillStyle = '#fff'; cb.beginPath(); cb.arc(x, y - 13, 2.6, 0, 7); cb.fill(); });
+    }
+    function boucle(t){
+      if (!box.isConnected){ cancelAnimationFrame(raf); GL = null; return; }
+      if (Math.abs(zoomCible - zoom) > .002){ zoom += (zoomCible - zoom) * .18; sale = true; }
+      if (!glisse && (Math.abs(vx) > 1e-4 || Math.abs(vy) > 1e-4)){ lon0 -= vx; lat0 = Math.max(-1.1, Math.min(1.1, lat0 + vy)); vx *= .92; vy *= .92; sale = true; }
+      if (sale){ sale = false; dessinerGlobe(); }
+      if (vis.length || cmd.length || t - dernierPoints > 500){ dessinerPoints(t); dernierPoints = t; }
+      raf = requestAnimationFrame(boucle);
+    }
+    let dernierPoints = 0, glisse = false, px = 0, py = 0, tap = 0;
+    B.addEventListener('pointerdown', e => { glisse = true; px = e.clientX; py = e.clientY; vx = vy = 0; B.setPointerCapture(e.pointerId);
+      const n = Date.now(); if (n - tap < 300) api.zoom(); tap = n; });
+    B.addEventListener('pointermove', e => { if (!glisse) return; const r = R(), dx = (e.clientX - px) / r, dy = (e.clientY - py) / r; px = e.clientX; py = e.clientY;
+      lon0 -= dx; lat0 = Math.max(-1.1, Math.min(1.1, lat0 + dy)); vx = dx; vy = dy; sale = true; });
+    const fin = () => { glisse = false; };
+    B.addEventListener('pointerup', fin); B.addEventListener('pointercancel', fin);
+    new ResizeObserver(() => { taille(); }).observe(box);
+    const api = {
+      points(v, c){ vis = v; cmd = c; },
+      couches(){ dernierPoints = 0; },
+      zoom(){
+        zoomCible = zoomCible > 1 ? 1 : 3.4;
+        const tous = vis.concat(cmd);
+        if (zoomCible > 1 && tous.length){ lon0 = tous.reduce((a, p) => a + p[1], 0) / tous.length * RAD; lat0 = tous.reduce((a, p) => a + p[0], 0) / tous.length * RAD; }
+        else if (zoomCible > 1){ lon0 = 2 * RAD; lat0 = 8 * RAD; }
+        sale = true;
+        const b = document.getElementById('dvZoom'); if (b) b.classList.toggle('on', zoomCible > 1);
+      }
+    };
+    GL = api; taille(); raf = requestAnimationFrame(boucle);
   }
 
   /* ---------- Commandes ---------- */
@@ -739,7 +1034,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
   }
 
   /* ---------- Notifications même application fermée (OneSignal) ---------- */
-  let pushReady = false, pushOn = false, osErr = '', osOk = null;
+  let pushReady = false, pushOn = false, osErr = '', osOk = null, osFini = false;
   const osPret = new Promise(r => osOk = r);
   function initPush(){
     if (pushReady || !D || !D.onesignal) return; pushReady = true;
@@ -748,7 +1043,11 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
       try {
         await OneSignal.init({ appId: D.onesignal, serviceWorkerPath: 'abromarket1/admin/OneSignalSDKWorker.js',
           serviceWorkerParam: { scope: '/abromarket1/admin/' }, notifyButton: { enable: false } });
-        pushOn = !!(OneSignal.Notifications.permission && OneSignal.User.PushSubscription.optedIn);
+        // Permission déjà donnée mais abonnement perdu (nettoyage du téléphone, mise à jour…) : on se réabonne tout seul
+        if ('Notification' in window && Notification.permission === 'granted' && !OneSignal.User.PushSubscription.optedIn){
+          try { await OneSignal.User.PushSubscription.optIn(); } catch(x){}
+        }
+        pushOn = !!(OneSignal.Notifications.permission && OneSignal.User.PushSubscription.optedIn); osFini = true;
         OneSignal.User.PushSubscription.addEventListener('change', () => { pushOn = !!OneSignal.User.PushSubscription.optedIn; if (view === 'home' || view === 'settings') render(); });
         osOk(true);
       } catch(e){ osErr = (e && e.message) || String(e); osOk(false); }
@@ -773,7 +1072,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
   }
   function pushBanner(){
     const accorde = 'Notification' in window && Notification.permission === 'granted';
-    if (!D || !D.onesignal || pushOn || accorde) return '';
+    if (!D || !D.onesignal || pushOn || (accorde && !osFini)) return '';
     return `<button class="pushban" id="pushban"><div style="font-size:26px">🔔</div><div><b>Active les notifications</b><span>Pour recevoir chaque commande même téléphone verrouillé.</span></div></button>`;
   }
   document.addEventListener('click', e => { if (e.target.closest('#pushban') || e.target.closest('#notifOS')) askPush(); });
@@ -1384,7 +1683,8 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
       i.style.width = W + 'px'; i.style.height = (f.clientHeight / k) + 'px'; i.style.transform = `scale(${k})`;
     } else { i.style.width = ''; i.style.height = ''; i.style.transform = ''; }
   }
-  addEventListener('resize', () => { if (view === 'apercu') ajusterApercu(); });
+  let largeurApercu = innerWidth;
+  addEventListener('resize', () => { if (innerWidth === largeurApercu) return; largeurApercu = innerWidth; if (view === 'apercu') ajusterApercu(); });
 
   /* ---------- Réglages ---------- */
   function settings(){
@@ -1416,7 +1716,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
         'Abonné : ' + (os ? (os.optedIn ? 'oui' : 'non') + (os.id ? ' (id ' + os.id.slice(0, 8) + '…)' : ' (aucun id)') : '?'),
         'Services : ' + (regs.join(', ') || 'aucun')
       ];
-      try { const r = await call({type: 'testpush'}); lignes.push('Envoi : ' + (r.resultat || r.code)); if (r.whatsapp) lignes.push('WhatsApp (test) : ' + r.whatsapp); if (r.dernierWhatsapp) lignes.push('WhatsApp (dernière commande) : ' + r.dernierWhatsapp); }
+      try { const r = await call({type: 'testpush'}); lignes.push('Envoi : ' + (r.resultat || r.code)); if (r.whatsapp) lignes.push('WhatsApp (test) : ' + r.whatsapp); if (r.dernierWhatsapp) lignes.push('WhatsApp (dernière commande) : ' + r.dernierWhatsapp); if (r.dernierPush) lignes.push('Notification (dernière commande) : ' + r.dernierPush); }
       catch(err){ lignes.push('Envoi : erreur ' + err.message); }
       dg.innerHTML = lignes.map(esc).join('<br>'); b.textContent = 'Tester';
     };
@@ -1433,7 +1733,8 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
     refresh().then(() => { if (key) schedule(); });
   }
   else login();
-  addEventListener('resize', () => { if (view === 'home' && D) drawChart(); });
+  let largeurAvant = innerWidth;
+  addEventListener('resize', () => { if (innerWidth === largeurAvant) return; largeurAvant = innerWidth; if (view === 'home' && D) drawChart(); });
 })();
 </script>
 </body>

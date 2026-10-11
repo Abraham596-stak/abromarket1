@@ -624,6 +624,7 @@ Heure de la livraison : ${r.livraison}`;
           ttq.track('CompletePayment', {value: r.total, currency: cur, contents: [{content_id: P.id, quantity: r.qte}], content_type: 'product'}, {event_id: evId}); });
       } } catch(x){}
       memo(P.id, r.numero);
+      try { if (!APERCU){ etape = 'achat'; beacon('ping'); } } catch(x){}
       // Lance tout de suite les notifications (WhatsApp, email, application) et l'envoi aux agences
       try { const bd = JSON.stringify({type: 'apres', numero: r.numero}); if (navigator.sendBeacon) navigator.sendBeacon(API, new Blob([bd], {type: 'text/plain'})); else fetch(API, {method: 'POST', body: bd, keepalive: true}); } catch(x){}
       if (modeMerci){ const n = $('numCmd'); if (n) n.textContent = r.numero; else merci(r, P); return; }
@@ -714,7 +715,21 @@ Heure de la livraison : ${r.livraison}`;
   }
 
   /* ---------- Visites et visiteurs en direct ---------- */
-  let sid = '';
+  let sid = '', etape = '', GEO = null;
+  // Position approximative du visiteur (ville), comme Shopify : service gratuit, gardée 12 h
+  try { const g = JSON.parse(store.get('geo') || 'null'); if (g && Date.now() - g.t < 432e5) GEO = g; } catch(e){}
+  function lieuEnvoye(){ try { return sessionStorage.getItem('lieu') === '1'; } catch(e){ return true; } }
+  async function chercherLieu(){
+    if (GEO) return;
+    const essai = async (u, f) => { const c = new AbortController(); const t = setTimeout(() => c.abort(), 4000);
+      try { const r = await fetch(u, {signal: c.signal}); return f(await r.json()); } finally { clearTimeout(t); } };
+    let g = null;
+    try { g = await essai('https://get.geojs.io/v1/ip/geo.json', j => ({v: j.city || '', r: j.region || '', p: j.country || '', cc: j.country_code || '', la: +j.latitude, lo: +j.longitude})); } catch(e){}
+    if (!g || !isFinite(g.la)){ try { g = await essai('https://ipwho.is/', j => j.success === false ? null : ({v: j.city || '', r: j.region || '', p: j.country || '', cc: j.country_code || '', la: +j.latitude, lo: +j.longitude})); } catch(e){} }
+    if (!g || !isFinite(g.la) || !isFinite(g.lo)) return;
+    g.t = Date.now(); GEO = g; try { store.set('geo', JSON.stringify(g)); } catch(e){}
+    if (!lieuEnvoye()) beacon('ping');
+  }
   function beacon(type){
     try {
       if (!sid){ sid = sessionStorage.getItem('sid') || (Date.now().toString(36) + Math.random().toString(36).slice(2, 8)); sessionStorage.setItem('sid', sid); }
@@ -722,7 +737,10 @@ Heure de la livraison : ${r.livraison}`;
     const ttUrl = params.get('tt') || '';
     let ttCode = ttUrl;
     if (!ttCode){ try { const a = JSON.parse(store.get('attrib') || '{}') || {}; if (a.tt && a.t && Date.now() - a.t < 7*864e5) ttCode = a.tt; } catch(e){} }
-    const body = JSON.stringify({type, sid, produit: pid, pays: country || '', tt: ttCode.slice(0, 20), ttNew: type === 'visite' && ttUrl ? 1 : 0});
+    const o = {type, sid, produit: pid, pays: country || '', tt: ttCode.slice(0, 20), ttNew: type === 'visite' && ttUrl ? 1 : 0, et: etape || (pid ? 'produit' : '')};
+    if (GEO){ o.g = [Math.round(GEO.la * 100) / 100, Math.round(GEO.lo * 100) / 100, String(GEO.v).slice(0, 40), String(GEO.r).slice(0, 50), String(GEO.p).slice(0, 40), String(GEO.cc).slice(0, 3)];
+      if (type !== 'quitte' && !lieuEnvoye()){ o.lieu = 1; try { sessionStorage.setItem('lieu', '1'); } catch(e){} } }
+    const body = JSON.stringify(o);
     try {
       if (navigator.sendBeacon) navigator.sendBeacon(API, new Blob([body], {type:'text/plain'}));
       else fetch(API, {method:'POST', body, keepalive:true}).catch(()=>{});
@@ -732,6 +750,9 @@ Heure de la livraison : ${r.livraison}`;
     let first = true;
     try { first = !sessionStorage.getItem('vu'); sessionStorage.setItem('vu', '1'); } catch(e){}
     beacon(first ? 'visite' : 'ping');
+    chercherLieu();
+    // Étape « au paiement » dès que le client commence à remplir le formulaire
+    document.addEventListener('focusin', e => { if (etape !== 'paiement' && etape !== 'achat' && e.target.closest && e.target.closest('form')){ etape = 'paiement'; beacon('ping'); } });
     setInterval(() => { if (document.visibilityState === 'visible') beacon('ping'); }, 40000);
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') beacon('ping'); });
     window.addEventListener('pagehide', () => beacon('quitte'));
