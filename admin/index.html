@@ -1307,15 +1307,15 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
         ${autre ? '' : t('Rentabilité', p.depense ? 'x' + ratio(p.caLivre, p.depense).toFixed(1).replace('.', ',') : '–')}
         ${autre ? '' : t('Coût par visite', p.visites && p.depense ? F(p.depense / p.visites) : '–')}
       </div>
-      ${autre ? '' : `<div class="card" style="margin-top:12px"><h3>Budget de la promotion</h3>
-        <p class="tag">${p.estimee ? `Dépense calculée automatiquement : <b>${esc(fmt(Math.round(p.depenseTotal), p.devise))}</b> sur ${esc(fmt(p.budget, p.devise))}${p.diffusion ? ' depuis le ' + esc(p.diffusion) : ''}.` : p.depenseTotal ? 'Dépense réelle saisie à la main.' : 'Mets le budget et la durée choisis dans TikTok : la dépense se calcule toute seule chaque jour.'}</p>
-        <div class="frow" style="margin-top:10px"><input class="field" id="pdBud" type="number" inputmode="decimal" value="${esc(p.budget || '')}" placeholder="Budget total" aria-label="Budget total"><select class="field" id="pdDev">${['FCFA','USD','EUR'].map(d => `<option ${d === p.devise ? 'selected' : ''}>${d}</option>`).join('')}</select></div>
-        <input class="field" id="pdDur" type="number" inputmode="numeric" value="${esc(p.duree || '')}" placeholder="Durée (jours)" aria-label="Durée en jours" style="margin-top:8px">
-        <button class="btn blue" id="pdBudOk" style="margin-top:10px">Enregistrer le budget</button>
-        <details class="pays1" style="margin-top:12px"><summary><b>Corriger avec la dépense réelle</b><span class="tag">facultatif</span></summary>
-          <p class="tag" style="margin:8px 0">À la fin, si TikTok affiche un autre montant dépensé, mets-le ici : il remplacera le calcul automatique.</p>
-          <input class="field" id="pdDep" type="number" inputmode="decimal" value="${esc(p.estimee ? '' : (p.depenseTotal || ''))}" placeholder="Montant dépensé selon TikTok">
-          <button class="btn ghost" id="pdSave" style="margin-top:8px">Enregistrer la dépense réelle</button></details></div>
+      ${autre ? '' : `<div class="card" style="margin-top:12px"><h3>Dépense exacte (coût TikTok)</h3>
+        <p class="tag">Dans TikTok : <b>Promouvoir → Tableau de bord</b> → cette promotion → <b>Coût des annonces</b>. Recopie ce montant ici : tous les calculs seront exacts.</p>
+        <div class="frow" style="margin-top:10px"><input class="field" id="pdDep" type="number" inputmode="decimal" step="0.01" value="${esc(p.estimee ? '' : (p.depenseTotal || ''))}" placeholder="Ex : 1,09" aria-label="Coût des annonces"><select class="field" id="pdDev">${['USD','FCFA','EUR'].map(d => `<option ${d === (p.estimee || !p.depenseTotal ? 'USD' : p.devise) ? 'selected' : ''}>${d}</option>`).join('')}</select></div>
+        <button class="btn blue" id="pdSave" style="margin-top:10px">Enregistrer le coût TikTok</button>
+        ${p.estimee ? `<p class="tag" style="margin-top:8px">Pour l'instant : estimation ≈ ${esc(fmt(Math.round(p.depenseTotal), p.devise))} (budget réparti heure par heure). Elle est remplacée dès que tu mets le coût TikTok.</p>` : ''}
+        <details class="pays1" style="margin-top:12px"><summary><b>Estimation automatique (budget et durée)</b><span class="tag">si tu n'as pas le temps</span></summary>
+          <div class="frow" style="margin-top:10px"><input class="field" id="pdBud" type="number" inputmode="decimal" value="${esc(p.budget || '')}" placeholder="Budget total" aria-label="Budget total"><select class="field" id="pdBudDev">${['FCFA','USD','EUR'].map(d => `<option ${d === p.devise ? 'selected' : ''}>${d}</option>`).join('')}</select></div>
+          <input class="field" id="pdDur" type="number" inputmode="numeric" value="${esc(p.duree || '')}" placeholder="Durée (jours)" aria-label="Durée en jours" style="margin-top:8px">
+          <button class="btn ghost" id="pdBudOk" style="margin-top:8px">Enregistrer le budget</button></details></div>
         <label class="lbl">Lien de la promotion</label>
         <div class="linkbox">${esc(p.lien)}</div>
         <button class="copy" data-copy="${esc(p.lien)}">📋 Copier le lien</button>`}
@@ -1335,7 +1335,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
     const bo = ov.querySelector('#pdBudOk');
     if (bo) bo.onclick = async () => {
       bo.textContent = 'Enregistrement…'; bo.disabled = true;
-      try { await call({type: 'tiktok', action: 'budget', code: p.code, budget: ov.querySelector('#pdBud').value, duree: ov.querySelector('#pdDur').value, devise: ov.querySelector('#pdDev').value}); bo.textContent = 'Budget enregistré ✓'; await loadTT(true); setTimeout(() => { ov.remove(); drawTT(); }, 600); }
+      try { await call({type: 'tiktok', action: 'budget', code: p.code, budget: ov.querySelector('#pdBud').value, duree: ov.querySelector('#pdDur').value, devise: ov.querySelector('#pdBudDev').value}); bo.textContent = 'Budget enregistré ✓'; await loadTT(true); setTimeout(() => { ov.remove(); drawTT(); }, 600); }
       catch(e){ bo.disabled = false; bo.textContent = 'Échec : réessayer'; alert('Raison : ' + e.message); }
     };
     const st = ov.querySelector('#pdStat');

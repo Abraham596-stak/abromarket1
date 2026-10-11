@@ -252,6 +252,15 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
     const fresh = {}; ATT_KEYS.forEach(k => { const v = params.get(k); if (v) fresh[k] = v.slice(0, 200); });
     if (Object.keys(fresh).length){ fresh.t = Date.now(); store.set('attrib', JSON.stringify(fresh)); }
   })();
+  // Garde l'identifiant de clic Facebook (fbc) pour que le pixel relie l'ACHAT à la pub, même plus tard ou après rechargement
+  (function cookieClicFacebook(){
+    try {
+      const a = JSON.parse(store.get('attrib') || '{}') || {};
+      const nouveau = !!params.get('fbclid'), present = /(?:^|; )_fbc=/.test(document.cookie);
+      if (a.fbclid && a.t && Date.now() - a.t < 7*864e5 && (nouveau || !present))
+        document.cookie = '_fbc=' + encodeURIComponent('fb.1.' + a.t + '.' + a.fbclid) + '; path=/; max-age=' + (90*86400) + '; SameSite=Lax; Secure';
+    } catch(e){}
+  })();
   function attribution(){
     let a = {};
     try { a = JSON.parse(store.get('attrib') || '{}') || {}; } catch(e){}
