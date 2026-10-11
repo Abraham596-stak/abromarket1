@@ -642,6 +642,12 @@ Heure de la livraison : ${r.livraison}`;
     const c = R('Couleur principale'); if (/^#[0-9a-f]{3,8}$/i.test(c)) document.documentElement.style.setProperty('--main', c);
     if (pid){
       const P = D.produits.find(x => x.id === pid);
+      if (!P && !liveDone){
+        // Produit tout neuf : pas encore dans la copie rapide, on attend les données en direct
+        document.body.className = 'prod';
+        app.innerHTML = `<div class="wrap">${header([])}<div class="empty">Chargement du produit…</div></div>`;
+        return;
+      }
       if (!P){
         document.body.className = 'prod';
         app.innerHTML = `<div class="wrap">${header([])}<div class="empty">Ce produit n'existe pas ou n'est plus disponible.<br><br><a href="./" style="color:var(--main);font-weight:700">Voir tous nos produits</a></div></div>`;
@@ -676,6 +682,7 @@ Heure de la livraison : ${r.livraison}`;
     window.addEventListener('pagehide', () => beacon('quitte'));
   }
 
+  let liveDone = false;
   async function load(){
     if (!/^https:\/\/script\.google(usercontent)?\.com\//.test(API)){
       app.innerHTML = '<div class="empty">⚠️ Colle l\'URL de ton Application Web Google Apps Script dans la ligne <b>const API</b> en haut du fichier index.html.</div>';
@@ -708,7 +715,8 @@ Heure de la livraison : ${r.livraison}`;
     // 1) copie rapide hébergée avec le site  2) données en direct du Google Sheets
     let liveOk = false;
     const snap = fetch('data.json', {cache: 'no-cache'}).then(r => r.ok ? r.json() : null).then(j => { if (!liveOk) use(j); }).catch(() => {});
-    const live = fetch(API + (API.includes('?') ? '&' : '?') + 't=' + Date.now()).then(r => r.json()).then(j => { liveOk = true; use(j, true); }).catch(() => {});
+    const live = fetch(API + (API.includes('?') ? '&' : '?') + 't=' + Date.now()).then(r => r.json()).then(j => { liveOk = true; use(j, true); }).catch(() => {})
+      .finally(() => { liveDone = true; if (D && shown && pid && !D.produits.some(x => x.id === pid)) render(); });
     await Promise.race([live, snap.then(() => D ? null : live)]);
     if (!D) await live;
     if (ready) await ready;

@@ -230,6 +230,8 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
 .prow .lbl{margin:0}
 .prow button{font-weight:600;font-size:14px;color:var(--main)}
 /* Éditeur de produits */
+.savebadge{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom));z-index:70;background:var(--deep);color:#fff;font-size:13px;font-weight:600;padding:8px 14px;border-radius:999px;box-shadow:0 6px 20px rgba(14,31,99,.3);white-space:nowrap}
+.savebadge.err{background:#9B1C1C}
 .prhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
 .prhead h1{font-size:30px}
 .btn.small{display:inline-block;width:auto;padding:10px 16px;font-size:15px;border-radius:12px}
@@ -376,7 +378,7 @@ textarea.ttl{font-weight:800;font-size:18px}
       const da = document.getElementById('dotAb'); da.textContent = ar > 99 ? '99+' : ar; da.classList.toggle('hidden', !ar);
       if (!pareil && !document.querySelector('.overlay') && !(view === 'orders' && document.activeElement && document.activeElement.id === 'q')) render();
       openFromLink();
-      if (!precharge){ precharge = true; setTimeout(() => { loadPub(); loadPR(); loadTT(); }, 400); }
+      if (!precharge){ precharge = true; setTimeout(() => { traiterFile(); loadPub(); loadPR(); loadTT(); }, 400); }
     } catch(e){
       if (/mot de passe/i.test(e.message)){ logout('Mot de passe incorrect.'); }
       else if (!silent && !D){ app.innerHTML = `<div class="login"><h1>Connexion impossible</h1><p>Vérifie ta connexion internet, puis réessaie.</p><button class="btn" id="retry">Réessayer</button></div>`; document.getElementById('retry').onclick = () => refresh(); }
@@ -652,15 +654,82 @@ textarea.ttl{font-weight:800;font-size:18px}
   const DRIVE = /drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:export=\w+&)?id=)([\w-]{20,})/;
   function vignette(u, w){
     u = String(u || '').trim(); if (!u) return '';
+    if (apercus[u]) return apercus[u];
     const im = pubData && pubData.imgs && pubData.imgs[u]; if (im) return SITE + im;
     const m = u.match(DRIVE); return m ? 'https://drive.google.com/thumbnail?id=' + m[1] + '&sz=w' + (w || 300) : u;
   }
   let PR = null, prBusy = false, prFiltre = 'tous';
+  /* File d'envoi : l'écran répond tout de suite, le Google Sheets est mis à jour en arrière-plan, dans l'ordre */
+  let FILE = []; try { FILE = JSON.parse(S.get('adm_file') || '[]') || []; } catch(e){}
+  const idMap = {}, uploads = {}, apercus = {};
+  let envoiEnCours = false;
+  const slugJS = v => String(v || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60);
+  function idLibreLocal(base, sauf){
+    base = slugJS(base) || 'produit'; const ids = (PR ? PR.produits : []).map(p => p.id);
+    let id = base, n = 2; while (ids.includes(id) && id !== sauf) id = base + '-' + n++; return id;
+  }
+  function memoPR(){ try { S.set('adm_prods', JSON.stringify(PR)); } catch(e){} }
+  function memoFile(){ try { S.set('adm_file', JSON.stringify(FILE)); } catch(e){} }
+  function syncBadge(erreur){
+    let b = document.getElementById('savebadge');
+    if (!FILE.length){ if (b) b.remove(); return; }
+    if (!b){ b = document.createElement('div'); b.id = 'savebadge'; b.className = 'savebadge'; b.setAttribute('role', 'status'); document.body.appendChild(b); }
+    b.textContent = erreur ? '⚠️ Pas de connexion : nouvel essai automatique…' : '⏳ Enregistrement dans le Google Sheets…';
+    b.classList.toggle('err', !!erreur);
+  }
+  function enfiler(op){ FILE.push(op); memoFile(); syncBadge(); traiterFile(); }
+  async function resoudre(v){
+    if (typeof v !== 'string' || !v.startsWith('upload:')) return v;
+    try { return uploads[v] ? await uploads[v] : ''; } catch(e){ return ''; }
+  }
+  async function preparer(op){
+    const o = JSON.parse(JSON.stringify(op));
+    if (o.ancienId && idMap[o.ancienId]) o.ancienId = idMap[o.ancienId];
+    if (o.id && idMap[o.id]) o.id = idMap[o.id];
+    if (o.produit){
+      const P = o.produit;
+      P.photos = (await Promise.all((P.photos || []).map(resoudre))).filter(Boolean);
+      P.description = (await Promise.all(String(P.description || '').split('\n').map(resoudre))).filter(Boolean).join('\n');
+      for (const a of P.avis || []) a.photo = await resoudre(a.photo);
+    }
+    return Object.assign({type: 'produits'}, o);
+  }
+  function remplacerPartout(de, vers){
+    if (!PR) return;
+    PR.produits.forEach(p => {
+      p.photos = p.photos.map(u => u === de ? vers : u).filter(Boolean);
+      p.description = String(p.description || '').split('\n').map(l => l === de ? vers : l).filter(Boolean).join('\n');
+      (p.avis || []).forEach(a => { if (a.photo === de) a.photo = vers; });
+    });
+    memoPR();
+  }
+  async function traiterFile(){
+    if (envoiEnCours || !FILE.length) return;
+    envoiEnCours = true; syncBadge();
+    while (FILE.length){
+      const op = FILE[0];
+      try {
+        const r = await call(await preparer(op));
+        if (op.action === 'sauver' && r.id){
+          const voulu = op.produit.id;
+          if (voulu && r.id !== voulu){ idMap[voulu] = r.id; const p = PR && PR.produits.find(x => x.id === voulu); if (p){ p.id = r.id; memoPR(); } }
+        }
+        FILE.shift(); memoFile();
+      } catch(e){
+        if (/mot de passe|obligatoire|introuvable|vide/i.test(e.message)){ FILE.shift(); memoFile(); alert('Non enregistré : ' + e.message); continue; }
+        envoiEnCours = false; syncBadge(true); setTimeout(traiterFile, 4000); return;
+      }
+    }
+    envoiEnCours = false; syncBadge();
+    pubP = null; loadPub(); loadPR();
+  }
+  addEventListener('online', traiterFile);
   try { PR = JSON.parse(S.get('adm_prods') || 'null'); } catch(e){}
   async function loadPR(){
     if (prBusy) return; prBusy = true;
     try {
       const j = await call({type: 'produits'});
+      if (FILE.length) return;
       const pareil = PR && JSON.stringify(PR) === JSON.stringify(j);
       PR = j; try { S.set('adm_prods', JSON.stringify(j)); } catch(e){}
       if (!pareil && view === 'products' && !document.querySelector('.overlay, .editor')) drawProducts();
@@ -695,13 +764,16 @@ textarea.ttl{font-weight:800;font-size:18px}
     app.querySelectorAll('[data-pf]').forEach(b => b.onclick = () => { prFiltre = b.dataset.pf; drawProducts(); });
     app.querySelectorAll('[data-copy]').forEach(b => b.onclick = async () => { try { await navigator.clipboard.writeText(b.dataset.copy); b.textContent = '✓ Copié'; } catch(e){ prompt('Copie ce lien :', b.dataset.copy); } });
     app.querySelectorAll('[data-edit]').forEach(b => b.onclick = () => { if (!PR){ alert('Encore une seconde, les détails du produit arrivent…'); return; } editer(PR.produits.find(p => p.id === b.dataset.edit)); });
-    app.querySelectorAll('[data-dup]').forEach(b => b.onclick = () => dupliquer(b.dataset.dup, b));
+    app.querySelectorAll('[data-dup]').forEach(b => b.onclick = () => { if (!PR){ alert('Encore une seconde…'); return; } dupliquer(b.dataset.dup); });
     document.getElementById('prNew').onclick = () => { if (!PR){ alert('Encore une seconde, la liste des pays arrive…'); return; } editer(null); };
   }
-  async function dupliquer(id, b){
-    const t = b ? b.textContent : ''; if (b){ b.textContent = 'Copie…'; b.disabled = true; }
-    try { const r = await call({type: 'produits', action: 'dupliquer', id}); await loadPR(); if (b){ b.textContent = t; b.disabled = false; } const p = PR.produits.find(x => x.id === r.id); if (p) editer(p, 'Copie créée en brouillon ✓ Modifie-la puis mets-la en ligne.'); }
-    catch(e){ if (b){ b.disabled = false; b.textContent = 'Échec'; } alert('Duplication impossible : ' + e.message); }
+  function dupliquer(id){
+    const src = PR && PR.produits.find(x => x.id === id); if (!src) return;
+    const c = JSON.parse(JSON.stringify(src));
+    c.id = idLibreLocal(id + '-copie'); c.nom = src.nom + ' (copie)'; c.enLigne = false;
+    PR.produits.push(c); memoPR();
+    enfiler({action: 'sauver', produit: c, ancienId: ''});
+    editer(c, 'Copie créée en brouillon ✓ Modifie-la puis mets-la en ligne.');
   }
 
   // Réduit la photo sur le téléphone avant l'envoi (rapide, même en 3G)
@@ -717,10 +789,14 @@ textarea.ttl{font-weight:800;font-size:18px}
       fr.readAsDataURL(file);
     });
   }
-  async function envoyerPhoto(file, nom){
+  async function photoInstantanee(file, nom){
     const b64 = await lirePhoto(file);
-    const r = await call({type: 'produits', action: 'image', b64, mime: 'image/jpeg', nom});
-    return {url: r.url, apercu: b64};
+    const tok = 'upload:' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+    apercus[tok] = b64;
+    const envoi = async essai => { try { return (await call({type: 'produits', action: 'image', b64, mime: 'image/jpeg', nom})).url; } catch(e){ if (essai < 4){ await new Promise(r => setTimeout(r, 3000)); return envoi(essai + 1); } throw e; } };
+    uploads[tok] = envoi(0).then(url => { apercus[url] = b64; remplacerPartout(tok, url); return url; });
+    uploads[tok].catch(() => {});
+    return tok;
   }
   function choisirPhotos(multiple){
     return new Promise(ok => { const i = document.createElement('input'); i.type = 'file'; i.accept = 'image/*'; i.multiple = !!multiple; i.onchange = () => ok([...i.files]); i.click(); });
@@ -729,9 +805,8 @@ textarea.ttl{font-weight:800;font-size:18px}
   function editer(src, message){
     const neuf = !src;
     const P = JSON.parse(JSON.stringify(src || { id: '', enLigne: false, nom: '', accroche: '', photos: [], description: '', avantages: '', boite: '', stock: '', faq: '', prix: [], avis: [] }));
-    const apercus = {};
     // Description → blocs (texte, image, titre)
-    let blocs = String(P.description || '').split(/\n/).map(l => l.trim()).filter(Boolean).map(l => /^https?:\/\/\S+$/.test(l) ? {t: 'img', v: l} : /^##\s*/.test(l) ? {t: 'titre', v: l.replace(/^##\s*/, '')} : {t: 'txt', v: l});
+    let blocs = String(P.description || '').split(/\n/).map(l => l.trim()).filter(Boolean).map(l => /^(https?:\/\/\S+|upload:\S+)$/.test(l) ? {t: 'img', v: l} : /^##\s*/.test(l) ? {t: 'titre', v: l.replace(/^##\s*/, '')} : {t: 'txt', v: l});
     let faq = String(P.faq || '').split(/\n/).map(l => l.split('>>')).filter(x => x[0].trim()).map(x => ({q: x[0].trim(), r: x.slice(1).join('>>').trim()}));
     const paysTous = PR.pays.filter(p => p.actif || P.prix.some(x => x.pays.toLowerCase() === p.nom.toLowerCase()));
     const prixDe = nom => P.prix.find(x => x.pays.toLowerCase() === nom.toLowerCase());
@@ -815,15 +890,16 @@ textarea.ttl{font-weight:800;font-size:18px}
     const maj = fn => () => { lire(); fn(); sale = true; dessiner(); };
     async function ajouterImages(cible, bouton){
       const files = await choisirPhotos(cible === 'photos'); if (!files.length) return;
-      lire(); if (bouton){ bouton.disabled = true; bouton.textContent = 'Envoi…'; }
+      lire();
       for (const f of files){
         try {
-          const r = await envoyerPhoto(f, P.nom || 'produit'); apercus[r.url] = r.apercu;
-          if (cible === 'photos') P.photos.push(r.url);
-          else if (cible === 'bloc') blocs.push({t: 'img', v: r.url});
-          else if (typeof cible === 'number') P.avis[cible].photo = r.url;
+          const tok = await photoInstantanee(f, P.nom || 'produit');
+          if (cible === 'photos') P.photos.push(tok);
+          else if (cible === 'bloc') blocs.push({t: 'img', v: tok});
+          else if (typeof cible === 'number') P.avis[cible].photo = tok;
           sale = true;
-        } catch(e){ alert('Envoi de la photo impossible : ' + e.message); }
+          uploads[tok].then(url => { P.photos = P.photos.map(u => u === tok ? url : u); blocs.forEach(b => { if (b.v === tok) b.v = url; }); P.avis.forEach(a => { if (a.photo === tok) a.photo = url; }); }).catch(() => {});
+        } catch(e){ alert('Photo illisible : ' + e.message); }
       }
       dessiner();
     }
@@ -853,33 +929,30 @@ textarea.ttl{font-weight:800;font-size:18px}
       ed.querySelectorAll('input, textarea, select').forEach(i => i.addEventListener('input', () => sale = true));
       ed.querySelectorAll('textarea').forEach(t => { const a = () => { t.style.height = 'auto'; t.style.height = t.scrollHeight + 2 + 'px'; }; t.addEventListener('input', a); a(); });
       [ed.querySelector('#edSave'), ed.querySelector('#edSave2')].forEach(b => b.onclick = enregistrer);
-      const dup = ed.querySelector('#eDup'); if (dup) dup.onclick = async () => { if (sale && !confirm('Les modifications non enregistrées ne seront pas copiées. Continuer ?')) return; ed.remove(); document.body.style.overflow = ''; dupliquer(src.id); };
+      const dup = ed.querySelector('#eDup'); if (dup) dup.onclick = () => { if (sale && !confirm('Les modifications non enregistrées ne seront pas copiées. Continuer ?')) return; ed.remove(); document.body.style.overflow = ''; dupliquer(src.id); };
       const del = ed.querySelector('#eDel'); if (del) del.onclick = async () => {
         if (!confirm(`Supprimer définitivement « ${P.nom} » ? Ses prix et avis seront supprimés aussi.`)) return;
-        del.textContent = 'Suppression…';
-        try { await call({type: 'produits', action: 'supprimer', id: src.id}); PR.produits = PR.produits.filter(p => p.id !== src.id); try { S.set('adm_prods', JSON.stringify(PR)); } catch(e){} fermer(true); loadPR(); }
-        catch(e){ del.textContent = 'Échec : réessayer'; }
+        PR.produits = PR.produits.filter(p => p.id !== src.id); memoPR();
+        enfiler({action: 'supprimer', id: src.id});
+        fermer(true); toast('🗑 Produit supprimé');
       };
     }
-    async function enregistrer(){
+    function enregistrer(){
       lire();
       if (!P.nom.trim()){ alert('Donne un titre au produit.'); ed.querySelector('#eNom').focus(); return; }
-      const bs = [ed.querySelector('#edSave'), ed.querySelector('#edSave2')]; bs.forEach(b => { b.disabled = true; b.textContent = 'Enregistrement…'; });
-      const envoi = Object.assign({}, P, {
+      const ancien = neuf ? '' : src.id;
+      const fait = Object.assign({}, P, {
+        id: idLibreLocal(P.id || P.nom, ancien),
+        photos: P.photos.filter(Boolean),
         description: blocs.filter(b => String(b.v).trim()).map(b => b.t === 'titre' ? '## ' + b.v.trim() : b.t === 'img' ? b.v.trim() : b.v.replace(/\n+/g, ' ').trim()).join('\n'),
-        faq: faq.filter(f => f.q.trim() && f.r.trim()).map(f => f.q.trim().replace(/>>/g, '>') + ' >> ' + f.r.trim().replace(/\n+/g, ' ')).join('\n')
+        faq: faq.filter(f => f.q.trim() && f.r.trim()).map(f => f.q.trim().replace(/>>/g, '>') + ' >> ' + f.r.trim().replace(/\n+/g, ' ')).join('\n'),
+        prix: P.prix.filter(x => String(x.p1 || '').trim())
       });
-      try {
-        const r = await call({type: 'produits', action: 'sauver', produit: envoi, ancienId: neuf ? '' : src.id});
-        sale = false;
-        const fait = Object.assign({}, envoi, {id: r.id});
-        if (neuf) PR.produits.push(fait); else PR.produits[PR.produits.findIndex(p => p.id === src.id)] = fait;
-        try { S.set('adm_prods', JSON.stringify(PR)); } catch(e){}
-        pubP = null; loadPub();
-        fermer(true);
-        toast(P.enLigne ? '✅ Enregistré et en ligne sur le site' : '📝 Enregistré en brouillon');
-        loadPR();
-      } catch(e){ bs.forEach(b => { b.disabled = false; b.textContent = 'Réessayer'; }); alert('Enregistrement impossible : ' + e.message); }
+      if (neuf) PR.produits.push(fait); else PR.produits[PR.produits.findIndex(p => p.id === src.id)] = fait;
+      memoPR();
+      enfiler({action: 'sauver', produit: fait, ancienId: ancien});
+      sale = false; fermer(true);
+      toast(fait.enLigne ? '✅ Enregistré · en ligne sur le site dans quelques secondes' : '📝 Enregistré en brouillon');
     }
     dessiner();
   }
