@@ -723,7 +723,7 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
       <select class="field" id="npProd"><option value="">Chargement…</option></select>
       <div class="prow"><span class="lbl">Pays de la promotion <span class="tag" id="npNb"></span></span><button type="button" id="npTous">Tout cocher</button></div>
       <div class="pays" id="npPays"><span class="tag">Chargement…</span></div>
-      <p class="tag" style="margin-top:6px">Coche jusqu'à 20 pays où tu as du stock. Le client ne verra que ces pays et choisira le sien.</p>
+      <p class="tag" style="margin-top:6px">Coche jusqu'à 20 de tes pays actifs. Sur le site, le client choisit toujours parmi tous tes pays actifs.</p>
       <label class="lbl" for="npDep">Budget déjà payé à TikTok (optionnel)</label>
       <div class="frow"><input class="field" id="npDep" type="number" inputmode="decimal" placeholder="0"><select class="field" id="npDev"><option>FCFA</option><option>USD</option><option>EUR</option></select></div>
       <button class="btn tt" id="npGo">Créer le lien</button>
@@ -736,14 +736,13 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
     const coches = () => [...box.querySelectorAll('input:checked')].map(i => i.value);
     const majNb = () => { const n = coches().length; nb.textContent = n ? `(${n}/20)` : ''; box.querySelectorAll('input').forEach(i => { i.disabled = !i.checked && n >= 20; i.parentNode.classList.toggle('off', i.disabled); }); tous.textContent = n && n === Math.min(20, box.querySelectorAll('input').length) ? 'Tout décocher' : 'Tout cocher'; };
     const listePays = () => {
-      const avant = coches(), id = ov.querySelector('#npProd').value, P = pubData && pubData.produits.find(x => x.id === id);
-      const pays = ((pubData && pubData.pays) || []).filter(p => !P || (P.prix && P.prix[p.code]));
-      box.innerHTML = pays.length ? pays.map(p => `<label><input type="checkbox" value="${esc(p.code)}" ${avant.includes(p.code) ? 'checked' : ''}>${esc(p.nom)}</label>`).join('') : '<span class="tag">Aucun pays actif pour ce produit.</span>';
+      const avant = coches();
+      const pays = (pubData && pubData.pays) || [];
+      box.innerHTML = pays.length ? pays.map(p => `<label><input type="checkbox" value="${esc(p.code)}" ${avant.includes(p.code) ? 'checked' : ''}>${esc(p.nom)}</label>`).join('') : '<span class="tag">Aucun pays actif dans ton Google Sheets (onglet « Pays »).</span>';
       majNb();
     };
     box.onchange = majNb;
     tous.onclick = () => { const all = [...box.querySelectorAll('input')], on = coches().length; all.forEach((i, k) => i.checked = on ? false : k < 20); majNb(); };
-    ov.querySelector('#npProd').onchange = listePays;
     listePays();
     ov.querySelector('#npGo').onclick = async e => {
       const b = e.target, nom = ov.querySelector('#npNom').value.trim();

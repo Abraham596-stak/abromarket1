@@ -256,19 +256,9 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
 
   const TZ = {'Africa/Porto-Novo':'BJ','Africa/Ouagadougou':'BF','Africa/Bujumbura':'BI','Africa/Douala':'CM','Africa/Bangui':'CF','Indian/Comoro':'KM','Africa/Brazzaville':'CG','Africa/Kinshasa':'CD','Africa/Lubumbashi':'CD','Africa/Abidjan':'CI','Africa/Djibouti':'DJ','Africa/Libreville':'GA','Africa/Conakry':'GN','Africa/Malabo':'GQ','Indian/Antananarivo':'MG','Africa/Bamako':'ML','Africa/Nouakchott':'MR','Africa/Niamey':'NE','Africa/Kigali':'RW','Africa/Dakar':'SN','Africa/Ndjamena':'TD','Africa/Lome':'TG','Africa/Casablanca':'MA','Africa/Algiers':'DZ','Africa/Tunis':'TN','Indian/Mauritius':'MU','Indian/Mahe':'SC'};
 
-  // Lien de promotion avec plusieurs pays (c=BJ,CI,TG) : le client ne voit que ces pays
-  const promoPays = (() => {
-    const c = (params.get('c') || '').toUpperCase(), lst = c.split(',').map(x => x.trim()).filter(x => /^[A-Z]{2}$/.test(x));
-    if (lst.length > 1 || (lst.length && params.get('tt'))){ try { sessionStorage.setItem('promoPays', lst.join(',')); } catch(e){} return lst; }
-    if (params.get('c') || params.get('tt') || params.get('fbclid')){ try { sessionStorage.removeItem('promoPays'); } catch(e){} return []; }
-    try { const v = sessionStorage.getItem('promoPays'); return v ? v.split(',') : []; } catch(e){ return []; }
-  })();
-  const limiter = list => { if (!promoPays.length) return list; const f = list.filter(p => promoPays.includes(p.code)); return f.length ? f : list; };
-
   function pickCountry(allowed){
     const codes = allowed.map(p => p.code);
     const cand = [(params.get('c') || '').toUpperCase(), store.get('pays')];
-    if (promoPays.length > 1) cand.shift();
     try { cand.push(TZ[Intl.DateTimeFormat().resolvedOptions().timeZone]); } catch(e){}
     for (const c of cand) if (c && codes.includes(c)) return c;
     return codes[0] || null;
@@ -320,7 +310,7 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
   /* ---------- Accueil ---------- */
   function renderHome(){
     document.body.className = 'home';
-    const avail = limiter(D.pays.filter(p => D.produits.some(x => x.prix[p.code])));
+    const avail = D.pays.filter(p => D.produits.some(x => x.prix[p.code]));
     if (!country || !avail.some(p => p.code === country)) country = pickCountry(avail);
     const prods = D.produits.filter(x => x.prix[country]);
     const autres = D.produits.filter(x => !x.prix[country] && Object.keys(x.prix).length);
@@ -346,7 +336,7 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
   /* ---------- Page produit ---------- */
   function renderProduct(P){
     document.body.className = 'prod has-sticky';
-    const avail = limiter(D.pays.filter(p => P.prix[p.code]));
+    const avail = D.pays.filter(p => P.prix[p.code]);
     if (!country || !avail.some(p => p.code === country)) country = pickCountry(avail);
     const pays = D.pays.find(p => p.code === country);
     const px = pays && P.prix[country];
