@@ -229,6 +229,8 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
 .prow{display:flex;justify-content:space-between;align-items:baseline;margin:14px 0 8px}
 .prow .lbl{margin:0}
 .prow button{font-weight:600;font-size:14px;color:var(--main)}
+.usdbox{display:flex;gap:12px;align-items:center;background:var(--surface);border-radius:14px;padding:12px 14px;margin-top:4px}
+.usdbox span{font-size:24px}.usdbox b{display:block;font-size:17px}.usdbox small{color:var(--soft);font-size:13px}
 /* Plage de dates */
 .pdsheet{max-height:86vh}
 .pdrow{display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:14px 4px}
@@ -1179,8 +1181,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
       ${TT.autres.length ? `<div class="block"><h3>Autres commandes venues de TikTok</h3>${TT.autres.map((p, i) => promoCard(p, i, true)).join('')}</div>` : ''}
       ${finies.length ? `<div class="block"><h3>Promotions terminées</h3>${finies.map(p => promoCard(p, TT.promos.indexOf(p))).join('')}</div>` : ''}
       <div class="block"><h3>Réglages TikTok</h3>
-        <label class="lbl" for="ttUsd">1 dollar ($) = combien de FCFA ?</label>
-        <input class="field" id="ttUsd" type="number" inputmode="decimal" value="${esc(TT.usd)}">
+        <div class="usdbox"><span>💱</span><div><b>1 $ = ${esc(String(TT.usd).replace('.', ','))} FCFA</b><small>${TT.usdAuto ? 'Taux du jour, mis à jour automatiquement' + (TT.usdHeure ? ' · ' + esc(TT.usdHeure) : '') : 'Taux automatique indisponible pour le moment, nouvel essai dans 1 heure'}</small></div></div>
         <label class="lbl" for="ttCible">Coût maximum accepté par commande (FCFA)</label>
         <input class="field" id="ttCible" type="number" inputmode="numeric" placeholder="Ex : 2500" value="${TT.cible ? esc(TT.cible) : ''}">
         <p class="tag" style="margin-top:6px">Au-dessus de ce coût, la promotion est marquée « Trop chère ».</p>
@@ -1195,7 +1196,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
     const sv = document.getElementById('ttSave');
     if (sv) sv.onclick = async () => {
       sv.textContent = 'Enregistrement…';
-      try { await call({type: 'tiktok', action: 'reglages', usd: document.getElementById('ttUsd').value, cible: document.getElementById('ttCible').value}); sv.textContent = 'Enregistré ✓'; loadTT(true); }
+      try { await call({type: 'tiktok', action: 'reglages', cible: document.getElementById('ttCible').value}); sv.textContent = 'Enregistré ✓'; loadTT(true); }
       catch(e){ sv.textContent = 'Échec : réessayer'; }
     };
   }
