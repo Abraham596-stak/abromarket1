@@ -229,6 +229,16 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
 .prow{display:flex;justify-content:space-between;align-items:baseline;margin:14px 0 8px}
 .prow .lbl{margin:0}
 .prow button{font-weight:600;font-size:14px;color:var(--main)}
+/* Plage de dates */
+.pdsheet{max-height:86vh}
+.pdrow{display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:14px 4px}
+.pdrow b{display:block;font-size:17px}.pdrow small{display:block;color:var(--soft);font-size:14px}
+.pdic{font-size:20px}.pdchev{margin-left:auto;font-size:24px;color:var(--soft)}
+.pdfixe{padding:4px 4px 12px}
+.pdsep{height:8px;background:var(--surface);margin:4px -18px 4px}
+.pdopt{display:flex;align-items:center;gap:14px;padding:15px 4px;border-bottom:1px solid var(--line);font-size:17px;cursor:pointer}
+.pdopt input{width:22px;height:22px;accent-color:var(--deep);flex:0 0 22px}
+.pdbtn{font-weight:700}
 /* Confirmation */
 .cfov{position:fixed;inset:0;z-index:90;background:rgba(14,31,99,.55);display:flex;align-items:center;justify-content:center;padding:20px;animation:fd .15s ease-out}
 @keyframes fd{from{opacity:0}}
@@ -436,7 +446,9 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
   async function refresh(silent){
     if (busy) return; busy = true;
     try {
-      const j = await call({type:'dash', periode});
+      const demande = periode;
+      const j = await call(dashBody());
+      if (demande !== periode) return;
       const pareil = D && JSON.stringify(D) === JSON.stringify(j);
       D = j;
       try { S.set('adm_dash_' + periode, JSON.stringify(j)); } catch(e){}
@@ -486,7 +498,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
       e.preventDefault(); unlock();
       key = document.getElementById('pw').value.trim();
       const b = e.target.querySelector('.btn'); b.textContent = 'Connexion…';
-      try { const j = await call({type:'dash', periode}); S.set('adm_key', key); D = j; try { S.set('adm_dash_' + periode, JSON.stringify(j)); } catch(x){} initPush(); lastNum = j.dernier ? j.dernier.numero : ''; S.set('adm_last', lastNum); start(); }
+      try { const j = await call(dashBody()); S.set('adm_key', key); D = j; try { S.set('adm_dash_' + periode, JSON.stringify(j)); } catch(x){} initPush(); lastNum = j.dernier ? j.dernier.numero : ''; S.set('adm_last', lastNum); start(); }
       catch(err){ b.textContent = 'Ouvrir mon tableau de bord'; document.getElementById('lerr').textContent = /mot de passe/i.test(err.message) ? 'Mot de passe incorrect.' : 'Connexion impossible. Vérifie ta connexion internet.'; }
     };
   }
@@ -505,7 +517,62 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
   }
 
   /* ---------- Accueil ---------- */
-  const LABEL = { jour: "Aujourd'hui", hier: 'Hier', '7j': '7 derniers jours', '30j': '30 derniers jours' };
+  /* ---------- Périodes (comme Shopify) ---------- */
+  const PERIODES = [['jour', "Aujourd'hui"], ['hier', 'Hier'], ['m30', '30 dernières minutes'], ['h12', '12 dernières heures'],
+    ['7j', '7 derniers jours'], ['30j', '30 derniers jours'], ['90j', '90 derniers jours'], ['365j', '365 derniers jours'],
+    ['moisDernier', 'Mois dernier'], ['12mois', '12 derniers mois'], ['anneeDerniere', 'Année dernière'],
+    ['semaine', 'Semaine à ce jour'], ['mois', 'Mois à ce jour'], ['trimestre', 'Trimestre à ce jour'], ['annee', 'Année à ce jour']];
+  const isoJ = x => x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0');
+  const MOISC = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
+  const jolieDate = s => { const [y, m, d] = s.split('-').map(Number); return d + ' ' + MOISC[m - 1] + (y !== new Date().getFullYear() ? ' ' + y : ''); };
+  function plage(k){
+    const t = new Date(); t.setHours(0, 0, 0, 0);
+    const j = n => { const x = new Date(t); x.setDate(x.getDate() + n); return x; };
+    const P = (a, b) => ({debut: isoJ(a), fin: isoJ(b)});
+    if (/^f:/.test(k)){ const [, a, b] = k.split(':'); return {debut: a, fin: b}; }
+    switch (k){
+      case 'hier': return P(j(-1), j(-1));
+      case 'm30': return {minutes: 30};
+      case 'h12': return {minutes: 720};
+      case '7j': return P(j(-6), t);
+      case '30j': return P(j(-29), t);
+      case '90j': return P(j(-89), t);
+      case '365j': return P(j(-364), t);
+      case 'moisDernier': return P(new Date(t.getFullYear(), t.getMonth() - 1, 1), new Date(t.getFullYear(), t.getMonth(), 0));
+      case '12mois': return P(new Date(t.getFullYear() - 1, t.getMonth(), t.getDate() + 1), t);
+      case 'anneeDerniere': return P(new Date(t.getFullYear() - 1, 0, 1), new Date(t.getFullYear() - 1, 11, 31));
+      case 'semaine': return P(j(-((t.getDay() + 6) % 7)), t);
+      case 'mois': return P(new Date(t.getFullYear(), t.getMonth(), 1), t);
+      case 'trimestre': return P(new Date(t.getFullYear(), Math.floor(t.getMonth() / 3) * 3, 1), t);
+      case 'annee': return P(new Date(t.getFullYear(), 0, 1), t);
+      case 'tout': return {periode: 'tout'};
+      default: return P(t, t);
+    }
+  }
+  function libelle(k){
+    if (k === 'tout') return 'Depuis le début';
+    if (/^f:/.test(k)){ const [, a, b] = k.split(':'); return a === b ? jolieDate(a) : jolieDate(a) + ' – ' + jolieDate(b); }
+    const p = PERIODES.find(x => x[0] === k); return p ? p[1] : "Aujourd'hui";
+  }
+  // Feuille « Plage de dates » ; avecTout = ajoute « Depuis le début » (TikTok)
+  function choisirPeriode(actuelle, avecTout, fin){
+    const ov = document.createElement('div'); ov.className = 'overlay';
+    const fx = /^f:/.test(actuelle) ? actuelle.split(':') : ['', isoJ(new Date()), isoJ(new Date())];
+    const liste = (avecTout ? [['tout', 'Depuis le début']] : []).concat(PERIODES);
+    ov.innerHTML = `<div class="detail pdsheet" role="dialog" aria-modal="true" aria-label="Plage de dates"><div class="grab"></div><h2 style="font-size:22px;margin-bottom:6px">Plage de dates</h2>
+      <button class="pdrow" id="pdFixe"><span class="pdic">📅</span><span><b>Dates fixes</b><small>${/^f:/.test(actuelle) ? esc(libelle(actuelle)) : 'Choisir un jour ou une période précise'}</small></span><span class="pdchev">›</span></button>
+      <div class="pdfixe hidden" id="pdFx"><div class="g2"><label>Du<input class="field" type="date" id="pdA" value="${fx[1]}" max="${isoJ(new Date())}"></label><label>Au<input class="field" type="date" id="pdB" value="${fx[2]}" max="${isoJ(new Date())}"></label></div>
+        <button class="btn blue" id="pdOk" style="margin-top:10px">Appliquer</button></div>
+      <div class="pdsep"></div>
+      ${liste.map(([k, l]) => `<label class="pdopt"><input type="radio" name="pd" value="${k}" ${k === actuelle ? 'checked' : ''}><span>${esc(l)}</span></label>`).join('')}</div>`;
+    document.body.appendChild(ov);
+    const fermer = () => ov.remove();
+    ov.onclick = e => { if (e.target === ov) fermer(); };
+    ov.querySelector('#pdFixe').onclick = () => { ov.querySelector('#pdFx').classList.toggle('hidden'); };
+    ov.querySelector('#pdOk').onclick = () => { let a = ov.querySelector('#pdA').value, b = ov.querySelector('#pdB').value; if (!a || !b) return; if (b < a) [a, b] = [b, a]; fermer(); fin('f:' + a + ':' + b); };
+    ov.querySelectorAll('input[name=pd]').forEach(r => r.onchange = () => { fermer(); fin(r.value); });
+  }
+  const dashBody = () => Object.assign({type: 'dash', periode}, plage(periode));
   function pct(a, b){ if (!b) return a ? '<span class="d up">nouveau</span>' : ''; const p = Math.round((a - b) / b * 100); return `<span class="d ${p >= 0 ? 'up' : 'down'}">${p >= 0 ? '+' : ''}${p} %</span>`; }
   function home(){
     const c = D.cur, p = D.prev, dev = D.devise;
@@ -531,8 +598,8 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
           <div class="kpi"><small>Taux de conversion</small><b>${conv.toFixed(1).replace('.', ',')} %</b>${p.visites ? `<span class="d ${conv >= convP ? 'up' : 'down'}">${conv >= convP ? '+' : ''}${(conv-convP).toFixed(1).replace('.', ',')} pt</span>` : ''}</div>
         </div>
         <div class="chart" id="chart"></div>
-        <div class="legend"><span>${esc(LABEL[periode])}</span><span class="p">${periode === 'jour' ? 'Hier' : 'Période précédente'}</span></div>
-        <div class="periods">${Object.keys(LABEL).map(k => `<button class="chip ${k===periode?'on':''}" data-p="${k}">${LABEL[k]}</button>`).join('')}</div>
+        <div class="legend"><span>${esc(libelle(periode))}</span><span class="p">${periode === 'jour' ? 'Hier' : 'Période précédente'}</span></div>
+        <div class="periods"><button class="chip on pdbtn" id="pdBtn">📅 ${esc(libelle(periode))} ▾</button></div>
       </div>
       <div class="sheet">
         <h2>Bonjour ! <span>Voici ton activité</span></h2>
@@ -556,7 +623,11 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
       </div>`;
     drawChart();
     app.querySelectorAll('[data-m]').forEach(b => b.onclick = () => { metric = b.dataset.m; home(); });
-    app.querySelectorAll('[data-p]').forEach(b => b.onclick = async () => { periode = b.dataset.p; const c = fromCache(periode); if (c){ D = c; home(); } else app.querySelectorAll('[data-p]').forEach(x => x.classList.toggle('on', x === b)); setBusy(true); await refresh(); });
+    document.getElementById('pdBtn').onclick = () => choisirPeriode(periode, false, async k => {
+      periode = k; SS.set('adm_periode', k); const c = fromCache(periode);
+      if (c){ D = c; home(); } else { const b = document.getElementById('pdBtn'); if (b) b.textContent = '📅 ' + libelle(k) + ' …'; }
+      setBusy(true); busy = false; await refresh();
+    });
     app.querySelectorAll('[data-go]').forEach(b => b.onclick = () => go(b.dataset.go));
     bindOrders();
     document.getElementById('snd').onclick = () => { sound = !sound; S.set('adm_sound', sound ? '1' : '0'); if (sound) chime(); home(); };
@@ -566,7 +637,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
     const el = document.getElementById('chart'); if (!el) return;
     const b = D.serieP[metric], n = b.length;
     let a = D.serie[metric];
-    if (periode === 'jour') a = a.slice(0, new Date().getHours() + 1);
+    if (D.partiel) a = a.slice(0, D.partiel); else if (periode === 'jour') a = a.slice(0, new Date().getHours() + 1);
     const W = el.clientWidth || 340, H = 200, L = 58, R = 6, T = 12, B = 26;
     const max = Math.max(1, ...a, ...b);
     const xn = n;
@@ -580,7 +651,8 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
       grid += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="rgba(255,255,255,.12)"/>
         <text x="${L - 8}" y="${y(v) + 4}" text-anchor="end" fill="rgba(255,255,255,.66)" font-size="12" font-family="Figtree, sans-serif",sans-serif>${metric === 'ventes' ? short(v) : Math.round(v)}</text>`;
     }
-    const labels = D.parJour ? [0, Math.floor((n-1)/2), n-1].map(i => ({i, t: (() => { const [dd, mm] = D.debut.split('/').map(Number); const d = new Date(new Date().getFullYear(), mm-1, dd + i); return d.getDate() + '/' + (d.getMonth()+1); })()}))
+    const labels = D.etiquettes ? [...new Set([0, Math.floor((n-1)/2), n-1])].map(i => ({i, t: D.etiquettes[i] || ''}))
+      : D.parJour ? [0, Math.floor((n-1)/2), n-1].map(i => ({i, t: (() => { const [dd, mm] = D.debut.split('/').map(Number); const d = new Date(new Date().getFullYear(), mm-1, dd + i); return d.getDate() + '/' + (d.getMonth()+1); })()}))
       : [0, 10, 20].map(i => ({i, t: String(i).padStart(2,'0') + ':00'}));
     const xl = labels.map(l => `<text x="${x(l.i)}" y="${H - 6}" text-anchor="middle" fill="rgba(255,255,255,.66)" font-size="12" font-family="Figtree, sans-serif",sans-serif>${l.t}</text>`).join('');
     const unit = metric === 'ventes' ? D.devise : metric;
@@ -1051,7 +1123,6 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
 
   /* ---------- Promotions TikTok ---------- */
   let TT = null, ttPer = S.get('adm_ttper') || '7j', ttBusy = false;
-  const TTP = { jour: "Aujourd'hui", hier: 'Hier', '7j': '7 jours', '30j': '30 jours', tout: 'Depuis le début' };
   const F = n => fmt(Math.round(Number(n) || 0), 'FCFA');
   const K = n => (n = Math.round(Number(n) || 0)) >= 1e5 ? short(n) : fmt(n);
   const ratio = (a, b) => b ? a / b : 0;
@@ -1059,7 +1130,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
   function verdict(p){
     if (!p.depense && !p.commandes) return '<span class="vd v-wait">En attente</span>';
     if (p.depense && !p.commandes) return '<span class="vd v-bad">Aucune commande</span>';
-    if (!p.depense) return '<span class="vd v-wait">Dépense à saisir</span>';
+    if (!p.depense) return `<span class="vd v-wait">${p.budget ? 'Pas encore diffusée' : 'Budget à saisir'}</span>`;
     const cpa = p.depense / p.commandes, c = TT.cible;
     if (!c) return `<span class="vd v-ok">${p.commandes} vente${p.commandes > 1 ? 's' : ''}</span>`;
     return cpa <= c ? '<span class="vd v-ok">Rentable ✓</span>' : cpa <= c * 1.3 ? '<span class="vd v-mid">À surveiller</span>' : '<span class="vd v-bad">Trop chère</span>';
@@ -1072,7 +1143,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
     return `<div class="tt-top">
       <h1><span class="tt-logo"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M14 3v11.5a3.5 3.5 0 1 1-3.5-3.5"/><path d="M14 3c.4 2.6 2.4 4.6 5 4.8"/></svg></span>Promotions TikTok</h1>
       <p class="sub">Combien chaque promotion t'a rapporté de commandes.</p>
-      <div class="periods">${Object.keys(TTP).map(k => `<button class="chip ${k === ttPer ? 'on' : ''}" data-tp="${k}">${TTP[k]}</button>`).join('')}</div>
+      <div class="periods"><button class="chip on" id="ttPd">📅 ${esc(libelle(ttPer))} ▾</button></div>
       <div class="ttsum">
         <div><small>Dépensé</small><b>${F(dep)}</b></div>
         <div><small>Commandes</small><b>${cmd}</b></div>
@@ -1088,7 +1159,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
   const promoCard = (p, i, autre) => `<button class="promo" data-tt="${i}" data-autre="${autre ? 1 : ''}">
       <div class="h"><div><b>${esc(p.nom)}</b><div class="meta">${autre ? 'Commandes TikTok sans lien de promo' : `${p.statut === 'Active' ? '<span class="st-on">● Active</span>' : p.statut === 'En attente' ? '<span class="st-wait">● En attente d’approbation</span>' : '<span class="st-off">● Terminée</span>'} · ${esc(p.produit || 'Boutique')}${nomsPays(p)} · n°${esc(p.code)}`}${p.live ? ` · <b style="color:#0B6B35">${p.live} en direct</b>` : ''}</div></div>${autre ? '' : verdict(p)}</div>
       <div class="pm">
-        <div><small>Dépensé</small><b>${autre ? '–' : K(p.depense)}</b></div>
+        <div><small>Dépensé${p.estimee ? ' (auto)' : ''}</small><b>${autre ? '–' : (p.estimee ? '≈ ' : '') + K(p.depense)}</b></div>
         <div><small>Commandes</small><b>${p.commandes}</b></div>
         <div><small>Coût/cmd</small><b>${!autre && p.commandes && p.depense ? K(p.depense / p.commandes) : '–'}</b></div>
         <div><small>Livrées</small><b>${p.livrees}</b></div>
@@ -1118,7 +1189,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
     bindTT();
   }
   function bindTT(){
-    app.querySelectorAll('[data-tp]').forEach(b => b.onclick = () => { ttPer = b.dataset.tp; S.set('adm_ttper', ttPer); TT = ttCache(); drawTT(); loadTT(true); });
+    const tpd = document.getElementById('ttPd'); if (tpd) tpd.onclick = () => choisirPeriode(ttPer, true, k => { ttPer = k; S.set('adm_ttper', ttPer); TT = ttCache(); drawTT(); loadTT(true); });
     const n = document.getElementById('ttNew'); if (n) n.onclick = newPromo;
     app.querySelectorAll('[data-tt]').forEach(b => b.onclick = () => promoDetail(b.dataset.autre ? TT.autres[b.dataset.tt] : TT.promos[b.dataset.tt], !!b.dataset.autre));
     const sv = document.getElementById('ttSave');
@@ -1133,7 +1204,8 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
     if (ttBusy && !force) return; ttBusy = true;
     const per = ttPer;
     try {
-      const j = await call({type: 'tiktok', periode: per});
+      const pl = plage(per); if (pl.minutes) Object.assign(pl, plage('jour'));
+      const j = await call(Object.assign({type: 'tiktok', periode: per}, pl));
       if (per !== ttPer) return;
       const pareil = TT && JSON.stringify(TT) === JSON.stringify(j);
       TT = j; S.set('adm_tt_' + per, JSON.stringify(j));
@@ -1168,8 +1240,11 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
       <div class="prow"><span class="lbl">Pays de la promotion <span class="tag" id="npNb"></span></span><button type="button" id="npTous">Tout cocher</button></div>
       <div class="pays" id="npPays"><span class="tag">Chargement…</span></div>
       <p class="tag" style="margin-top:6px">Coche jusqu'à 20 de tes pays actifs. Sur le site, le client choisit toujours parmi tous tes pays actifs.</p>
-      <label class="lbl" for="npDep">Budget déjà payé à TikTok (optionnel)</label>
-      <div class="frow"><input class="field" id="npDep" type="number" inputmode="decimal" placeholder="0"><select class="field" id="npDev"><option>FCFA</option><option>USD</option><option>EUR</option></select></div>
+      <label class="lbl" for="npBud">Budget total de la promotion</label>
+      <div class="frow"><input class="field" id="npBud" type="number" inputmode="decimal" placeholder="Ex : 10000"><select class="field" id="npDev"><option>FCFA</option><option>USD</option><option>EUR</option></select></div>
+      <label class="lbl" for="npDur">Durée de la promotion (jours)</label>
+      <input class="field" id="npDur" type="number" inputmode="numeric" placeholder="Ex : 3">
+      <p class="tag" style="margin-top:6px">Mets le même budget et la même durée que dans TikTok : la dépense sera calculée toute seule chaque jour.</p>
       <button class="btn tt" id="npGo">Créer le lien</button>
       <button class="btn ghost" data-close style="margin-top:10px">Annuler</button>`);
     try {
@@ -1195,7 +1270,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
       b.textContent = 'Création…'; b.disabled = true;
       try {
         const r = await call({type: 'tiktok', action: 'creer', nom, produit: ov.querySelector('#npProd').value, pays: coches(),
-          depense: ov.querySelector('#npDep').value, devise: ov.querySelector('#npDev').value, site: SITE, rid});
+          budget: ov.querySelector('#npBud').value, duree: ov.querySelector('#npDur').value, devise: ov.querySelector('#npDev').value, site: SITE, rid});
         ov.remove();
         sheet(`<h2>Lien prêt ✓</h2><p class="sub">Promotion n°${esc(r.code)} · ${esc(nom)}</p>
           <div class="linkbox">${esc(r.lien)}</div>
@@ -1212,10 +1287,10 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
     const cpa = ratio(p.depense, p.commandes), cpl = ratio(p.depense, p.livrees);
     const t = (l, v, cls) => `<div class="tile ${cls || ''}"><small>${l}</small><b>${v}</b></div>`;
     const {ov} = sheet(`<h2>${esc(p.nom)}</h2>
-      <p class="sub">${autre ? 'Commandes venues de TikTok sans lien de promotion' : `n°${esc(p.code)} · ${esc(p.produit || 'Boutique')}${nomsPays(p)} · créée le ${esc(p.cree)} · ${esc(TTP[ttPer])}`}</p>
+      <p class="sub">${autre ? 'Commandes venues de TikTok sans lien de promotion' : `n°${esc(p.code)} · ${esc(p.produit || 'Boutique')}${nomsPays(p)} · créée le ${esc(p.cree)} · ${esc(libelle(ttPer))}`}</p>
       ${autre ? '' : verdict(p)}
       <div class="mgrid">
-        ${autre ? '' : t('Dépensé', F(p.depense))}
+        ${autre ? '' : t(p.estimee ? 'Dépensé (calculé)' : 'Dépensé', (p.estimee ? '≈ ' : '') + F(p.depense))}
         ${autre ? '' : t('Visites', p.visites)}
         ${t('Commandes', p.commandes)}
         ${autre ? '' : t('Taux de commande', p.visites ? (p.commandes / p.visites * 100).toFixed(1).replace('.', ',') + ' %' : '–')}
@@ -1230,10 +1305,15 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
         ${autre ? '' : t('Rentabilité', p.depense ? 'x' + ratio(p.caLivre, p.depense).toFixed(1).replace('.', ',') : '–')}
         ${autre ? '' : t('Coût par visite', p.visites && p.depense ? F(p.depense / p.visites) : '–')}
       </div>
-      ${autre ? '' : `<label class="lbl" for="pdDep">Total dépensé sur TikTok pour cette promotion</label>
-        <div class="frow"><input class="field" id="pdDep" type="number" inputmode="decimal" value="${esc(p.depenseTotal || '')}" placeholder="0"><select class="field" id="pdDev">${['FCFA','USD','EUR'].map(d => `<option ${d === p.devise ? 'selected' : ''}>${d}</option>`).join('')}</select></div>
-        <p class="tag" style="margin-top:6px">Recopie le montant total affiché par TikTok. On calcule tout seul ce qui a été dépensé chaque jour.</p>
-        <button class="btn blue" id="pdSave" style="margin-top:10px">Mettre à jour la dépense</button>
+      ${autre ? '' : `<div class="card" style="margin-top:12px"><h3>Budget de la promotion</h3>
+        <p class="tag">${p.estimee ? `Dépense calculée automatiquement : <b>${esc(fmt(Math.round(p.depenseTotal), p.devise))}</b> sur ${esc(fmt(p.budget, p.devise))}${p.diffusion ? ' depuis le ' + esc(p.diffusion) : ''}.` : p.depenseTotal ? 'Dépense réelle saisie à la main.' : 'Mets le budget et la durée choisis dans TikTok : la dépense se calcule toute seule chaque jour.'}</p>
+        <div class="frow" style="margin-top:10px"><input class="field" id="pdBud" type="number" inputmode="decimal" value="${esc(p.budget || '')}" placeholder="Budget total" aria-label="Budget total"><select class="field" id="pdDev">${['FCFA','USD','EUR'].map(d => `<option ${d === p.devise ? 'selected' : ''}>${d}</option>`).join('')}</select></div>
+        <input class="field" id="pdDur" type="number" inputmode="numeric" value="${esc(p.duree || '')}" placeholder="Durée (jours)" aria-label="Durée en jours" style="margin-top:8px">
+        <button class="btn blue" id="pdBudOk" style="margin-top:10px">Enregistrer le budget</button>
+        <details class="pays1" style="margin-top:12px"><summary><b>Corriger avec la dépense réelle</b><span class="tag">facultatif</span></summary>
+          <p class="tag" style="margin:8px 0">À la fin, si TikTok affiche un autre montant dépensé, mets-le ici : il remplacera le calcul automatique.</p>
+          <input class="field" id="pdDep" type="number" inputmode="decimal" value="${esc(p.estimee ? '' : (p.depenseTotal || ''))}" placeholder="Montant dépensé selon TikTok">
+          <button class="btn ghost" id="pdSave" style="margin-top:8px">Enregistrer la dépense réelle</button></details></div>
         <label class="lbl">Lien de la promotion</label>
         <div class="linkbox">${esc(p.lien)}</div>
         <button class="copy" data-copy="${esc(p.lien)}">📋 Copier le lien</button>`}
@@ -1247,8 +1327,14 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
     const sv = ov.querySelector('#pdSave');
     if (sv) sv.onclick = async () => {
       sv.textContent = 'Enregistrement…'; sv.disabled = true;
-      try { await call({type: 'tiktok', action: 'depense', code: p.code, total: ov.querySelector('#pdDep').value, devise: ov.querySelector('#pdDev').value}); sv.textContent = 'Dépense enregistrée ✓'; await loadTT(true); setTimeout(() => { ov.remove(); drawTT(); }, 600); }
+      try { await call({type: 'tiktok', action: 'depense', code: p.code, total: ov.querySelector('#pdDep').value || 0, devise: ov.querySelector('#pdDev').value}); sv.textContent = 'Dépense enregistrée ✓'; await loadTT(true); setTimeout(() => { ov.remove(); drawTT(); }, 600); }
       catch(e){ sv.disabled = false; sv.textContent = 'Échec : réessayer'; alert('Raison : ' + e.message); }
+    };
+    const bo = ov.querySelector('#pdBudOk');
+    if (bo) bo.onclick = async () => {
+      bo.textContent = 'Enregistrement…'; bo.disabled = true;
+      try { await call({type: 'tiktok', action: 'budget', code: p.code, budget: ov.querySelector('#pdBud').value, duree: ov.querySelector('#pdDur').value, devise: ov.querySelector('#pdDev').value}); bo.textContent = 'Budget enregistré ✓'; await loadTT(true); setTimeout(() => { ov.remove(); drawTT(); }, 600); }
+      catch(e){ bo.disabled = false; bo.textContent = 'Échec : réessayer'; alert('Raison : ' + e.message); }
     };
     const st = ov.querySelector('#pdStat');
     if (st) st.onclick = async () => {
