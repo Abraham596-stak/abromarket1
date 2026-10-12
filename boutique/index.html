@@ -29,10 +29,15 @@ img{max-width:100%;display:block}
 a{color:inherit}
 .wrap{max-width:560px;margin:0 auto;background:var(--bg);min-height:100vh}
 .home .wrap{max-width:960px}
-.topbar{background:var(--main);color:#fff;text-align:center;font-size:14px;font-weight:500;padding:9px 16px}
-header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:15}
-.brand{display:flex;align-items:center;gap:10px;text-decoration:none;font:800 20px "Bricolage Grotesque",sans-serif;color:var(--main);min-width:0}
-.brand img{height:34px;width:auto}
+.topbar{background:var(--main);color:#fff;font-size:14px;font-weight:600;padding:9px 0;overflow:hidden;white-space:nowrap}
+.defile{display:inline-flex;animation:defile 22s linear infinite;will-change:transform}
+.defile span{padding:0 28px}
+.defile .promo{color:#FFD54A;font-weight:800}
+@keyframes defile{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+header{display:flex;align-items:center;justify-content:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);position:sticky;top:0;background:rgba(255,255,255,.96);z-index:15;box-shadow:0 2px 14px rgba(18,48,143,.06)}
+.brand{display:flex;align-items:center;justify-content:center;gap:10px;text-decoration:none;font:800 21px "Bricolage Grotesque",sans-serif;letter-spacing:.06em;color:var(--main);min-width:0}
+.brand img{height:36px;width:auto}
+.brand span{background:linear-gradient(90deg,#12308F,#2350D8);-webkit-background-clip:text;background-clip:text;color:transparent}
 .brand span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .country{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--soft)}
 .country select{border:2px solid var(--line);border-radius:10px;padding:7px 8px;font:600 14px "Figtree",sans-serif;background:#fff;color:var(--ink);max-width:150px}
@@ -337,8 +342,11 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
   function header(list){
     const logo = R('Logo (lien image, optionnel)');
     const name = R('Nom de la boutique') || 'Boutique';
-    return `<div class="topbar">${esc(R('Bandeau du haut'))}</div>
-      <header><a class="brand" href="./">${logo?`<img src="${esc(img(logo))}" alt="">`:''}<span>${esc(name)}</span></a></header>`;
+    // Bandeau qui défile tout seul : message du Sheet + offre du jour
+    const msgs = [R('Bandeau du haut'), "🔥 Offre -40% aujourd'hui seulement"].filter(Boolean);
+    const tour = msgs.map((m, i) => `<span class="${/offre/i.test(m) ? 'promo' : ''}">${esc(m)}</span>`).join('');
+    return `<div class="topbar" aria-label="${esc(msgs.join(' – '))}"><div class="defile" aria-hidden="true">${tour + tour + tour + tour}</div></div>
+      <header><a class="brand" href="./"><img src="${esc(logo ? img(logo) : 'logo.png')}" alt=""><span>${esc(name)}</span></a></header>`;
   }
   function trust(){
     let h = '';

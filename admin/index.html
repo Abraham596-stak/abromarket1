@@ -126,6 +126,8 @@ body{touch-action:manipulation}
 .daysep{background:var(--surface);color:var(--soft);font-weight:600;font-size:14px;padding:8px 12px;margin:10px -16px 0}
 .badge{display:inline-block;padding:4px 10px;border-radius:999px;font-size:14px;font-weight:600;background:#FFF1BF;color:#6B4E00}
 .b-Confirmée{background:#DCE6FF;color:#2350D8}.b-Livrée{background:var(--okbg);color:#0B6B35}
+.b-À{background:#FFE9B8;color:#7A4B00}.b-Jarrive{background:#E3F2FF;color:#0B4F8A}.b-Nous{background:#F1E6FF;color:#5B2A99}
+.b-Ne{background:#ECEDF2;color:#4A5068}.b-Lui{background:#DDF7E6;color:#0B6B35}
 .b-Annulée,.b-Retournée{background:var(--errbg);color:#9B1C1C}.b-Injoignable{background:#ECEDF2;color:#4A5068}
 .b-En{background:#E9E2FF;color:#4B2BA8}.b-Expédition{background:#FFE6D1;color:#8A3D00}
 .tag{font-size:13px;color:var(--soft)}
@@ -1017,7 +1019,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
   }
 
   /* ---------- Commandes ---------- */
-  const badge = st => `<span class="badge b-${esc(String(st || 'Nouvelle').split(' ')[0])}">${esc(st || 'Nouvelle')}</span>`;
+  const badge = st => `<span class="badge b-${esc(String(st || 'Nouvelle').split(' ')[0].replace(/['’]/g, ''))}">${esc(st || 'Nouvelle')}</span>`;
   const orderRow = o => `<button class="order" data-num="${esc(o.numero)}">
       <div class="l1"><b>#${esc(o.numero)}</b><span>${esc(fmt(o.total, o.devise))}</span></div>
       <div class="l2">${esc(o.nom || 'Sans nom')} · ${esc(o.qte)} article${Number(o.qte) > 1 ? 's' : ''} · ${esc(o.heure)}</div>
@@ -1043,7 +1045,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
     list.forEach(o => { if (o.date !== last){ last = o.date; html += `<div class="daysep">${esc(dayName(o.date))}</div>`; } html += orderRow(o); });
     app.innerHTML = `<div class="page"><h1>Commandes</h1>
       <input class="search" id="q" type="search" placeholder="Rechercher un nom, un numéro…" value="${esc(q)}" aria-label="Rechercher">
-      <div class="filters">${['Toutes','Nouvelle','Confirmée','En livraison','Livrée','Annulée','Injoignable'].map(f => `<button class="${f===filtre?'on':''}" data-f="${f}">${f === 'Nouvelle' ? 'À traiter' : f}</button>`).join('')}</div>
+      <div class="filters">${['Toutes','Nouvelle','À rappeler','Confirmée','En livraison','Livrée','Annulée','Injoignable'].map(f => `<button class="${f===filtre?'on':''}" data-f="${f}">${f === 'Nouvelle' ? 'À traiter' : f}</button>`).join('')}</div>
       ${html || `<div class="empty">Aucune commande ici.</div>`}</div>`;
     const qi = document.getElementById('q');
     qi.oninput = () => { q = qi.value; const pos = qi.selectionStart; orders(); const n = document.getElementById('q'); n.focus(); n.setSelectionRange(pos, pos); };
@@ -1515,6 +1517,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
   const ratio = (a, b) => b ? a / b : 0;
   const nomsPays = p => { const l = p.pays || []; if (!l.length) return ''; const n = l.map(c => { const x = pubData && pubData.pays.find(q => q.code === c); return x ? x.nom : c; }); return ' · ' + esc(n.length > 3 ? n.slice(0, 3).join(', ') + ' +' + (n.length - 3) : n.join(', ')); };
   function verdict(p){
+    if (p.statut && p.statut !== 'Active' && p.statut !== 'En attente') return '';
     if (!p.depense && !p.commandes) return '<span class="vd v-wait">En attente</span>';
     if (p.depense && !p.commandes) return '<span class="vd v-bad">Aucune commande</span>';
     if (!p.depense) return `<span class="vd v-wait">${p.budget ? 'Pas encore diffusée' : 'Budget à saisir'}</span>`;
