@@ -50,7 +50,7 @@ header{display:flex;align-items:center;justify-content:center;gap:10px;padding:1
 @media(min-width:700px){.grid{grid-template-columns:repeat(3,1fr);gap:18px}}
 .card{text-decoration:none;border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;background:#fff;transition:transform .15s,box-shadow .15s}
 .card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(20,26,46,.08)}
-.card img{aspect-ratio:1/1;object-fit:cover;width:100%;background:var(--surface)}
+.card img{aspect-ratio:1/1;object-fit:contain;width:100%;background:#fff}
 .card .ci{padding:10px 12px 14px;display:flex;flex-direction:column;gap:4px;flex:1}
 .card .cn{font-weight:700;font-size:15px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .card .cp{font:800 18px "Bricolage Grotesque",sans-serif;color:var(--main);margin-top:auto}
@@ -62,7 +62,8 @@ header{display:flex;align-items:center;justify-content:center;gap:10px;padding:1
 .gallery{position:relative;background:var(--surface)}
 .slides{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}
 .slides::-webkit-scrollbar{display:none}
-.slides img{flex:0 0 100%;width:100%;aspect-ratio:1/1;object-fit:cover;scroll-snap-align:center}
+.slides{align-items:center;background:#fff}
+.slides img{flex:0 0 100%;width:100%;height:auto;max-height:82vh;object-fit:contain;scroll-snap-align:center;background:#fff}
 .dots{display:flex;gap:6px;justify-content:center;padding:10px 0 0}
 .dots span{width:8px;height:8px;border-radius:50%;background:var(--line);transition:background .2s}
 .dots span.on{background:var(--main)}
@@ -82,7 +83,17 @@ section{padding:26px 18px;border-top:1px solid var(--line)}
 section h2{font-size:23px;font-weight:800;margin-bottom:14px}
 .rich p{font-size:17px;margin-bottom:14px}
 .rich h3{font-size:20px;margin:6px 0 10px}
-.rich img{width:100%;border-radius:14px;margin:4px 0 16px;background:var(--surface)}
+.rich img{max-width:100%;height:auto;border-radius:14px;margin:4px auto 16px;display:block}
+.rich h2{font-size:22px;margin:8px 0 10px}
+.rich ul,.rich ol{padding-left:22px;margin:0 0 14px;font-size:17px}.rich li{margin-bottom:6px}
+.rich a{color:var(--main);font-weight:600;text-decoration:underline}
+.rich table{width:100%;border-collapse:collapse;margin:6px 0 16px;font-size:15px}
+.rich td,.rich th{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+.rich th{background:var(--surface)}
+.rich .vid{position:relative;width:100%;aspect-ratio:16/9;margin:4px 0 16px;border-radius:14px;overflow:hidden;background:#000}
+.rich .vid.v{aspect-ratio:9/16;max-width:360px;margin-left:auto;margin-right:auto}
+.rich .vid iframe,.rich .vid video{position:absolute;inset:0;width:100%;height:100%;border:0}
+.rich [style*="center"] img{margin-left:auto;margin-right:auto}
 .perks{list-style:none;display:grid;gap:12px;margin-top:6px}
 .perks li{display:flex;gap:12px;align-items:flex-start;font-size:17px}
 .perks.top{margin-top:16px;gap:10px}
@@ -105,7 +116,7 @@ details p{color:var(--soft);margin-top:8px}
 .review .rs{color:#E9A300}
 .review p{margin:8px 0}
 .review .who{font-weight:700}
-.review img{border-radius:10px;margin-top:8px;max-height:220px;object-fit:cover;width:100%}
+.review img{border-radius:10px;margin-top:8px;max-height:320px;object-fit:contain;width:100%;background:#fff}
 .rdots{display:flex;gap:6px;justify-content:center;margin-top:12px}
 .rdots span{width:7px;height:7px;border-radius:50%;background:var(--line)}
 .rdots span.on{background:var(--main)}
@@ -145,6 +156,7 @@ input:focus,textarea:focus,select:focus{border-color:var(--main);outline:none}
 .error{color:var(--err);font-size:14px;font-weight:600;margin-top:6px;display:none}
 .field.bad .error{display:block}
 .field.bad input,.field.bad textarea,.field.bad .confirm,.field.bad .phone,.field.bad select{border-color:var(--err)}
+.etape{font-size:18px;margin:22px 0 10px;padding-top:16px;border-top:1px solid var(--line)}
 .ticket{background:#fff;border:2px dashed var(--main);border-radius:14px;padding:16px;margin:6px 0 16px}
 .ticket .row{display:flex;justify-content:space-between;gap:12px;padding:4px 0}
 .ticket .row span:first-child{color:var(--soft)}
@@ -207,7 +219,7 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
   .thumbs{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
   .thumbs button{width:76px;height:76px;border-radius:12px;overflow:hidden;border:2px solid transparent;padding:0;cursor:pointer;background:var(--surface)}
   .thumbs button.on{border-color:var(--main)}
-  .thumbs img{width:100%;height:100%;object-fit:cover}
+  .thumbs img{width:100%;height:100%;object-fit:contain;background:#fff}
   .intro{padding:0}
   .intro h1{font-size:36px}
   .pricetag,.stock,.unavail{margin-left:0;margin-right:0}
@@ -289,11 +301,45 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
     u = String(u || '').trim();
     if (IMG[u]) return IMG[u];
     const m = u.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:export=\w+&)?id=)([\w-]{20,})/);
-    if (m) return 'https://drive.google.com/thumbnail?id=' + m[1] + '&sz=w1200';
+    if (m) return 'https://drive.google.com/thumbnail?id=' + m[1] + '&sz=w2000';
     return u;
   }
   const isUrl = s => /^https?:\/\/\S+$/i.test(s);
+  // Vidéo : YouTube, TikTok, Google Drive ou fichier .mp4
+  function video(u){
+    u = String(u || '').trim(); let m;
+    if ((m = u.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|shorts\/|embed\/))([\w-]{6,})/))) return `<div class="vid${/shorts/.test(u) ? ' v' : ''}"><iframe src="https://www.youtube.com/embed/${m[1]}" loading="lazy" allowfullscreen allow="autoplay; encrypted-media; picture-in-picture"></iframe></div>`;
+    if ((m = u.match(/tiktok\.com\/.*\/video\/(\d+)/))) return `<div class="vid v"><iframe src="https://www.tiktok.com/embed/v2/${m[1]}" loading="lazy" allowfullscreen></iframe></div>`;
+    if ((m = u.match(/drive\.google\.com\/(?:file\/d\/|open\?id=)([\w-]{20,})/))) return `<div class="vid"><iframe src="https://drive.google.com/file/d/${m[1]}/preview" loading="lazy" allowfullscreen></iframe></div>`;
+    if (/^https?:\/\/\S+\.(mp4|webm|mov)(\?\S*)?$/i.test(u)) return `<div class="vid"><video src="${esc(u)}" controls playsinline preload="metadata"></video></div>`;
+    return '';
+  }
+  // Description mise en forme (gras, italique, alignement, liens, images, vidéos, tableaux) : seules les balises sûres passent
+  function richHtml(h){
+    const ok = {P:1,H2:1,H3:1,B:1,STRONG:1,I:1,EM:1,U:1,BR:1,UL:1,OL:1,LI:1,A:1,IMG:1,TABLE:1,THEAD:1,TBODY:1,TR:1,TD:1,TH:1,DIV:1,SPAN:1,BLOCKQUOTE:1,FIGURE:1};
+    const t = document.createElement('template'); t.innerHTML = h;
+    const net = el => {
+      [...el.childNodes].forEach(n => {
+        if (n.nodeType === 3) return;
+        if (n.nodeType !== 1){ n.remove(); return; }
+        if (n.classList && n.classList.contains('vid') && n.dataset.v){ const v = video(n.dataset.v); const d = document.createElement('div'); d.innerHTML = v; n.replaceWith(...(v ? d.childNodes : [])); return; }
+        if (/^(SCRIPT|STYLE|IFRAME|OBJECT|EMBED|NOSCRIPT|TEMPLATE|SVG|MATH|FORM|INPUT|BUTTON|TEXTAREA|SELECT)$/i.test(n.tagName)){ n.remove(); return; }
+        if (!ok[n.tagName]){ net(n); n.replaceWith(...n.childNodes); return; }
+        const al = (n.getAttribute('style') || '').match(/text-align:\s*(left|center|right|justify)/), w = (n.getAttribute('style') || '').match(/(?:^|;)\s*width:\s*(\d{1,3}%)/);
+        const href = n.getAttribute('href'), src = n.getAttribute('src'), cs = n.getAttribute('colspan');
+        [...n.attributes].forEach(a => n.removeAttribute(a.name));
+        if (al) n.style.textAlign = al[1];
+        if (n.tagName === 'A' && href && /^(https?:|mailto:|tel:|#|\?)/i.test(href)){ n.setAttribute('href', href); if (/^https?:/i.test(href)){ n.setAttribute('target', '_blank'); n.setAttribute('rel', 'noopener'); } }
+        if (n.tagName === 'IMG'){ if (!src || !/^https?:/i.test(src)){ n.remove(); return; } n.setAttribute('src', img(src)); n.setAttribute('alt', ''); n.setAttribute('loading', 'lazy'); n.setAttribute('decoding', 'async'); if (w) n.style.width = w[1]; }
+        if (cs && /^\d$/.test(cs)) n.setAttribute('colspan', cs);
+        net(n);
+      });
+    };
+    net(t.content);
+    const d = document.createElement('div'); d.appendChild(t.content); return d.innerHTML;
+  }
   function rich(t){
+    if (/^\s*</.test(String(t || ''))) return richHtml(t);
     return String(t || '').split(/\r?\n|\s*\|\s*/).map(l => l.trim()).filter(Boolean).map(l => {
       if (isUrl(l)) return `<img src="${esc(img(l))}" alt="" decoding="async">`;
       if (/^##\s*/.test(l)) return `<h3>${esc(l.replace(/^##\s*/, ''))}</h3>`;
@@ -404,6 +450,19 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
       const promo = Number(px.promoJour) || 0;
       form = `<section id="commande"><h2>Passer ma commande</h2><p class="sub">Remplissez ce formulaire, ça prend moins d'une minute.</p>
         <form id="form" novalidate>
+          <div class="field"><span class="legend">Choisissez votre offre</span><div class="choices">
+            ${px.offres.map((o,i) => {
+              const save = o.ancien > o.prix ? o.ancien - o.prix : 0;
+              return `<div class="choice"><input type="radio" name="offre" id="o${i}" value="${esc(o.key)}" ${i?'':'checked'}>
+                <label for="o${i}"><span>${esc(o.label)}${save && o.qte > 1 ? `<small>Vous économisez ${money(save, dev)}</small>` : ''}</span>
+                <span class="p"><b>${money(o.prix, dev)}</b>${o.ancien > o.prix ? `<s>${money(o.ancien, dev)}</s>` : ''}</span></label></div>`;
+            }).join('')}</div></div>
+          <div class="field"><span class="legend">Quand voulez-vous être livré ?</span><div class="choices">
+            <div class="choice"><input type="radio" name="jour" id="j0" value="today" checked><label for="j0"><span>Aujourd'hui${promo?`<small>Promo : −${money(promo, dev)}</small>`:''}</span></label></div>
+            <div class="choice"><input type="radio" name="jour" id="j1" value="tomorrow"><label for="j1"><span>Demain</span></label></div></div></div>
+          <div class="field"><label for="slot">Moment de la journée</label>
+            <select class="in" id="slot"><option value="dès que possible">Dès que possible</option><option value="le matin">Le matin (8h – 12h)</option><option value="l'après-midi">L'après-midi (12h – 16h)</option><option value="le soir">Le soir (16h – 20h)</option></select></div>
+          <h3 class="etape">Vos informations de livraison</h3>
           <div class="field" id="fNom"><label for="nom">Votre nom</label><input type="text" id="nom" autocomplete="name" placeholder="Nom et prénom">
             <div class="error">Indiquez votre nom.</div></div>
           <div class="field" id="fTel"><label for="tel">Votre numéro de téléphone (WhatsApp de préférence)</label>
@@ -418,18 +477,6 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
           <div class="field" id="fAdr"><label for="adr">Lieu exact de livraison</label>
             <textarea id="adr" placeholder="Quartier, rue, repère connu (ex : à côté de la pharmacie…)"></textarea>
             <div class="error">Précisez où le livreur doit venir.</div></div>
-          <div class="field"><span class="legend">Choisissez votre offre</span><div class="choices">
-            ${px.offres.map((o,i) => {
-              const save = o.ancien > o.prix ? o.ancien - o.prix : 0;
-              return `<div class="choice"><input type="radio" name="offre" id="o${i}" value="${esc(o.key)}" ${i?'':'checked'}>
-                <label for="o${i}"><span>${esc(o.label)}${save && o.qte > 1 ? `<small>Vous économisez ${money(save, dev)}</small>` : ''}</span>
-                <span class="p"><b>${money(o.prix, dev)}</b>${o.ancien > o.prix ? `<s>${money(o.ancien, dev)}</s>` : ''}</span></label></div>`;
-            }).join('')}</div></div>
-          <div class="field"><span class="legend">Quand voulez-vous être livré ?</span><div class="choices">
-            <div class="choice"><input type="radio" name="jour" id="j0" value="today" checked><label for="j0"><span>Aujourd'hui${promo?`<small>Promo : −${money(promo, dev)}</small>`:''}</span></label></div>
-            <div class="choice"><input type="radio" name="jour" id="j1" value="tomorrow"><label for="j1"><span>Demain</span></label></div></div></div>
-          <div class="field"><label for="slot">Moment de la journée</label>
-            <select class="in" id="slot"><option value="dès que possible">Dès que possible</option><option value="le matin">Le matin (8h – 12h)</option><option value="l'après-midi">L'après-midi (12h – 16h)</option><option value="le soir">Le soir (16h – 20h)</option></select></div>
           <div class="field" id="fOk"><label class="confirm"><input type="checkbox" id="ok"> Je veux vraiment ce produit et je serai disponible à la livraison</label>
             <div class="error">Cochez cette case pour confirmer votre commande.</div></div>
           <div class="ticket" aria-live="polite">
@@ -760,7 +807,7 @@ Heure de la livraison : ${r.livraison}`;
     beacon(first ? 'visite' : 'ping');
     chercherLieu();
     // Étape « au paiement » dès que le client commence à remplir le formulaire
-    document.addEventListener('focusin', e => { if (etape !== 'paiement' && etape !== 'achat' && e.target.closest && e.target.closest('form')){ etape = 'paiement'; beacon('ping'); } });
+    document.addEventListener('focusin', e => { if (etape !== 'paiement' && etape !== 'achat' && e.target.closest && e.target.closest('form') && e.target.matches('#nom,#tel,#ville,#adr,#villeAutre')){ etape = 'paiement'; beacon('ping'); } });
     setInterval(() => { if (document.visibilityState === 'visible') beacon('ping'); }, 40000);
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') beacon('ping'); });
     window.addEventListener('pagehide', () => beacon('quitte'));

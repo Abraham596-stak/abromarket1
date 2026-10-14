@@ -30,19 +30,24 @@ jobs:
 
           def source(u):
               m = re.search(r'drive\.google\.com/(?:file/d/|open\?id=|uc\?(?:export=\w+&)?id=)([\w-]{20,})', u)
-              return 'https://drive.google.com/thumbnail?id=%s&sz=w1200' % m.group(1) if m else u
+              return 'https://drive.google.com/thumbnail?id=%s&sz=w2000' % m.group(1) if m else u
 
           urls = []
           for p in d['produits']:
               urls += p.get('photos', [])
-              urls += [l.strip() for l in re.split(r'\r?\n|\s*\|\s*', p.get('description', '')) if re.match(r'^https?://\S+$', l.strip())]
+              desc = p.get('description', '') or ''
+              if desc.lstrip().startswith('<'):
+                  urls += re.findall(r'<img[^>]+src="(https?://[^"]+)"', desc)
+              else:
+                  urls += [l.strip() for l in re.split(r'\r?\n|\s*\|\s*', desc) if re.match(r'^https?://\S+$', l.strip())]
               urls += [a.get('photo') for a in p.get('avis', []) if a.get('photo')]
           logo = d.get('reglages', {}).get('Logo (lien image, optionnel)')
           if logo: urls.append(logo)
 
           imgs = {}
           for u in dict.fromkeys(u.strip() for u in urls if u and u.strip()):
-              nom = 'img/' + hashlib.sha1(u.encode()).hexdigest()[:14] + '.webp'
+              # v2 : images nettes (1600 px, qualité 88) et jamais rognées
+              nom = 'img/' + hashlib.sha1(u.encode()).hexdigest()[:14] + '-v2.webp'
               chemin = 'boutique/' + nom
               if not os.path.exists(chemin):
                   try:
@@ -50,19 +55,24 @@ jobs:
                       data = urllib.request.urlopen(req, timeout=30).read()
                       im = ImageOps.exif_transpose(Image.open(io.BytesIO(data)))
                       im = im.convert('RGBA' if im.mode in ('RGBA', 'LA', 'P') else 'RGB')
-                      im.thumbnail((800, 800))
-                      im.save(chemin, 'WEBP', quality=72, method=6)
+                      im.thumbnail((1600, 1600), Image.LANCZOS)
+                      im.save(chemin, 'WEBP', quality=88, method=6)
                       print('optimisée :', u, '->', os.path.getsize(chemin) // 1024, 'Ko')
                   except Exception as e:
                       print('ignorée :', u, e)
                       continue
               imgs[u] = nom
           d['imgs'] = imgs
+          # Retire les anciennes images qui ne servent plus
+          gardees = set(imgs.values())
+          for f in os.listdir('boutique/img'):
+              if 'img/' + f not in gardees and f.endswith('.webp'):
+                  os.remove('boutique/img/' + f)
           json.dump(d, open('boutique/data.json', 'w'), ensure_ascii=False, separators=(',', ':'), sort_keys=True)
           PY
       - name: Enregistrer si quelque chose a changé
         run: |
           git config user.name "abromarket-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add boutique/data.json boutique/img
+          git add -A boutique/data.json boutique/img
           git diff --cached --quiet || (git commit -m "Mise à jour de la copie des produits" && git pull --rebase -q && git push)

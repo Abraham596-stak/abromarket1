@@ -332,6 +332,39 @@ html.ordi .dvgrid{grid-template-columns:repeat(4,minmax(0,1fr))}
 .absec span{background:var(--surface);border-radius:999px;padding:2px 10px;font-size:14px;color:var(--soft)}
 .ab.fait{opacity:.6}
 .okrel{color:var(--ok)}
+/* Éditeur de description (comme Shopify) */
+.rte{border:1.5px solid var(--line);border-radius:14px;overflow:hidden;margin-top:8px;background:#fff}
+.rtebar,.rteimg,.rtetab{display:flex;flex-wrap:wrap;align-items:center;gap:2px;padding:6px;background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:1}
+.rtebar button,.rteimg button,.rtetab button{min-width:36px;height:36px;border-radius:9px;font-size:16px;padding:0 8px}
+.rtebar button:active,.rteimg button:active{background:#DDE3F3}
+.rtebar select{height:36px;border-radius:9px;border:1px solid var(--line);background:#fff;font:600 14px "Figtree",sans-serif;padding:0 6px}
+.rteimg span,.rtetab span{font-size:13px;color:var(--soft);font-weight:700;margin-right:4px}
+.rteimg,.rtetab{background:#FFF7E0}
+.rtebar .sep{width:1px;height:22px;background:var(--line);margin:0 4px}
+.rtezone{min-height:180px;padding:14px;font-size:16px;line-height:1.55;outline:none}
+.rtezone:empty::before{content:"Décris ton produit…";color:var(--soft)}
+.rtezone h2{font-size:22px;margin:6px 0}.rtezone h3{font-size:19px;margin:6px 0}.rtezone p{margin:0 0 10px}
+.rtezone img{max-width:100%;height:auto;border-radius:10px;display:inline-block}
+.rtezone img.sel{outline:3px solid var(--main);outline-offset:2px}
+.rtezone a{color:var(--main);text-decoration:underline}
+.rtezone table{width:100%;border-collapse:collapse;margin:6px 0 10px}.rtezone td,.rtezone th{border:1px solid var(--line);padding:6px 8px;min-width:40px}
+.rtezone th{background:var(--surface)}
+.rtezone .vid{background:#111;color:#fff;border-radius:10px;padding:18px;text-align:center;font-weight:700;margin:6px 0 10px;word-break:break-all}
+.rtezone ul{padding-left:22px;margin:0 0 10px}
+.phedit{position:absolute;top:4px;right:4px;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.92);font-size:15px;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+.ph img{object-fit:contain!important;background:#fff}
+/* Retouche photo */
+.retouche{position:fixed;inset:0;z-index:95;background:#111;display:flex;flex-direction:column;color:#fff}
+.rtop{display:flex;align-items:center;justify-content:space-between;padding:calc(env(safe-area-inset-top) + 10px) 12px 10px}
+.rtop button{padding:10px 14px;border-radius:12px;background:rgba(255,255,255,.12);color:#fff;font-weight:700}
+.rtop .ok{background:var(--sun);color:#12308F}
+.rzone{flex:1;min-height:0}.rzone img{display:block;max-width:100%}
+.rbas{padding:10px 12px calc(14px + env(safe-area-inset-bottom))}
+.rrow{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin-bottom:8px}
+.rrow button{flex:0 0 auto;padding:10px 14px;border-radius:12px;background:rgba(255,255,255,.12);color:#fff;font-weight:600;font-size:14px}
+.rrow button.on{background:#fff;color:#111}
+.rrow button:disabled{opacity:.5}
+.rinfo{font-size:13px;color:rgba(255,255,255,.7);text-align:center}
 /* Confirmation */
 .cfov{position:fixed;inset:0;z-index:90;background:rgba(18,48,143,.55);display:flex;align-items:center;justify-content:center;padding:20px;animation:fd .15s ease-out}
 @keyframes fd{from{opacity:0}}
@@ -1262,7 +1295,11 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
     if (o.produit){
       const P = o.produit;
       P.photos = (await Promise.all((P.photos || []).map(resoudre))).filter(Boolean);
-      P.description = (await Promise.all(String(P.description || '').split('\n').map(resoudre))).filter(Boolean).join('\n');
+      if (/^\s*</.test(String(P.description || ''))){
+        let h = String(P.description); const toks = [...new Set(h.match(/upload:[a-z0-9]+/g) || [])];
+        for (const t of toks) h = h.split(t).join(await resoudre(t) || '');
+        P.description = h;
+      } else P.description = (await Promise.all(String(P.description || '').split('\n').map(resoudre))).filter(Boolean).join('\n');
       for (const a of P.avis || []) a.photo = await resoudre(a.photo);
     }
     return Object.assign({type: 'produits'}, o);
@@ -1271,7 +1308,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
     if (!PR) return;
     PR.produits.forEach(p => {
       p.photos = p.photos.map(u => u === de ? vers : u).filter(Boolean);
-      p.description = String(p.description || '').split('\n').map(l => l === de ? vers : l).filter(Boolean).join('\n');
+      p.description = /^\s*</.test(String(p.description || '')) ? String(p.description).split(de).join(vers) : String(p.description || '').split('\n').map(l => l === de ? vers : l).filter(Boolean).join('\n');
       (p.avis || []).forEach(a => { if (a.photo === de) a.photo = vers; });
     });
     memoPR();
@@ -1298,7 +1335,9 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
   }
   addEventListener('online', traiterFile);
   try { PR = JSON.parse(S.get('adm_prods') || 'null'); } catch(e){}
-  async function loadPR(){
+  let prP = null;
+  function loadPR(){ return prP || (prP = chargerPR().finally(() => { prP = null; })); }
+  async function chargerPR(){
     if (prBusy) return; prBusy = true;
     try {
       const j = await call({type: 'produits'});
@@ -1355,10 +1394,10 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
       const fr = new FileReader();
       fr.onerror = ko;
       fr.onload = () => { const im = new Image(); im.onerror = ko; im.onload = () => {
-        const k = Math.min(1, 1400 / Math.max(im.width, im.height)), c = document.createElement('canvas');
+        const k = Math.min(1, 2048 / Math.max(im.width, im.height)), c = document.createElement('canvas');
         c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
         const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(im, 0, 0, c.width, c.height);
-        ok(c.toDataURL('image/jpeg', 0.84)); }; im.src = fr.result; };
+        g.imageSmoothingQuality = 'high'; ok(c.toDataURL('image/jpeg', 0.92)); }; im.src = fr.result; };
       fr.readAsDataURL(file);
     });
   }
@@ -1371,6 +1410,58 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
     uploads[tok].catch(() => {});
     return tok;
   }
+  /* Retouche photo : recadrer, tourner, retourner, effacer l'arrière-plan (gratuit, dans le téléphone) */
+  let cropperP = null;
+  function chargerCropper(){
+    return cropperP = cropperP || new Promise((ok, ko) => {
+      const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = 'https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css'; document.head.appendChild(l);
+      const sc = document.createElement('script'); sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js'; sc.onload = () => ok(window.Cropper); sc.onerror = () => { cropperP = null; ko(new Error('Outil de retouche indisponible, vérifie ta connexion.')); }; document.head.appendChild(sc);
+    });
+  }
+  async function blobDe(src){
+    if (/^data:/.test(src)) return (await fetch(src)).blob();
+    const r = await fetch(src, {mode: 'cors'}); if (!r.ok) throw new Error('photo inaccessible'); return r.blob();
+  }
+  function retoucher(src){
+    return new Promise(async fin => {
+      let blob, C;
+      try { [C, blob] = await Promise.all([chargerCropper(), blobDe(src)]); }
+      catch(e){ alert(/inaccessible|fetch/i.test(e.message) ? 'Cette photo ne peut pas être retouchée ici. Ajoute-la depuis ton téléphone, puis retouche-la.' : e.message); fin(null); return; }
+      const ov = document.createElement('div'); ov.className = 'retouche';
+      ov.innerHTML = `<div class="rtop"><button id="rtX">Annuler</button><b>Retoucher la photo</b><button id="rtOk" class="ok">Valider</button></div>
+        <div class="rzone"><img id="rtImg" alt=""></div>
+        <div class="rbas">
+          <div class="rrow"><button data-r="NaN" class="on">Libre</button><button data-r="1">Carré</button><button data-r="0.8">4:5</button><button data-r="1.7778">16:9</button><button data-r="0.5625">9:16</button></div>
+          <div class="rrow"><button id="rtG">↺ Tourner</button><button id="rtD">↻ Tourner</button><button id="rtM">⇋ Miroir</button><button id="rtF">✨ Effacer le fond</button></div>
+          <p class="rinfo" id="rtInfo">Glisse les coins pour recadrer.</p></div>`;
+      document.body.appendChild(ov);
+      const im = ov.querySelector('#rtImg'); let url = URL.createObjectURL(blob), cr = null, sx = 1;
+      const monter = () => { if (cr) cr.destroy(); im.src = url; cr = new C(im, {viewMode: 1, autoCropArea: 1, background: false, responsive: true}); };
+      monter();
+      const quitter = r => { if (cr) cr.destroy(); ov.remove(); URL.revokeObjectURL(url); fin(r); };
+      ov.querySelector('#rtX').onclick = () => quitter(null);
+      ov.querySelectorAll('[data-r]').forEach(b => b.onclick = () => { ov.querySelectorAll('[data-r]').forEach(x => x.classList.toggle('on', x === b)); cr.setAspectRatio(Number(b.dataset.r)); });
+      ov.querySelector('#rtG').onclick = () => cr.rotate(-90);
+      ov.querySelector('#rtD').onclick = () => cr.rotate(90);
+      ov.querySelector('#rtM').onclick = () => { sx = -sx; cr.scaleX(sx); };
+      ov.querySelector('#rtF').onclick = async e => {
+        const b = e.currentTarget, info = ov.querySelector('#rtInfo'); b.disabled = true;
+        info.textContent = 'Effacement du fond… La première fois, l’outil se télécharge (Wi-Fi conseillé, jusqu’à 1 minute).';
+        try {
+          const m = await import('https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/+esm');
+          const out = await m.removeBackground(blob, {progress: (k, a, t) => { if (t) info.textContent = 'Préparation de l’outil… ' + Math.round(a / t * 100) + ' %'; }});
+          blob = out; URL.revokeObjectURL(url); url = URL.createObjectURL(out); monter();
+          info.textContent = 'Fond effacé ✓ (il sera blanc sur le site).';
+        } catch(err){ info.textContent = 'Impossible d’effacer le fond pour l’instant : ' + (err.message || err); }
+        b.disabled = false;
+      };
+      ov.querySelector('#rtOk').onclick = () => {
+        const c = cr.getCroppedCanvas({maxWidth: 2048, maxHeight: 2048, fillColor: '#fff', imageSmoothingEnabled: true, imageSmoothingQuality: 'high'});
+        if (!c){ quitter(null); return; }
+        c.toBlob(b => quitter(b ? new File([b], 'photo.jpg', {type: 'image/jpeg'}) : null), 'image/jpeg', 0.92);
+      };
+    });
+  }
   function choisirPhotos(multiple){
     return new Promise(ok => { const i = document.createElement('input'); i.type = 'file'; i.accept = 'image/*'; i.multiple = !!multiple; i.onchange = () => ok([...i.files]); i.click(); });
   }
@@ -1378,8 +1469,9 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
   function editer(src, message){
     const neuf = !src;
     const P = JSON.parse(JSON.stringify(src || { id: '', enLigne: false, nom: '', accroche: '', photos: [], description: '', avantages: '', boite: '', stock: '', faq: '', prix: [], avis: [] }));
-    // Description → blocs (texte, image, titre)
-    let blocs = String(P.description || '').split(/\n/).map(l => l.trim()).filter(Boolean).map(l => /^(https?:\/\/\S+|upload:\S+)$/.test(l) ? {t: 'img', v: l} : /^##\s*/.test(l) ? {t: 'titre', v: l.replace(/^##\s*/, '')} : {t: 'txt', v: l});
+    // Description mise en forme (comme Shopify) : ancien format converti automatiquement
+    let descHtml = /^\s*</.test(String(P.description || '')) ? String(P.description) : String(P.description || '').split(/\n/).map(l => l.trim()).filter(Boolean).map(l =>
+      /^(https?:\/\/\S+|upload:\S+)$/.test(l) ? `<p><img src="${esc(l)}"></p>` : /^##\s*/.test(l) ? `<h3>${esc(l.replace(/^##\s*/, ''))}</h3>` : `<p>${esc(l).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')}</p>`).join('');
     let faq = String(P.faq || '').split(/\n/).map(l => l.split('>>')).filter(x => x[0].trim()).map(x => ({q: x[0].trim(), r: x.slice(1).join('>>').trim()}));
     const paysTous = PR.pays.filter(p => p.actif || P.prix.some(x => x.pays.toLowerCase() === p.nom.toLowerCase()));
     const prixDe = nom => P.prix.find(x => x.pays.toLowerCase() === nom.toLowerCase());
@@ -1404,14 +1496,28 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
           <label class="lbl" for="eAcc">Accroche (sous le titre)</label><input class="field" id="eAcc" value="${esc(P.accroche)}" placeholder="Ex : Marcher enfin librement sans douleur"></div>
 
         <div class="card"><h3>Photos</h3><p class="tag">La première photo est la photo principale.</p>
-          <div class="phgrid">${P.photos.map((u, i) => `<div class="ph"><img src="${esc(img(u))}" alt=""><div class="phb">${i ? `<button data-pl="${i}" aria-label="Avancer">◀</button>` : ''}<button data-pd="${i}" aria-label="Supprimer">✕</button>${i < P.photos.length - 1 ? `<button data-pr="${i}" aria-label="Reculer">▶</button>` : ''}</div></div>`).join('')}
+          <div class="phgrid">${P.photos.map((u, i) => `<div class="ph"><img src="${esc(img(u))}" alt=""><button class="phedit" data-pe="${i}" aria-label="Retoucher la photo">✏️</button><div class="phb">${i ? `<button data-pl="${i}" aria-label="Avancer">◀</button>` : ''}<button data-pd="${i}" aria-label="Supprimer">✕</button>${i < P.photos.length - 1 ? `<button data-pr="${i}" aria-label="Reculer">▶</button>` : ''}</div></div>`).join('')}
             <button class="ph add" id="phAdd">＋<span>Ajouter</span></button></div>
           <button class="lnk" id="phUrl">Ou coller le lien d'une photo</button></div>
 
-        <div class="card"><h3>Description</h3><p class="tag">Ajoute des paragraphes, des images et des titres dans l'ordre que tu veux.</p>
-          ${blocs.map((b, i) => `<div class="blk"><div class="blkh"><span>${b.t === 'img' ? '🖼 Image' : b.t === 'titre' ? 'Titre' : '¶ Paragraphe'}</span><span>${i ? `<button data-bu="${i}" aria-label="Monter">↑</button>` : ''}${i < blocs.length - 1 ? `<button data-bd="${i}" aria-label="Descendre">↓</button>` : ''}<button data-bx="${i}" aria-label="Supprimer">✕</button></span></div>
-            ${b.t === 'img' ? `<img class="blkimg" src="${esc(img(b.v))}" alt="">` : `<textarea class="field ${b.t === 'titre' ? 'ttl' : ''}" data-bv="${i}" rows="${b.t === 'titre' ? 1 : 4}">${esc(b.v)}</textarea>`}</div>`).join('')}
-          <div class="addrow"><button data-add="txt">+ Paragraphe</button><button data-add="img">+ Image</button><button data-add="titre">+ Titre</button></div></div>
+        <div class="card"><h3>Description</h3><p class="tag">Écris comme dans Shopify : gras, italique, alignement, liens, images, vidéos et tableaux. Touche une image pour la redimensionner ou la retoucher.</p>
+          <div class="rte">
+            <div class="rtebar" id="rteBar">
+              <select id="rteBloc" aria-label="Style du texte"><option value="p">Paragraphe</option><option value="h2">Titre</option><option value="h3">Sous-titre</option></select>
+              <button data-c="bold" aria-label="Gras"><b>B</b></button><button data-c="italic" aria-label="Italique"><i>I</i></button><button data-c="underline" aria-label="Souligné"><u>U</u></button>
+              <span class="sep"></span>
+              <button data-c="justifyLeft" aria-label="Aligner à gauche">⇤</button><button data-c="justifyCenter" aria-label="Centrer">≡</button><button data-c="justifyRight" aria-label="Aligner à droite">⇥</button>
+              <button data-c="insertUnorderedList" aria-label="Liste à puces">•</button>
+              <span class="sep"></span>
+              <button id="rteLien" aria-label="Lien">🔗</button><button id="rteImg" aria-label="Image">🖼</button><button id="rteVid" aria-label="Vidéo">▶</button><button id="rteTab" aria-label="Tableau">▦</button>
+              <span class="sep"></span>
+              <button data-c="undo" aria-label="Annuler">↶</button><button data-c="redo" aria-label="Rétablir">↷</button>
+            </div>
+            <div class="rteimg hidden" id="rteImgBar"><span>Image :</span><button data-iw="100%">100 %</button><button data-iw="75%">75 %</button><button data-iw="50%">50 %</button><button data-iw="33%">33 %</button>
+              <button data-ia="left">⇤</button><button data-ia="center">≡</button><button data-ia="right">⇥</button><button id="rteRet">✏️ Retoucher</button><button id="rteDel">🗑</button></div>
+            <div class="rtetab hidden" id="rteTabBar"><span>Tableau :</span><button id="tbL">+ Ligne</button><button id="tbC">+ Colonne</button><button id="tbX">Supprimer le tableau</button></div>
+            <div class="rtezone" id="eDesc" contenteditable="true" spellcheck="true"></div>
+          </div></div>
 
         <div class="card"><h3>Prix par pays</h3><p class="tag">Laisse vide un pays où tu ne vends pas ce produit.</p>
           ${paysTous.map(p => { const x = prixDe(p.nom) || {}; const k = esc(p.nom); return `<details class="pays1" data-p="${k}" ${x.p1 || ouverts.includes(p.nom) ? 'open' : ''}><summary><b>${esc(p.nom)}</b>${p.actif ? '' : ' <span class="tag">(pays inactif)</span>'}<span class="tag">${x.p1 ? esc(fmt(String(x.p1).replace(/[^\d.,]/g, ''), p.devise)) : 'pas de prix'}</span></summary>
@@ -1448,7 +1554,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
     function lire(){
       const v = id => { const e = ed.querySelector('#' + id); return e ? e.value : ''; };
       P.nom = v('eNom'); P.accroche = v('eAcc'); P.avantages = v('eAv'); P.boite = v('eBo'); P.stock = v('eSt'); P.id = v('eId');
-      ed.querySelectorAll('[data-bv]').forEach(t => blocs[t.dataset.bv].v = t.value);
+      const z = ed.querySelector('#eDesc'); if (z) descHtml = lireDesc(z);
       ed.querySelectorAll('[data-fq]').forEach(t => faq[t.dataset.fq].q = t.value);
       ed.querySelectorAll('[data-fr]').forEach(t => faq[t.dataset.fr].r = t.value);
       ed.querySelectorAll('[data-an]').forEach(t => P.avis[t.dataset.an].nom = t.value);
@@ -1468,10 +1574,9 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
         try {
           const tok = await photoInstantanee(f, P.nom || 'produit');
           if (cible === 'photos') P.photos.push(tok);
-          else if (cible === 'bloc') blocs.push({t: 'img', v: tok});
           else if (typeof cible === 'number') P.avis[cible].photo = tok;
           sale = true;
-          uploads[tok].then(url => { P.photos = P.photos.map(u => u === tok ? url : u); blocs.forEach(b => { if (b.v === tok) b.v = url; }); P.avis.forEach(a => { if (a.photo === tok) a.photo = url; }); }).catch(() => {});
+          uploads[tok].then(url => { P.photos = P.photos.map(u => u === tok ? url : u); P.avis.forEach(a => { if (a.photo === tok) a.photo = url; }); }).catch(() => {});
         } catch(e){ alert('Photo illisible : ' + e.message); }
       }
       dessiner();
@@ -1484,10 +1589,13 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
       ed.querySelectorAll('[data-pr]').forEach(b => b.onclick = maj(() => { const i = +b.dataset.pr; [P.photos[i + 1], P.photos[i]] = [P.photos[i], P.photos[i + 1]]; }));
       ed.querySelector('#phAdd').onclick = e => ajouterImages('photos', e.currentTarget);
       ed.querySelector('#phUrl').onclick = () => { const u = prompt('Colle le lien de la photo :'); if (u && /^https?:\/\//.test(u.trim())) maj(() => P.photos.push(u.trim()))(); };
-      ed.querySelectorAll('[data-bu]').forEach(b => b.onclick = maj(() => { const i = +b.dataset.bu; [blocs[i - 1], blocs[i]] = [blocs[i], blocs[i - 1]]; }));
-      ed.querySelectorAll('[data-bd]').forEach(b => b.onclick = maj(() => { const i = +b.dataset.bd; [blocs[i + 1], blocs[i]] = [blocs[i], blocs[i + 1]]; }));
-      ed.querySelectorAll('[data-bx]').forEach(b => b.onclick = maj(() => blocs.splice(+b.dataset.bx, 1)));
-      ed.querySelectorAll('[data-add]').forEach(b => b.onclick = e => { if (b.dataset.add === 'img') ajouterImages('bloc', e.currentTarget); else maj(() => blocs.push({t: b.dataset.add, v: ''}))(); });
+      lierDesc();
+      ed.querySelectorAll('[data-pe]').forEach(b => b.onclick = async () => {
+        const i = +b.dataset.pe, f = await retoucher(img(P.photos[i])); if (!f) return;
+        lire(); const tok = await photoInstantanee(f, P.nom || 'produit'); P.photos[i] = tok; sale = true;
+        uploads[tok].then(url => { P.photos = P.photos.map(u => u === tok ? url : u); }).catch(() => {});
+        dessiner();
+      });
       ed.querySelectorAll('[data-cp]').forEach(b => b.onclick = maj(() => {
         const srcP = prixDe(b.dataset.cp); if (!srcP) return;
         const dev = (PR.pays.find(p => p.nom === b.dataset.cp) || {}).devise;
@@ -1510,6 +1618,78 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
         fermer(true); toast('🗑 Produit supprimé');
       };
     }
+    // ---------- Éditeur de description ----------
+    let selImg = null, plage = null;
+    function afficherDesc(z){
+      z.innerHTML = descHtml;
+      z.querySelectorAll('img').forEach(i => { const u = i.getAttribute('src') || ''; i.dataset.src = u; i.src = img(u); });
+      z.querySelectorAll('.vid').forEach(v => { v.contentEditable = 'false'; v.textContent = '▶ Vidéo : ' + (v.dataset.v || ''); });
+    }
+    function lireDesc(z){
+      const c = z.cloneNode(true);
+      c.querySelectorAll('img').forEach(i => { const u = i.dataset.src || i.getAttribute('src') || ''; const w = i.style.width; [...i.attributes].forEach(a => i.removeAttribute(a.name)); if (/^data:/.test(u)) { i.remove(); return; } i.setAttribute('src', u); if (w) i.style.width = w; });
+      c.querySelectorAll('.vid').forEach(v => { const u = v.dataset.v; [...v.attributes].forEach(a => v.removeAttribute(a.name)); v.className = 'vid'; v.dataset.v = u; v.textContent = '▶'; });
+      c.querySelectorAll('[contenteditable],[spellcheck]').forEach(e => { e.removeAttribute('contenteditable'); e.removeAttribute('spellcheck'); });
+      return c.innerHTML.replace(/\n/g, ' ').replace(/<p><br><\/p>/g, '').trim();
+    }
+    const descVide = h => !String(h || '').replace(/<(?!img|table|div class="vid")[^>]*>/g, '').replace(/&nbsp;|\s/g, '');
+    function lierDesc(){
+      const z = ed.querySelector('#eDesc'); afficherDesc(z);
+      document.execCommand('defaultParagraphSeparator', false, 'p');
+      const garder = () => { const s = getSelection(); if (s.rangeCount && z.contains(s.anchorNode)) plage = s.getRangeAt(0).cloneRange(); };
+      const remettre = () => { z.focus(); if (plage){ const s = getSelection(); s.removeAllRanges(); s.addRange(plage); } };
+      z.addEventListener('keyup', garder); z.addEventListener('mouseup', garder); z.addEventListener('input', () => { sale = true; garder(); });
+      ed._garder = garder;
+      if (!ed._sel){ ed._sel = true; document.addEventListener('selectionchange', () => { if (ed.isConnected && ed._garder) ed._garder(); }); }
+      const imgBar = ed.querySelector('#rteImgBar'), tabBar = ed.querySelector('#rteTabBar');
+      const majBarres = () => {
+        imgBar.classList.toggle('hidden', !selImg);
+        const s = getSelection(), td = s.anchorNode && (s.anchorNode.nodeType === 1 ? s.anchorNode : s.anchorNode.parentNode).closest && (s.anchorNode.nodeType === 1 ? s.anchorNode : s.anchorNode.parentNode).closest('td,th');
+        tabBar.classList.toggle('hidden', !(td && z.contains(td)));
+      };
+      z.addEventListener('click', e => { z.querySelectorAll('img.sel').forEach(i => i.classList.remove('sel')); selImg = e.target.tagName === 'IMG' ? e.target : null; if (selImg) selImg.classList.add('sel'); majBarres(); });
+      z.addEventListener('keyup', majBarres);
+      ed.querySelectorAll('#rteBar [data-c]').forEach(b => { b.onmousedown = e => e.preventDefault(); b.onclick = () => { remettre(); document.execCommand(b.dataset.c); sale = true; garder(); }; });
+      ed.querySelector('#rteBloc').onchange = e => { remettre(); document.execCommand('formatBlock', false, e.target.value); e.target.value = 'p'; sale = true; };
+      const inserer = html => { remettre(); document.execCommand('insertHTML', false, html); sale = true; garder(); };
+      ed.querySelector('#rteLien').onclick = () => {
+        const s = plage ? plage.toString() : '';
+        const u = prompt('Lien vers où ? (ex : https://wa.me/229… ou ?p=autre-produit)', 'https://'); if (!u || u === 'https://') return;
+        if (s) { remettre(); document.execCommand('createLink', false, u.trim()); sale = true; }
+        else { const t = prompt('Texte du lien :', 'Cliquez ici'); if (t) inserer(`<a href="${esc(u.trim())}">${esc(t)}</a>&nbsp;`); }
+      };
+      ed.querySelector('#rteImg').onclick = async () => {
+        garder(); const files = await choisirPhotos(true); if (!files.length) return;
+        for (const f of files){
+          try { const tok = await photoInstantanee(f, P.nom || 'produit');
+            inserer(`<p style="text-align:center"><img src="${apercus[tok]}" data-src="${tok}"></p><p><br></p>`);
+            uploads[tok].then(url => { ed.querySelectorAll(`img[data-src="${tok}"]`).forEach(i => i.dataset.src = url); descHtml = descHtml.split(tok).join(url); }).catch(() => {});
+          } catch(e){ alert('Photo illisible : ' + e.message); }
+        }
+      };
+      ed.querySelector('#rteVid').onclick = () => {
+        const u = prompt('Colle le lien de la vidéo (YouTube, TikTok, Google Drive ou .mp4) :'); if (!u || !/^https?:\/\//.test(u.trim())) return;
+        inserer(`<div class="vid" data-v="${esc(u.trim())}" contenteditable="false">▶ Vidéo : ${esc(u.trim())}</div><p><br></p>`);
+      };
+      ed.querySelector('#rteTab').onclick = () => {
+        const r = prompt('Taille du tableau (lignes x colonnes) :', '3x2'); const m = String(r || '').match(/(\d+)\s*[x×*]\s*(\d+)/); if (!m) return;
+        const L = Math.min(20, +m[1]), C = Math.min(6, +m[2]);
+        inserer(`<table><tbody>${Array.from({length: L}, (_, i) => `<tr>${Array.from({length: C}, () => i ? '<td><br></td>' : '<th><br></th>').join('')}</tr>`).join('')}</tbody></table><p><br></p>`);
+      };
+      const cellule = () => { const s = getSelection(); const n = s.anchorNode && (s.anchorNode.nodeType === 1 ? s.anchorNode : s.anchorNode.parentNode); return n && n.closest ? n.closest('td,th') : null; };
+      [['#tbL', () => { const c = cellule(); if (!c) return; const tr = c.parentNode, n = tr.cloneNode(true); n.querySelectorAll('td,th').forEach(x => { const td = document.createElement('td'); td.innerHTML = '<br>'; x.replaceWith(td); }); tr.after(n); }],
+       ['#tbC', () => { const c = cellule(); if (!c) return; const i = [...c.parentNode.children].indexOf(c); c.closest('table').querySelectorAll('tr').forEach((tr, k) => { const x = document.createElement(k ? 'td' : 'th'); x.innerHTML = '<br>'; tr.children[i].after(x); }); }],
+       ['#tbX', () => { const c = cellule(); if (c) c.closest('table').remove(); tabBar.classList.add('hidden'); }]
+      ].forEach(([id, f]) => { const b = ed.querySelector(id); b.onmousedown = e => e.preventDefault(); b.onclick = () => { f(); sale = true; }; });
+      ed.querySelectorAll('[data-iw]').forEach(b => b.onclick = () => { if (selImg){ selImg.style.width = b.dataset.iw; sale = true; } });
+      ed.querySelectorAll('[data-ia]').forEach(b => b.onclick = () => { if (!selImg) return; let p = selImg.parentNode; if (p === z || p.tagName !== 'P'){ const np = document.createElement('p'); selImg.replaceWith(np); np.appendChild(selImg); p = np; } p.style.textAlign = b.dataset.ia; sale = true; });
+      ed.querySelector('#rteDel').onclick = () => { if (selImg){ selImg.remove(); selImg = null; majBarres(); sale = true; } };
+      ed.querySelector('#rteRet').onclick = async () => {
+        if (!selImg) return; const cible = selImg, f = await retoucher(cible.src); if (!f) return;
+        const tok = await photoInstantanee(f, P.nom || 'produit'); cible.src = apercus[tok]; cible.dataset.src = tok; sale = true;
+        uploads[tok].then(url => { ed.querySelectorAll(`img[data-src="${tok}"]`).forEach(i => i.dataset.src = url); descHtml = descHtml.split(tok).join(url); }).catch(() => {});
+      };
+    }
     function enregistrer(){
       lire();
       if (!P.nom.trim()){ alert('Donne un titre au produit.'); ed.querySelector('#eNom').focus(); return; }
@@ -1517,7 +1697,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
       const fait = Object.assign({}, P, {
         id: idLibreLocal(P.id || P.nom, ancien),
         photos: P.photos.filter(Boolean),
-        description: blocs.filter(b => String(b.v).trim()).map(b => b.t === 'titre' ? '## ' + b.v.trim() : b.t === 'img' ? b.v.trim() : b.v.replace(/\n+/g, ' ').trim()).join('\n'),
+        description: descVide(descHtml) ? '' : descHtml,
         faq: faq.filter(f => f.q.trim() && f.r.trim()).map(f => f.q.trim().replace(/>>/g, '>') + ' >> ' + f.r.trim().replace(/\n+/g, ' ')).join('\n'),
         prix: P.prix.filter(x => String(x.p1 || '').trim())
       });
@@ -1675,8 +1855,19 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
       <button class="btn tt" id="npGo">Créer le lien</button>
       <button class="btn ghost" data-close style="margin-top:10px">Annuler</button>`);
     try {
-      if (!pubData) await loadPub();
-      ov.querySelector('#npProd').innerHTML = pubData.produits.map(p => `<option value="${esc(p.id)}">${esc(p.nom)}</option>`).join('') + '<option value="">Page d’accueil (tous les produits)</option>';
+      // Liste en direct du Google Sheets (un produit tout juste créé apparaît tout de suite)
+      const remplir = () => {
+        const vus = new Set(), opts = [];
+        ((PR && PR.produits) || []).forEach(p => { if (!p.id || vus.has(p.id)) return; vus.add(p.id); opts.push([p.id, p.nom + (p.enLigne ? '' : ' (brouillon)'), p.enLigne ? 0 : 1]); });
+        ((pubData && pubData.produits) || []).forEach(p => { if (!vus.has(p.id)){ vus.add(p.id); opts.push([p.id, p.nom, 0]); } });
+        opts.sort((a, b) => a[2] - b[2]);
+        const sel = ov.querySelector('#npProd'), v = sel.value;
+        sel.innerHTML = opts.map(([id, nom]) => `<option value="${esc(id)}">${esc(nom)}</option>`).join('') + '<option value="">Page d’accueil (tous les produits)</option>';
+        if (v && opts.some(o => o[0] === v)) sel.value = v;
+      };
+      if (!pubData) loadPub().then(remplir);
+      remplir();
+      loadPR().then(remplir);
     } catch(e){ ov.querySelector('#npProd').innerHTML = '<option value="">Page d’accueil (tous les produits)</option>'; }
     const box = ov.querySelector('#npPays'), nb = ov.querySelector('#npNb'), tous = ov.querySelector('#npTous');
     const coches = () => [...box.querySelectorAll('input:checked')].map(i => i.value);
