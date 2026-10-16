@@ -376,6 +376,7 @@ html.ordi .dvgrid{grid-template-columns:repeat(4,minmax(0,1fr))}
 .bqcur{font-size:13px;font-weight:700;color:var(--main)}
 .bqa{grid-column:1/-1;display:flex;gap:8px;flex-wrap:wrap}
 .bqa a,.bqa button{font-size:13px;font-weight:700;padding:7px 10px;border-radius:10px;background:var(--surface)}
+.bqa .bqdel{background:var(--errbg);color:#9B1C1C;margin-left:auto}
 .pchips{display:flex;flex-wrap:wrap;gap:6px;max-height:190px;overflow:auto;padding:4px 0}
 .pchip{display:flex;align-items:center;gap:6px;padding:7px 10px;border:1.5px solid var(--line);border-radius:999px;font-size:14px;cursor:pointer}
 .pchip input{accent-color:var(--main)}
@@ -635,13 +636,25 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
         ${!BQS ? '<div class="empty">Chargement…</div>' : l.map(b => `<div class="bqrow ${(b.code || '') === BQ ? 'on' : ''}">
           <div class="bqi"><b>${esc(b.nom)}</b><small>${b.principale ? 'Boutique principale' : esc(b.pays || '')}${b.agence ? ' · agence : ' + esc(b.agence) : ''}${!b.active ? ' · <span style="color:var(--err)">désactivée</span>' : ''}</small></div>
           ${(b.code || '') === BQ ? '<span class="bqcur">Ouverte</span>' : `<button class="chip" style="background:var(--main);border-color:var(--main)" data-bo="${esc(b.code || '')}">Ouvrir</button>`}
-          <div class="bqa"><a href="${esc(b.sheetUrl)}" target="_blank" rel="noopener">📄 Sheets</a><button data-bl="${esc(SITE + (b.code ? '?b=' + b.code : ''))}">🔗 Lien du site</button></div></div>`).join('')}
+          <div class="bqa"><a href="${esc(b.sheetUrl)}" target="_blank" rel="noopener">📄 Sheets</a><button data-bl="${esc(SITE + (b.code ? '?b=' + b.code : ''))}">🔗 Lien du site</button>${b.principale ? '' : `<button class="bqdel" data-bd="${esc(b.code)}" data-bn="${esc(b.nom)}">🗑 Supprimer</button>`}</div></div>`).join('')}
         ${BQS && n < max ? '<button class="btn blue" id="bqNew" style="margin-top:14px">＋ Créer une nouvelle boutique</button>' : ''}
         <button class="btn ghost" id="bqX" style="margin-top:10px">Fermer</button></div>`;
       ov.querySelector('#bqX').onclick = () => ov.remove();
       ov.querySelectorAll('[data-bo]').forEach(b => b.onclick = () => ouvrirBoutique(b.dataset.bo));
       ov.querySelectorAll('[data-bl]').forEach(b => b.onclick = async () => { try { await navigator.clipboard.writeText(b.dataset.bl); b.textContent = '✓ Copié'; } catch(e){ prompt('Lien du site :', b.dataset.bl); } });
       const nb = ov.querySelector('#bqNew'); if (nb) nb.onclick = () => nouvelleBoutique(ov, dessiner);
+      ov.querySelectorAll('[data-bd]').forEach(b => b.onclick = async () => {
+        const code = b.dataset.bd;
+        if (!(await confirmer({titre: 'Supprimer cette boutique ?', texte: `Tu vas supprimer <b>« ${esc(b.dataset.bn)} »</b> : son site, ses produits, ses commandes et le fichier de son agence.<br><br>Son Google Sheets part dans la <b>corbeille de ton Google Drive</b> (récupérable pendant 30 jours). Le lien de son site ne marchera plus.`, ok: 'Oui, supprimer la boutique'}))) return;
+        b.disabled = true; b.textContent = 'Suppression…';
+        try {
+          const r = await fetch(API, {method: 'POST', body: JSON.stringify({type: 'boutiques', action: 'supprimer', key, code})}); const j = await r.json(); if (!j.ok) throw new Error(j.erreur);
+          if (BQS) BQS.boutiques = BQS.boutiques.filter(x => x.code !== code);
+          try { localStorage.setItem('adm_bqs', JSON.stringify(BQS)); Object.keys(localStorage).filter(k => k.indexOf('adm_' + code + '_') === 0).forEach(k => localStorage.removeItem(k)); } catch(e){}
+          if (code === BQ) { ouvrirBoutique(''); return; }
+          dessiner('🗑 Boutique supprimée.');
+        } catch(e){ b.disabled = false; b.textContent = '🗑 Supprimer'; alert('Suppression impossible : ' + e.message); }
+      });
     };
     ov.onclick = e => { if (e.target === ov) ov.remove(); };
     document.body.appendChild(ov); dessiner();
