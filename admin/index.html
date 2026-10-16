@@ -365,6 +365,22 @@ html.ordi .dvgrid{grid-template-columns:repeat(4,minmax(0,1fr))}
 .rrow button.on{background:#fff;color:#111}
 .rrow button:disabled{opacity:.5}
 .rinfo{font-size:13px;color:rgba(255,255,255,.7);text-align:center}
+/* Mes boutiques */
+.store{color:inherit;text-align:left}
+.store .stn{max-width:52vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.store .stv{font-size:14px;opacity:.7;margin-left:-4px}
+.bqsheet{max-height:90vh}
+.bqrow{display:grid;grid-template-columns:1fr auto;gap:8px 10px;align-items:center;padding:12px;border:1.5px solid var(--line);border-radius:16px;margin-top:10px}
+.bqrow.on{border-color:var(--main);background:#F2F5FF}
+.bqi b{display:block;font-size:16px}.bqi small{color:var(--soft);font-size:13px}
+.bqcur{font-size:13px;font-weight:700;color:var(--main)}
+.bqa{grid-column:1/-1;display:flex;gap:8px;flex-wrap:wrap}
+.bqa a,.bqa button{font-size:13px;font-weight:700;padding:7px 10px;border-radius:10px;background:var(--surface)}
+.pchips{display:flex;flex-wrap:wrap;gap:6px;max-height:190px;overflow:auto;padding:4px 0}
+.pchip{display:flex;align-items:center;gap:6px;padding:7px 10px;border:1.5px solid var(--line);border-radius:999px;font-size:14px;cursor:pointer}
+.pchip input{accent-color:var(--main)}
+.confirm2{display:flex;gap:10px;align-items:flex-start;margin-top:14px;font-size:15px}
+.confirm2 input{width:20px;height:20px;accent-color:var(--main);flex:0 0 20px;margin-top:2px}
 /* Confirmation */
 .cfov{position:fixed;inset:0;z-index:90;background:rgba(18,48,143,.55);display:flex;align-items:center;justify-content:center;padding:20px;animation:fd .15s ease-out}
 @keyframes fd{from{opacity:0}}
@@ -494,7 +510,17 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
 <script>
 (function(){
   const app = document.getElementById('app'), nav = document.getElementById('nav');
-  const S = { get(k){ try{return localStorage.getItem(k)}catch(e){return null} }, set(k,v){ try{localStorage.setItem(k,v)}catch(e){} }, del(k){ try{localStorage.removeItem(k)}catch(e){} } };
+  // Boutique en cours (Vendoo) : '' = boutique principale ; chaque boutique garde ses propres données sur le téléphone
+  const BQ = (() => {
+    const u = new URLSearchParams(location.search); let b = u.get('b');
+    if (b === null && u.get('cmd')) b = '';
+    try { if (b !== null) localStorage.setItem('adm_b', b); else b = localStorage.getItem('adm_b') || ''; } catch(e){ b = b || ''; }
+    return String(b || '').toLowerCase().replace(/[^a-z0-9-]/g, '');
+  })();
+  const cleS = k => BQ && !/^adm_(key|affichage|sound|b|apvue)$/.test(k) ? k.replace(/^adm_/, 'adm_' + BQ + '_') : k;
+  const S = { get(k){ try{return localStorage.getItem(cleS(k))}catch(e){return null} }, set(k,v){ try{localStorage.setItem(cleS(k),v)}catch(e){} }, del(k){ try{localStorage.removeItem(cleS(k))}catch(e){} } };
+  const lienSite = qs => SITE + (BQ ? '?b=' + BQ + (qs ? '&' + qs : '') : (qs ? '?' + qs : ''));
+  const lienProduit = id => lienSite('p=' + encodeURIComponent(id));
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const fmt = (n, d) => (Number(n)||0).toLocaleString('fr-FR', {maximumFractionDigits: 2}).replace(/[  ]/g, ' ') + (d ? ' ' + d : '');
   const short = n => { n = Number(n)||0; return n >= 1e6 ? (n/1e6).toFixed(1).replace('.0','') + ' M' : n >= 1e3 ? Math.round(n/1e3) + ' k' : String(Math.round(n)); };
@@ -596,9 +622,75 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
     if (change) try { S.set('adm_relvus', JSON.stringify(relVus)); } catch(e){}
   }
 
+  /* ---------- Mes boutiques (Vendoo) : passer de l'une à l'autre, en créer une nouvelle ---------- */
+  let BQS = null; try { BQS = JSON.parse(localStorage.getItem('adm_bqs') || 'null'); } catch(e){}
+  function ouvrirBoutique(code){ try { localStorage.setItem('adm_b', code || ''); } catch(e){} location.href = location.pathname + (code ? '?b=' + encodeURIComponent(code) : '?b='); }
+  async function mesBoutiques(){
+    const ov = document.createElement('div'); ov.className = 'overlay';
+    const dessiner = msg => {
+      const l = (BQS && BQS.boutiques) || [], max = (BQS && BQS.max) || 30, n = l.filter(b => !b.principale).length;
+      ov.innerHTML = `<div class="detail bqsheet" role="dialog" aria-modal="true" aria-label="Mes boutiques"><div class="grab"></div>
+        <h2>Mes boutiques</h2><p class="sub">${n} / ${max} boutiques créées · Une boutique = une agence (ses commandes ne se mélangent pas).</p>
+        ${msg ? `<div class="okmsg">${msg}</div>` : ''}
+        ${!BQS ? '<div class="empty">Chargement…</div>' : l.map(b => `<div class="bqrow ${(b.code || '') === BQ ? 'on' : ''}">
+          <div class="bqi"><b>${esc(b.nom)}</b><small>${b.principale ? 'Boutique principale' : esc(b.pays || '')}${b.agence ? ' · agence : ' + esc(b.agence) : ''}${!b.active ? ' · <span style="color:var(--err)">désactivée</span>' : ''}</small></div>
+          ${(b.code || '') === BQ ? '<span class="bqcur">Ouverte</span>' : `<button class="chip" style="background:var(--main);border-color:var(--main)" data-bo="${esc(b.code || '')}">Ouvrir</button>`}
+          <div class="bqa"><a href="${esc(b.sheetUrl)}" target="_blank" rel="noopener">📄 Sheets</a><button data-bl="${esc(SITE + (b.code ? '?b=' + b.code : ''))}">🔗 Lien du site</button></div></div>`).join('')}
+        ${BQS && n < max ? '<button class="btn blue" id="bqNew" style="margin-top:14px">＋ Créer une nouvelle boutique</button>' : ''}
+        <button class="btn ghost" id="bqX" style="margin-top:10px">Fermer</button></div>`;
+      ov.querySelector('#bqX').onclick = () => ov.remove();
+      ov.querySelectorAll('[data-bo]').forEach(b => b.onclick = () => ouvrirBoutique(b.dataset.bo));
+      ov.querySelectorAll('[data-bl]').forEach(b => b.onclick = async () => { try { await navigator.clipboard.writeText(b.dataset.bl); b.textContent = '✓ Copié'; } catch(e){ prompt('Lien du site :', b.dataset.bl); } });
+      const nb = ov.querySelector('#bqNew'); if (nb) nb.onclick = () => nouvelleBoutique(ov, dessiner);
+    };
+    ov.onclick = e => { if (e.target === ov) ov.remove(); };
+    document.body.appendChild(ov); dessiner();
+    try { const r = await fetch(API, {method: 'POST', body: JSON.stringify({type: 'boutiques', key})}); const j = await r.json(); if (!j.ok) throw new Error(j.erreur);
+      BQS = j; try { localStorage.setItem('adm_bqs', JSON.stringify(j)); } catch(e){} if (ov.isConnected) dessiner(); }
+    catch(e){ if (ov.isConnected && !BQS) dessiner('Impossible de charger tes boutiques : ' + esc(/introuvable|inconnu/i.test(e.message) ? 'mets à jour le code Apps Script (Code.gs).' : e.message)); }
+  }
+  function nouvelleBoutique(ov, retour){
+    const pays = (BQS && BQS.paysListe) || [];
+    ov.innerHTML = `<div class="detail bqsheet" role="dialog" aria-modal="true" aria-label="Nouvelle boutique"><div class="grab"></div>
+      <h2>Nouvelle boutique</h2><p class="sub">Elle fonctionne exactement comme ta boutique principale : site, application, commandes, relances, TikTok, WhatsApp.</p>
+      <label class="lbl" for="nbNom">Nom de la boutique</label><input class="field" id="nbNom" placeholder="Ex : ABROMARKET Togo">
+      <label class="lbl">Pays de vente (l'agence de ce pays recevra les commandes)</label>
+      <div class="pchips" id="nbPays">${pays.map(p => `<label class="pchip"><input type="checkbox" value="${esc(p.code)}"><span>${esc(p.nom)}</span></label>`).join('')}</div>
+      <label class="lbl" for="nbAg">Email Google de l'agence (elle aura accès aux commandes de cette boutique)</label><input class="field" id="nbAg" type="email" placeholder="agence@gmail.com (optionnel)">
+      <label class="lbl" for="nbWa">WhatsApp qui reçoit les commandes (avec l'indicatif)</label><input class="field" id="nbWa" inputmode="tel" placeholder="Ex : 22890000000 (vide = le même que ta boutique principale)">
+      <label class="lbl" for="nbMail">Email qui reçoit les commandes</label><input class="field" id="nbMail" type="email" placeholder="Vide = le même que ta boutique principale">
+      <label class="lbl" for="nbPre">Préfixe des numéros de commande</label><input class="field" id="nbPre" maxlength="6" placeholder="Ex : TG (commandes TG1001, TG1002…)">
+      <label class="confirm2"><input type="checkbox" id="nbCop" checked> Copier les produits, prix et avis de ma boutique principale</label>
+      <button class="btn blue" id="nbOk" style="margin-top:14px">Créer la boutique</button>
+      <button class="btn ghost" id="nbAnn" style="margin-top:10px">Annuler</button></div>`;
+    ov.querySelector('#nbAnn').onclick = () => retour();
+    ov.querySelector('#nbOk').onclick = async e => {
+      const b = e.currentTarget, nom = ov.querySelector('#nbNom').value.trim();
+      const codes = [...ov.querySelectorAll('#nbPays input:checked')].map(i => i.value);
+      if (nom.length < 2){ alert('Donne un nom à la boutique.'); return; }
+      if (!codes.length){ alert('Choisis au moins un pays de vente.'); return; }
+      b.disabled = true; b.textContent = 'Création en cours… (environ 30 secondes)';
+      try {
+        const r = await fetch(API, {method: 'POST', body: JSON.stringify({type: 'boutiques', action: 'creer', key, nom, pays: codes.join(','), agence: ov.querySelector('#nbAg').value.trim(),
+          whatsapp: ov.querySelector('#nbWa').value.trim(), email: ov.querySelector('#nbMail').value.trim(), prefixe: ov.querySelector('#nbPre').value.trim(), copier: ov.querySelector('#nbCop').checked})});
+        const j = await r.json(); if (!j.ok) throw new Error(j.erreur || 'Erreur');
+        BQS = null; try { localStorage.removeItem('adm_bqs'); } catch(x){}
+        ov.innerHTML = `<div class="detail bqsheet"><div class="grab"></div><h2>✅ Boutique créée</h2>
+          <p class="sub"><b>${esc(j.nom)}</b> est prête. Son site sera en ligne dans 10 minutes environ.</p>
+          <div class="linkbox">${esc(SITE + '?b=' + j.code)}</div>
+          <div class="addrow"><button id="nbCp">🔗 Copier le lien du site</button><a href="${esc(j.sheetUrl)}" target="_blank" rel="noopener">📄 Ouvrir son Google Sheets</a></div>
+          <button class="btn blue" id="nbGo" style="margin-top:14px">Ouvrir cette boutique dans l'application</button>
+          <button class="btn ghost" id="nbF" style="margin-top:10px">Fermer</button></div>`;
+        ov.querySelector('#nbCp').onclick = async ev => { try { await navigator.clipboard.writeText(SITE + '?b=' + j.code); ev.target.textContent = '✓ Copié'; } catch(x){ prompt('Lien du site :', SITE + '?b=' + j.code); } };
+        ov.querySelector('#nbGo').onclick = () => ouvrirBoutique(j.code);
+        ov.querySelector('#nbF').onclick = () => ov.remove();
+      } catch(err){ b.disabled = false; b.textContent = 'Créer la boutique'; alert('Création impossible : ' + err.message); }
+    };
+  }
+
   /* ---------- Échanges avec le Google Sheets ---------- */
   async function call(body){
-    const r = await fetch(API, {method:'POST', body: JSON.stringify(Object.assign({key}, body))});
+    const r = await fetch(API, {method:'POST', body: JSON.stringify(Object.assign({key, b: BQ}, body))});
     const j = await r.json();
     if (!j.ok) throw new Error(j.erreur || 'Erreur');
     return j;
@@ -770,7 +862,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
       <div class="top">
         <div class="bar">
           <div class="avatar" aria-hidden="true">${esc((D.boutique || 'AB').slice(0,2).toUpperCase())}</div>
-          <div class="store"><img class="brandlogo" src="icon-192.png" alt="" aria-hidden="true">${esc(D.boutique || 'Ma boutique')}</div>
+          <button class="store" id="bqBtn" aria-label="Changer de boutique"><img class="brandlogo" src="icon-192.png" alt="" aria-hidden="true"><span class="stn">${esc(D.boutique || 'Ma boutique')}</span><span class="stv">▾</span></button>
           <button class="iconbtn ${sound ? '' : 'off'}" id="snd" aria-label="${sound ? 'Couper le son' : 'Activer le son'}">${sound ? '🔔' : '🔕'}</button>
         </div>
         <div class="sync hidden" id="sync">Mise à jour…</div>
@@ -815,6 +907,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
     });
     app.querySelectorAll('[data-go]').forEach(b => b.onclick = () => go(b.dataset.go));
     bindOrders();
+    document.getElementById('bqBtn').onclick = () => mesBoutiques();
     document.getElementById('snd').onclick = () => { sound = !sound; S.set('adm_sound', sound ? '1' : '0'); if (sound) chime(); home(); };
   }
 
@@ -1251,7 +1344,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
   try { pubData = JSON.parse(S.get('adm_pub') || 'null'); } catch(e){}
   let pubP = null;
   function loadPub(){
-    return pubP = pubP || fetch(SITE + 'data.json?t=' + Date.now()).then(r => r.json()).then(j => {
+    return pubP = pubP || fetch(SITE + (BQ ? 'data/' + BQ + '.json' : 'data.json') + '?t=' + Date.now()).then(r => r.json()).then(j => {
       pubData = j;
       try { S.set('adm_pub', JSON.stringify({ pays: j.pays, imgs: j.imgs || {}, produits: j.produits.map(p => ({ id: p.id, nom: p.nom, photos: p.photos.slice(0, 1), prix: p.prix })) })); } catch(e){}
       return j;
@@ -1366,7 +1459,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
     app.innerHTML = `<div class="page"><div class="prhead"><h1>Produits</h1><button class="btn blue small" id="prNew">+ Ajouter</button></div>
       <div class="filters">${[['tous', 'Tous'], ['ligne', 'En ligne'], ['brouillon', 'Brouillons' + (nbB ? ' (' + nbB + ')' : '')]].map(([k, l]) => `<button class="${k === prFiltre ? 'on' : ''}" data-pf="${k}">${l}</button>`).join('')}</div>
       <div id="pl">${!liste ? '<div class="empty">Chargement…</div>' : vis.length ? vis.map(p => {
-        const url = SITE + '?p=' + encodeURIComponent(p.id);
+        const url = lienProduit(p.id);
         return `<div class="prod"><button class="pimg" data-edit="${esc(p.id)}" aria-label="Modifier ${esc(p.nom)}"><img src="${esc(vignette(p.photos[0]))}" alt="" loading="lazy"></button><div class="info">
           <button class="pname" data-edit="${esc(p.id)}"><b>${esc(p.nom)}</b></button>
           <small>${p.enLigne ? '<span class="pst on">● En ligne</span>' : '<span class="pst">● Brouillon</span>'} ${esc(prixResume(p))}</small>
@@ -1543,7 +1636,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
           <div class="addrow"><button id="aAdd">+ Ajouter un avis</button></div></div>
 
         <div class="card"><h3>Lien du produit</h3><label class="lbl" for="eId">Fin du lien (sans espace ni accent)</label><input class="field" id="eId" value="${esc(P.id)}" placeholder="automatique d'après le titre">
-          ${P.id ? `<div class="linkbox">${esc(SITE + '?p=' + P.id)}</div><div class="addrow"><button data-copy="${esc(SITE + '?p=' + P.id)}">🔗 Copier le lien</button><a href="${esc(SITE + '?p=' + P.id)}" target="_blank" rel="noopener">Voir sur le site</a></div>` : ''}</div>
+          ${P.id ? `<div class="linkbox">${esc(lienProduit(P.id))}</div><div class="addrow"><button data-copy="${esc(lienProduit(P.id))}">🔗 Copier le lien</button><a href="${esc(lienProduit(P.id))}" target="_blank" rel="noopener">Voir sur le site</a></div>` : ''}</div>
 
         ${neuf ? '' : `<div class="card"><div class="addrow"><button id="eDup">⧉ Dupliquer ce produit</button><button id="eDel" class="danger">🗑 Supprimer</button></div></div>`}
         <button class="btn blue" id="edSave2">Enregistrer</button>
@@ -1980,13 +2073,13 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
   let apVue = S.get('adm_apvue') || 'ordi', apProd = S.get('adm_approd') || '';
   function apercu(){
     const prods = PR ? PR.produits.filter(p => p.enLigne) : pubData ? pubData.produits : [];
-    const lien = SITE + (apProd ? '?p=' + encodeURIComponent(apProd) : '');
+    const lien = apProd ? lienProduit(apProd) : lienSite('');
     app.innerHTML = `<div class="page apage"><div class="aphead"><h1>Aperçu du site</h1>
         <div class="seg apseg" role="radiogroup" aria-label="Voir comme"><button data-av="ordi" class="${apVue === 'ordi' ? 'on' : ''}">🖥 Ordinateur</button><button data-av="mobile" class="${apVue === 'mobile' ? 'on' : ''}">📱 Mobile</button></div></div>
       <div class="aptools"><select class="field" id="apP" aria-label="Page à afficher"><option value="">Page d'accueil</option>${prods.map(p => `<option value="${esc(p.id)}" ${p.id === apProd ? 'selected' : ''}>${esc(p.nom)}</option>`).join('')}</select>
         <button class="btn ghost small" id="apR">↻ Recharger</button><a class="btn ghost small" href="${esc(lien)}" target="_blank" rel="noopener">Ouvrir ↗</a></div>
       <p class="tag" style="margin:2px 0 10px">L'aperçu ne compte ni visite ni pixel.</p>
-      <div class="apstage ${apVue}" id="apStage"><div class="apframe" id="apFrame"><iframe id="apI" title="Aperçu du site" src="${esc(lien + (apProd ? '&' : '?') + 'apercu=1')}"></iframe></div></div></div>`;
+      <div class="apstage ${apVue}" id="apStage"><div class="apframe" id="apFrame"><iframe id="apI" title="Aperçu du site" src="${esc(lien + (lien.includes('?') ? '&' : '?') + 'apercu=1')}"></iframe></div></div></div>`;
     app.querySelectorAll('[data-av]').forEach(b => b.onclick = () => { apVue = b.dataset.av; S.set('adm_apvue', apVue); apercu(); });
     document.getElementById('apP').onchange = e => { apProd = e.target.value; S.set('adm_approd', apProd); apercu(); };
     document.getElementById('apR').onclick = () => { const i = document.getElementById('apI'); i.src = i.src; };
@@ -2007,6 +2100,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
   function settings(){
     const perm = 'Notification' in window ? Notification.permission : 'unsupported';
     app.innerHTML = `<div class="page"><h1>Réglages</h1>
+      <div class="set"><div><b>Mes boutiques (Vendoo)</b><p>Jusqu'à 30 boutiques : une par agence ou par pays. Chacune a ses produits, ses commandes et son lien.</p></div><button class="chip" style="background:var(--main);border-color:var(--main)" id="bqSet">Ouvrir</button></div>
       <div class="set"><div><b>Son des nouvelles commandes</b><p>Un « ding » à chaque commande, quand l'application est ouverte.</p></div><button class="switch ${sound?'on':''}" id="sw" role="switch" aria-checked="${sound}" aria-label="Son des nouvelles commandes"></button></div>
       <div class="set"><div><b>Tester le son</b><p>Vérifie que le volume de ton téléphone est assez fort.</p></div><button class="chip" style="background:var(--surface);color:var(--ink);border-color:var(--line)" id="test">Écouter</button></div>
       <div class="set"><div><b>Notifications (même application fermée)</b><p>${!D.onesignal ? 'À configurer : ajoute l’App ID OneSignal dans ton Google Sheets.' : pushOn ? 'Activées sur ce téléphone ✓' : perm === 'denied' ? 'Bloquées : autorise les notifications pour ce site dans les réglages de Chrome.' : 'Reçois chaque commande même téléphone verrouillé.'}</p></div>${D.onesignal && !pushOn && perm !== 'denied' ? '<button class="chip" style="background:var(--main);border-color:var(--main)" id="notifOS">Activer</button>' : ''}</div>
@@ -2016,13 +2110,14 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
       <div class="set"><div><b>Sons pour les notifications</b><p>Télécharge-les, puis choisis-les comme sons de notification dans les réglages Android.</p></div><span style="display:flex;gap:6px"><a class="chip" style="background:var(--surface);color:var(--ink);border-color:var(--line)" href="kaching.mp3" download="ABROMARKET-commande.mp3">Commande</a><a class="chip" style="background:var(--surface);color:var(--ink);border-color:var(--line)" href="relance.mp3" download="ABROMARKET-relance.mp3">Relance</a></span></div>
       <div class="set"><div><b>Google Sheets</b><p>Produits, prix, pays, agences et commandes.</p></div><a class="chip" style="background:var(--surface);color:var(--ink);border-color:var(--line)" href="${esc(D.sheetUrl)}" target="_blank" rel="noopener">Ouvrir</a></div>
       <div class="set"><div><b>Aperçu du site</b><p>Voir ta boutique comme sur ordinateur ou sur mobile.</p></div><button class="chip" style="background:var(--surface);color:var(--ink);border-color:var(--line)" data-go2="apercu">Voir</button></div>
-      <div class="set"><div><b>Ma boutique</b><p>La page que voient tes clients.</p></div><a class="chip" style="background:var(--surface);color:var(--ink);border-color:var(--line)" href="${SITE}" target="_blank" rel="noopener">Ouvrir</a></div>
+      <div class="set"><div><b>Ma boutique</b><p>La page que voient tes clients.</p></div><a class="chip" style="background:var(--surface);color:var(--ink);border-color:var(--line)" href="${esc(lienSite(''))}" target="_blank" rel="noopener">Ouvrir</a></div>
       <div class="help"><b>Installer l'application sur ton téléphone</b><br>Android (Chrome) : menu ⋮ → « Ajouter à l'écran d'accueil » ou « Installer l'application ».<br>iPhone (Safari) : bouton Partager → « Sur l'écran d'accueil » (obligatoire sur iPhone pour les notifications).</div>
       <button class="btn ghost" id="out" style="margin-top:18px">Se déconnecter</button></div>`;
     document.getElementById('sw').onclick = () => { sound = !sound; S.set('adm_sound', sound ? '1' : '0'); if (sound) chime(); settings(); };
     document.getElementById('test').onclick = () => { const s = sound; sound = true; chime(); sound = s; };
     document.getElementById('testRel').onclick = () => { const s = sound; sound = true; chime('relance'); sound = s; };
     document.getElementById('out').onclick = () => logout();
+    document.getElementById('bqSet').onclick = () => mesBoutiques();
     app.querySelectorAll('[data-go2]').forEach(b => b.onclick = () => go(b.dataset.go2));
     document.getElementById('testPush').onclick = async e => {
       const b = e.target, dg = document.getElementById('diag'); b.textContent = '…';

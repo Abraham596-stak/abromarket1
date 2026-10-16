@@ -259,6 +259,12 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
   const $ = id => document.getElementById(id);
   const app = $('app');
   const params = new URLSearchParams(location.search);
+  // Plusieurs boutiques (Vendoo) : ?b=code ; sans code = boutique principale (liens de pub inchangés)
+  const BQ = (params.get('b') || '').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 40);
+  const avecB = body => BQ ? String(body).replace(/^\{/, '{"b":"' + BQ + '",') : body;
+  const QS = BQ ? '?b=' + BQ + '&' : '?';
+  const ACCUEIL = BQ ? './?b=' + BQ : './';
+  const K_CMD = BQ ? 'commandes_' + BQ : 'commandes';
   const pid = (params.get('p') || '').trim().toLowerCase();
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const store = {
@@ -396,7 +402,7 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
     const msgs = [R('Bandeau du haut'), "🔥 Offre -40% aujourd'hui seulement"].filter(Boolean);
     const tour = msgs.map((m, i) => `<span class="${/offre/i.test(m) ? 'promo' : ''}">${esc(m)}</span>`).join('');
     return `<div class="topbar" aria-label="${esc(msgs.join(' – '))}"><div class="defile" aria-hidden="true">${tour + tour + tour + tour}</div></div>
-      <header><a class="brand" href="./"><img src="${esc(logo ? img(logo) : 'logo.png')}" alt=""><span>${esc(name)}</span></a></header>`;
+      <header><a class="brand" href="${ACCUEIL}"><img src="${esc(logo ? img(logo) : 'logo.png')}" alt=""><span>${esc(name)}</span></a></header>`;
   }
   function trust(){
     let h = '';
@@ -422,13 +428,13 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
       ${prods.length ? `<div class="grid">${prods.map(x => {
         const o = x.prix[country].offres[0];
         const off = o.ancien > o.prix ? Math.round((1 - o.prix/o.ancien)*100) : 0;
-        return `<a class="card" href="?p=${encodeURIComponent(x.id)}">
+        return `<a class="card" href="${QS}p=${encodeURIComponent(x.id)}">
           <img src="${esc(img(x.photos[0] || ''))}" alt="${esc(x.nom)}" loading="lazy">
           <div class="ci">${off?`<span class="badge">−${off} %</span>`:''}<div class="cn">${esc(x.nom)}</div>
           ${o.ancien > o.prix ? `<div class="co">${money(o.ancien, x.prix[country].devise || pays.devise)}</div>` : ''}
           <div class="cp">${money(o.prix, x.prix[country].devise || pays.devise)}</div></div></a>`;
       }).join('')}</div>` : (autres.length ? `<div class="grid">${autres.map(x => { const c = Object.keys(x.prix)[0], pp = D.pays.find(p => p.code === c) || {}, o = x.prix[c].offres[0];
-          return `<a class="card" href="?p=${encodeURIComponent(x.id)}"><img src="${esc(img(x.photos[0] || ''))}" alt="${esc(x.nom)}" loading="lazy"><div class="ci"><div class="cn">${esc(x.nom)}</div><div class="cp">${money(o.prix, pp.devise)}</div></div></a>`; }).join('')}</div>` : `<div class="empty">Aucun produit disponible pour le moment.</div>`)}
+          return `<a class="card" href="${QS}p=${encodeURIComponent(x.id)}"><img src="${esc(img(x.photos[0] || ''))}" alt="${esc(x.nom)}" loading="lazy"><div class="ci"><div class="cn">${esc(x.nom)}</div><div class="cp">${money(o.prix, pp.devise)}</div></div></a>`; }).join('')}</div>` : `<div class="empty">Aucun produit disponible pour le moment.</div>`)}
       ${trust()}
       <footer>© ${new Date().getFullYear()} ${esc(R('Nom de la boutique'))}</footer></div>`;
     bindCountry();
@@ -517,7 +523,7 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
       ${P.faq.length ? `<section><h2>Questions fréquentes</h2>${P.faq.map(f=>`<details><summary>${esc(f.q)}</summary><p>${esc(f.r)}</p></details>`).join('')}</section>` : ''}
       ${trust()}
       </div>
-      <footer><a href="./">← Voir tous nos produits</a><br>© ${new Date().getFullYear()} ${esc(R('Nom de la boutique'))}</footer></div>
+      <footer><a href="${ACCUEIL}">← Voir tous nos produits</a><br>© ${new Date().getFullYear()} ${esc(R('Nom de la boutique'))}</footer></div>
       ${px ? `<div class="sticky" id="sticky"><div class="sp">${money(o1.prix, dev)}</div><a href="#commande" class="cta attn">Je commande</a></div>` : ''}`;
 
     bindCountry();
@@ -587,8 +593,8 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
       if (body === abSent) return;
       abSent = body;
       try {
-        if (beacon && navigator.sendBeacon) navigator.sendBeacon(API, new Blob([body], {type:'text/plain'}));
-        else fetch(API, {method:'POST', body, keepalive:true}).catch(()=>{});
+        if (beacon && navigator.sendBeacon) navigator.sendBeacon(API, new Blob([avecB(body)], {type:'text/plain'}));
+        else fetch(API, {method:'POST', body: avecB(body), keepalive:true}).catch(()=>{});
       } catch(x){}
     };
     const abLater = () => { clearTimeout(abTimer); abTimer = setTimeout(() => abSend(false), 4000); };
@@ -631,7 +637,7 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
       if (b.some(Boolean)){ document.querySelector('.field.bad').scrollIntoView({behavior:'smooth', block:'center'}); return; }
       const s = state();
       const btn = $('sendBtn'), err = $('sendErr');
-      let prev = null; try { prev = (JSON.parse(store.get('commandes') || '{}') || {})[P.id] || null; } catch(x){}
+      let prev = null; try { prev = (JSON.parse(store.get(K_CMD) || '{}') || {})[P.id] || null; } catch(x){}
       form.__markOrdered();
       sending = true; btn.disabled = true; btn.textContent = 'Envoi en cours…'; err.style.display = 'none';
       const payload = {produit: P.id, pays: pays.code, offre: s.o.key, nom, tel, ville, adresse: adr,
@@ -645,7 +651,7 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
       let r = null;
       for (let tries = 0; tries < 2 && !(r && r.ok); tries++){
         try {
-          const res = await fetch(API, {method:'POST', body: JSON.stringify(payload)});
+          const res = await fetch(API, {method:'POST', body: avecB(JSON.stringify(payload))});
           r = await res.json();
         } catch(x){ r = null; }
       }
@@ -685,7 +691,7 @@ Heure de la livraison : ${r.livraison}`;
       memo(P.id, r.numero);
       try { if (!APERCU){ etape = 'achat'; beacon('ping'); } } catch(x){}
       // Lance tout de suite les notifications (WhatsApp, email, application) et l'envoi aux agences
-      try { const bd = JSON.stringify({type: 'apres', numero: r.numero}); if (navigator.sendBeacon) navigator.sendBeacon(API, new Blob([bd], {type: 'text/plain'})); else fetch(API, {method: 'POST', body: bd, keepalive: true}); } catch(x){}
+      try { const bd = avecB(JSON.stringify({type: 'apres', numero: r.numero})); if (navigator.sendBeacon) navigator.sendBeacon(API, new Blob([bd], {type: 'text/plain'})); else fetch(API, {method: 'POST', body: bd, keepalive: true}); } catch(x){}
       if (modeMerci){ const n = $('numCmd'); if (n) n.textContent = r.numero; else merci(r, P); return; }
       $('mNum').textContent = r.numero;
       $('waLink').href = url;
@@ -720,8 +726,8 @@ Heure de la livraison : ${r.livraison}`;
   }
 
   function oui(v){ return /^(oui|yes|o|1|true|vrai)$/i.test(String(v || '').trim()); }
-  function memo(id, num){ try { const m = JSON.parse(store.get('commandes') || '{}') || {}; m[id] = {numero: num}; store.set('commandes', JSON.stringify(m)); } catch(e){} }
-  function dejaPour(id){ try { return !!(JSON.parse(store.get('commandes') || '{}') || {})[id]; } catch(e){ return false; } }
+  function memo(id, num){ try { const m = JSON.parse(store.get(K_CMD) || '{}') || {}; m[id] = {numero: num}; store.set(K_CMD, JSON.stringify(m)); } catch(e){} }
+  function dejaPour(id){ try { return !!(JSON.parse(store.get(K_CMD) || '{}') || {})[id]; } catch(e){ return false; } }
   function dejaCommande(num, wa){
     const msg = `Bonjour, j'ai déjà passé la commande n°${num}. `;
     $('form').innerHTML = `<div class="done"><div class="big">📦</div><h3>Vous avez déjà une commande (n°${esc(num)})</h3>
@@ -765,7 +771,7 @@ Heure de la livraison : ${r.livraison}`;
       }
       if (!P){
         document.body.className = 'prod';
-        app.innerHTML = `<div class="wrap">${header([])}<div class="empty">Ce produit n'existe pas ou n'est plus disponible.<br><br><a href="./" style="color:var(--main);font-weight:700">Voir tous nos produits</a></div></div>`;
+        app.innerHTML = `<div class="wrap">${header([])}<div class="empty">Ce produit n'existe pas ou n'est plus disponible.<br><br><a href="${ACCUEIL}" style="color:var(--main);font-weight:700">Voir tous nos produits</a></div></div>`;
         return;
       }
       renderProduct(P);
@@ -801,8 +807,8 @@ Heure de la livraison : ${r.livraison}`;
       if (type !== 'quitte' && !lieuEnvoye()){ o.lieu = 1; try { sessionStorage.setItem('lieu', '1'); } catch(e){} } }
     const body = JSON.stringify(o);
     try {
-      if (navigator.sendBeacon) navigator.sendBeacon(API, new Blob([body], {type:'text/plain'}));
-      else fetch(API, {method:'POST', body, keepalive:true}).catch(()=>{});
+      if (navigator.sendBeacon) navigator.sendBeacon(API, new Blob([avecB(body)], {type:'text/plain'}));
+      else fetch(API, {method:'POST', body: avecB(body), keepalive:true}).catch(()=>{});
     } catch(e){}
   }
   function startTracking(){
@@ -849,8 +855,8 @@ Heure de la livraison : ${r.livraison}`;
     if (cached){ try { use(JSON.parse(cached)); } catch(e){} }
     // 1) copie rapide hébergée avec le site  2) données en direct du Google Sheets
     let liveOk = false;
-    const snap = fetch('data.json', {cache: 'no-cache'}).then(r => r.ok ? r.json() : null).then(j => { if (!liveOk) use(j); }).catch(() => {});
-    const live = fetch(API + (API.includes('?') ? '&' : '?') + 't=' + Date.now()).then(r => r.json()).then(j => { liveOk = true; use(j, true); }).catch(() => {})
+    const snap = fetch(BQ ? 'data/' + BQ + '.json' : 'data.json', {cache: 'no-cache'}).then(r => r.ok ? r.json() : null).then(j => { if (!liveOk) use(j); }).catch(() => {});
+    const live = fetch(API + (API.includes('?') ? '&' : '?') + (BQ ? 'b=' + BQ + '&' : '') + 't=' + Date.now()).then(r => r.json()).then(j => { liveOk = true; use(j, true); }).catch(() => {})
       .finally(() => { liveDone = true; if (D && shown && pid && !D.produits.some(x => x.id === pid)) render(); });
     await Promise.race([live, snap.then(() => D ? null : live)]);
     if (!D) await live;
