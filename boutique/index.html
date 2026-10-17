@@ -189,6 +189,14 @@ footer{text-align:center;color:var(--soft);font-size:13px;padding:24px 18px 30px
 footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--main)}
 .sticky{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);padding:10px 14px;display:flex;gap:12px;align-items:center;z-index:20;transition:transform .25s}
 .sticky.hide{transform:translateY(110%)}
+/* Notifications de ventes (vraies commandes récentes) */
+.preuve{position:fixed;left:12px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:45;max-width:min(340px,calc(100vw - 24px));display:flex;gap:10px;align-items:center;background:#fff;border-radius:14px;padding:9px 12px 9px 9px;box-shadow:0 8px 30px rgba(20,26,46,.22);transform:translateY(16px);opacity:0;transition:transform .35s ease,opacity .35s ease;pointer-events:none;font-size:13.5px;line-height:1.35}
+.preuve.on{transform:none;opacity:1}
+.preuve img{width:44px;height:44px;border-radius:9px;object-fit:cover;flex:0 0 44px;background:var(--surface)}
+.preuve b{font-weight:800}
+.preuve small{display:block;color:var(--soft);font-size:12px;margin-top:1px}
+.preuve .ok{color:#128C4A;font-weight:700}
+@media (min-width:1000px){.preuve{bottom:20px;left:20px}}
 .sticky .sp{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:20px;white-space:nowrap}
 .sticky .cta{flex:1;padding:14px;font-size:17px}
 .attn{position:relative;overflow:hidden;animation:attn 2s ease-in-out infinite;transform-origin:center}
@@ -888,7 +896,24 @@ Heure de la livraison : ${r.livraison}`;
     if (indispo && liveOk && !(D && D.produits)) D = null;
     if (!D) app.innerHTML = '<div class="empty">' + (indispo ? 'Cette boutique est momentanément indisponible.' : 'Impossible de charger la boutique. Vérifiez votre connexion et actualisez la page.') + '</div>';
   }
-  load().then(() => { if (D && !APERCU) startTracking(); });
+  // Toutes les 8 secondes : une vraie commande récente (« Awa K. vient de commander… »)
+  function preuvesVentes(){
+    const L = () => (D && D.preuves || []).filter(p => Date.now() - p.t < 21 * 864e5);
+    if (!L().length || document.querySelector('.preuve')) return;
+    const el = document.createElement('div'); el.className = 'preuve'; el.setAttribute('role', 'status'); document.body.appendChild(el);
+    const ilya = t => { const m = Math.max(1, Math.round((Date.now() - t) / 6e4)); return m < 60 ? 'il y a ' + m + ' min' : m < 1440 ? 'il y a ' + Math.round(m / 60) + ' h' : 'il y a ' + Math.round(m / 1440) + ' j'; };
+    let i = 0;
+    const montrer = () => {
+      const l = L(); if (!l.length) return;
+      const ae = document.activeElement;
+      if (ae && /INPUT|TEXTAREA|SELECT/.test(ae.tagName)) return;   // jamais pendant que le client remplit le formulaire
+      const p = l[i++ % l.length], prod = D.produits.find(x => x.nom === p.produit);
+      el.innerHTML = `${prod && prod.photos[0] ? `<img src="${esc(img(prod.photos[0]))}" alt="">` : ''}<div><b>${esc(p.nom)}</b> ${p.livree ? 'a reçu sa commande' : 'a commandé'} <b>${esc((t => t.length > 34 ? t.slice(0, 32).trim() + '…' : t)(prod ? prod.nom : p.produit))}</b><small>${p.livree ? '<span class="ok">✔ Livré</span> · ' : ''}${ilya(p.t)}</small></div>`;
+      el.classList.add('on'); setTimeout(() => el.classList.remove('on'), 5000);
+    };
+    setTimeout(() => { montrer(); setInterval(montrer, 8000); }, 5000);
+  }
+  load().then(() => { if (D && !APERCU){ startTracking(); preuvesVentes(); } });
 })();
 </script>
 </body>

@@ -409,6 +409,29 @@ html.ordi .iapan{inset:auto 24px 24px auto;width:420px;height:min(680px,calc(100
 .iabas textarea:focus{border-color:var(--main)}
 .iabas button{flex:0 0 46px;height:46px;border-radius:50%;background:var(--main);color:#fff;font-size:20px;font-weight:900}
 .iabas button:disabled{opacity:.4}
+/* Point hebdomadaire */
+.ptile{display:flex;align-items:center;gap:12px;width:100%;margin-top:12px;padding:14px;border-radius:18px;background:linear-gradient(135deg,#EAF7EF,#F2F5FF);text-align:left;border:1.5px solid var(--line)}
+.ptile span{font-size:26px}.ptile div{flex:1}.ptile b{display:block;font-size:16px}.ptile small{color:var(--soft);font-size:13px}.ptile i{font-style:normal;font-size:24px;color:var(--soft)}
+.ptsem{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:6px -4px 10px;padding:0 4px}
+.ptsem::-webkit-scrollbar{display:none}
+.ptsem button{flex:0 0 auto;padding:9px 12px;border-radius:12px;background:var(--surface);font-weight:700;font-size:13px;white-space:nowrap}
+.ptsem button.on{background:var(--main);color:#fff}
+.ptsem button.fait:not(.on)::after{content:" ✓";color:var(--ok)}
+.ptaide{background:var(--surface);border-radius:14px;padding:10px 12px;font-size:13px;color:var(--soft);margin-bottom:6px}
+.ptaide b{color:var(--ink)}
+.ptin{display:grid;grid-template-columns:1fr auto;align-items:center;gap:6px 10px;margin-top:10px}
+.ptin label{font-weight:700;font-size:14px}.ptin label small{display:block;color:var(--soft);font-weight:500;font-size:12px}
+.ptin input{width:150px;text-align:right;font-weight:800;font-size:17px}
+.ptres{margin:16px 0 10px;padding:16px;border-radius:18px;text-align:center;background:var(--okbg)}
+.ptres.neg{background:var(--errbg)}
+.ptres small{display:block;font-weight:700;color:var(--soft)}
+.ptres b{font-size:30px;letter-spacing:-.02em;color:var(--ok)}
+.ptres.neg b{color:var(--err)}
+.pthist{margin-top:18px}
+.pthist h3{font-size:16px;margin-bottom:6px}
+.pth{display:flex;justify-content:space-between;gap:10px;padding:11px 4px;border-bottom:1px solid var(--line);width:100%;text-align:left}
+.pth small{display:block;color:var(--soft);font-size:12px}
+.pth b.p{color:var(--ok)}.pth b.n{color:var(--err)}
 /* Vendoo */
 .vband{position:sticky;top:0;z-index:60;display:flex;align-items:center;gap:10px;padding:10px 14px;background:#FFF4E5;color:#7A3E00;font-size:14px;font-weight:600}
 .vband span{flex:1}
@@ -852,6 +875,49 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
     dess();
     try { await appel({action: 'agences'}); if (ov.isConnected) dess(); } catch(e){ dess('Impossible de charger : ' + esc(/inconnue|introuvable/i.test(e.message) ? 'mets à jour le code Apps Script (Code.gs).' : e.message)); }
   }
+  /* ---------- Point hebdomadaire : bénéfice net de la semaine, par boutique ---------- */
+  const lundi = d => { const x = new Date(d); x.setHours(0, 0, 0, 0); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return x; };
+  const libSem = iso => { const a = isoJ2(iso), b = new Date(a); b.setDate(b.getDate() + 6); const M = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
+    return a.getMonth() === b.getMonth() ? a.getDate() + '–' + b.getDate() + ' ' + M[a.getMonth()] : a.getDate() + ' ' + M[a.getMonth()] + ' – ' + b.getDate() + ' ' + M[b.getMonth()]; };
+  const isoJ2 = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+  async function pointHebdo(){
+    const dev = (D && D.devise) || 'FCFA', nomB = (D && D.boutique) || 'Ma boutique';
+    const semaines = []; let l0 = lundi(new Date()); for (let k = 0; k < 12; k++){ const x = new Date(l0); x.setDate(x.getDate() - 7 * k); semaines.push(isoJ(x)); }
+    let sem = semaines[new Date().getDay() === 1 ? 1 : 0], P = null, aide = null, msg = '';
+    const ov = document.createElement('div'); ov.className = 'overlay';
+    const appel = async o => { const j = await call(Object.assign({type: 'point', semaine: sem}, o)); P = j.points; aide = j.aide; return j; };
+    const champs = [['ca', 'Chiffre d’affaires réel', 'Ce que l’agence te verse, tout retiré'], ['pub', 'Dépenses pub', 'Toutes tes pubs de la semaine'], ['abonnements', 'Abonnements', 'Vendoo, applis, internet…'], ['achat', 'Achat des produits vendus', 'Ce qu’ont coûté les produits vendus']];
+    const dess = () => {
+      const pt = (P || []).find(x => x.semaine === sem) || {};
+      const fait = new Set((P || []).map(x => x.semaine));
+      const tot4 = (P || []).filter(x => semaines.slice(0, 4).includes(x.semaine)).reduce((t, x) => t + x.benefice, 0);
+      ov.innerHTML = `<div class="detail bqsheet" role="dialog" aria-modal="true" aria-label="Point hebdomadaire"><div class="grab"></div>
+        <h2>💰 Point de la semaine</h2><p class="sub">${esc(nomB)} · en ${esc(dev)}</p>
+        ${msg ? `<div class="okmsg">${msg}</div>` : ''}
+        <div class="ptsem">${semaines.map(w => `<button data-sem="${w}" class="${w === sem ? 'on' : ''} ${fait.has(w) ? 'fait' : ''}">${w === semaines[0] ? 'Cette semaine' : w === semaines[1] ? 'Semaine dernière' : libSem(w)}</button>`).join('')}</div>
+        <p class="sub" style="margin:-4px 0 8px">Du ${libSem(sem)}</p>
+        ${aide ? `<div class="ptaide">D’après l’application : <b>${aide.commandes}</b> commande${aide.commandes > 1 ? 's' : ''} (${esc(fmt(aide.commande, dev))}), dont <b>${aide.livrees}</b> livrée${aide.livrees > 1 ? 's' : ''} (${esc(fmt(aide.livre, dev))}).</div>` : !P ? '<div class="ptaide">Chargement…</div>' : ''}
+        ${champs.map(([k, l, aideTxt]) => `<div class="ptin"><label for="pt_${k}">${l}<small>${aideTxt}</small></label><input class="field" id="pt_${k}" inputmode="numeric" placeholder="0" value="${pt[k] ? esc(String(pt[k])) : ''}"></div>`).join('')}
+        <input class="field" id="pt_note" placeholder="Note (facultatif)" value="${esc(pt.note || '')}" style="margin-top:10px">
+        <div class="ptres" id="ptRes"><small>Bénéfice net de la semaine</small><b id="ptBen">0</b></div>
+        <button class="btn blue" id="ptSave">Enregistrer le point</button>
+        ${pt.semaine ? '<button class="btn ghost" id="ptDel" style="margin-top:8px">Effacer ce point</button>' : ''}
+        ${P && P.length ? `<div class="pthist"><h3>Mes points · 4 dernières semaines : <span style="color:${tot4 < 0 ? 'var(--err)' : 'var(--ok)'}">${esc(fmt(tot4, dev))}</span></h3>${P.slice(0, 12).map(x => `<button class="pth" data-ouv="${x.semaine}"><span>${libSem(x.semaine)}<small>CA ${esc(fmt(x.ca, dev))} · pub ${esc(fmt(x.pub, dev))} · achats ${esc(fmt(x.achat, dev))}</small></span><b class="${x.benefice < 0 ? 'n' : 'p'}">${esc(fmt(x.benefice, dev))}</b></button>`).join('')}</div>` : ''}
+        <button class="btn ghost" id="ptX" style="margin-top:12px">Fermer</button></div>`;
+      const nb = id => Number(String(ov.querySelector('#pt_' + id).value).replace(/[^\d.-]/g, '')) || 0;
+      const calc = () => { const b = nb('ca') - nb('pub') - nb('abonnements') - nb('achat'); ov.querySelector('#ptBen').textContent = fmt(b, dev); ov.querySelector('#ptRes').classList.toggle('neg', b < 0); };
+      ov.querySelectorAll('.ptin input').forEach(i => i.oninput = calc); calc();
+      ov.querySelector('#ptX').onclick = () => ov.remove();
+      ov.querySelectorAll('[data-sem],[data-ouv]').forEach(b => b.onclick = async () => { sem = b.dataset.sem || b.dataset.ouv; msg = ''; aide = null; dess(); try { await appel({}); if (ov.isConnected) dess(); } catch(e){} });
+      ov.querySelector('#ptSave').onclick = async e => { const b = e.currentTarget; b.disabled = true; b.textContent = 'Enregistrement…';
+        try { await appel({action: 'sauver', ca: nb('ca'), pub: nb('pub'), abonnements: nb('abonnements'), achat: nb('achat'), note: ov.querySelector('#pt_note').value}); msg = '✅ Point enregistré (aussi dans ton Google Sheets, onglet « 💰 Point hebdo »).'; dess(); }
+        catch(err){ b.disabled = false; b.textContent = 'Enregistrer le point'; alert(/inconnu|introuvable/i.test(err.message) ? 'Mets à jour le code Apps Script (Code.gs).' : err.message); } };
+      const del = ov.querySelector('#ptDel'); if (del) del.onclick = async () => { if (!(await confirmer({titre: 'Effacer ce point ?', texte: 'Le point de la semaine du ' + esc(libSem(sem)) + ' sera effacé.', ok: 'Effacer'}))) return; try { await appel({action: 'supprimer'}); msg = 'Point effacé.'; dess(); } catch(e){ alert(e.message); } };
+    };
+    ov.onclick = e => { if (e.target === ov) ov.remove(); };
+    document.body.appendChild(ov); dess();
+    try { await appel({}); if (ov.isConnected) dess(); } catch(e){ msg = 'Impossible de charger : ' + esc(/inconnu|introuvable/i.test(e.message) ? 'mets à jour le code Apps Script (Code.gs).' : e.message); if (ov.isConnected) dess(); }
+  }
   function nouvelleBoutique(ov, retour){
     const pays = (BQS && BQS.paysListe) || [];
     ov.innerHTML = `<div class="detail bqsheet" role="dialog" aria-modal="true" aria-label="Nouvelle boutique"><div class="grab"></div>
@@ -1144,6 +1210,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
           <div class="tile yes"><small>Livrées</small><b>${c.livrees}</b></div>
           <div class="tile"><small>Taux de livraison</small><b>${c.commandes ? Math.round(c.livrees / c.commandes * 100) : 0} %</b></div>
         </div>
+        <button class="ptile" id="ptOpen"><span>💰</span><div><b>Point de la semaine</b><small>Ton bénéfice net, boutique par boutique</small></div><i>›</i></button>
         <div class="block"><h3>Chiffre d'affaires</h3><div class="money">
           <div><span>Commandé (brut)</span><span>${esc(fmt(ca, dev))}</span></div>
           <div><span>Livré (encaissé)</span><span>${esc(fmt(c.caLivre[dev] || 0, dev))}</span></div>
@@ -1164,6 +1231,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
       setBusy(true); busy = false; await refresh();
     });
     app.querySelectorAll('[data-go]').forEach(b => b.onclick = () => go(b.dataset.go));
+    const pto = document.getElementById('ptOpen'); if (pto) pto.onclick = () => pointHebdo();
     bindOrders();
     document.getElementById('bqBtn').onclick = () => mesBoutiques();
     document.getElementById('snd').onclick = () => { sound = !sound; S.set('adm_sound', sound ? '1' : '0'); if (sound) chime(); home(); };
@@ -2485,6 +2553,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
     app.innerHTML = `<div class="page"><h1>Réglages</h1>
       ${D.vendoo && D.vendoo.statut === 'proprietaire' ? `<div class="set"><div><b>Vendoo – abonnés et paiements</b><p>Valider les paiements MoMo, voir les abonnés, codes promo.</p></div><button class="chip" style="background:#5B2EE6;border-color:#5B2EE6" id="vAdm">Ouvrir</button></div>` : ''}
       ${VENDOO && D.vendoo && D.vendoo.statut !== 'proprietaire' ? `<div class="set"><div><b>Mon abonnement Vendoo</b><p>${D.vendoo.statut === 'essai' ? 'Essai gratuit jusqu’au ' + esc(D.vendoo.expire || '') + ' (' + D.vendoo.jours + ' j)' : D.vendoo.statut === 'actif' ? 'Actif jusqu’au ' + esc(D.vendoo.expire || '') + ' (' + D.vendoo.jours + ' j)' : D.vendoo.statut === 'grace' ? 'Terminé : coupure dans ' + D.vendoo.grace + ' j' : esc(D.vendoo.statut || '')}</p></div><a class="chip" style="background:#5B2EE6;border-color:#5B2EE6" href="${PAYER}" target="_blank" rel="noopener">Gérer</a></div>` : ''}
+      <div class="set"><div><b>💰 Point hebdomadaire</b><p>Ce que l’agence te verse, tes pubs, tes abonnements, tes achats : ton bénéfice net de la semaine.</p></div><button class="chip" style="background:var(--main);border-color:var(--main)" id="ptSet">Ouvrir</button></div>
       <div class="set"><div><b>Mes boutiques${VENDOO ? '' : ' (Vendoo)'}</b><p>Jusqu'à 30 boutiques : une par agence ou par pays. Chacune a ses produits, ses commandes et son lien.</p></div><button class="chip" style="background:var(--main);border-color:var(--main)" id="bqSet">Ouvrir</button></div>
       <div class="set"><div><b>Son des nouvelles commandes</b><p>Un « ding » à chaque commande, quand l'application est ouverte.</p></div><button class="switch ${sound?'on':''}" id="sw" role="switch" aria-checked="${sound}" aria-label="Son des nouvelles commandes"></button></div>
       <div class="set"><div><b>Tester le son</b><p>Vérifie que le volume de ton téléphone est assez fort.</p></div><button class="chip" style="background:var(--surface);color:var(--ink);border-color:var(--line)" id="test">Écouter</button></div>
@@ -2503,6 +2572,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
     document.getElementById('testRel').onclick = () => { const s = sound; sound = true; chime('relance'); sound = s; };
     document.getElementById('out').onclick = () => logout();
     document.getElementById('bqSet').onclick = () => mesBoutiques();
+    document.getElementById('ptSet').onclick = () => pointHebdo();
     const va = document.getElementById('vAdm'); if (va) va.onclick = () => vendooAdmin();
     app.querySelectorAll('[data-go2]').forEach(b => b.onclick = () => go(b.dataset.go2));
     document.getElementById('testPush').onclick = async e => {

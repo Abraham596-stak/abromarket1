@@ -162,7 +162,7 @@ footer{text-align:center;color:var(--soft);font-size:13px;padding:30px 0 40px}
       <section class="hero">
         <h1>Ta boutique en ligne,<br><em>paiement à la livraison</em></h1>
         <p>Crée ton site, reçois tes commandes sur WhatsApp et gère tout depuis ton téléphone. Jusqu’à 30 boutiques sur un seul compte.</p>
-        <a class="btn" href="#inscription">Essayer gratuitement 3 jours</a>
+        <a class="btn" href="#inscription">Essayer gratuitement 7 jours</a>
         <p class="soft" style="margin-top:12px">Un essai par personne · Tes données restent dans ton Google</p>
       </section>
       <div class="feat">
@@ -174,13 +174,13 @@ footer{text-align:center;color:var(--soft);font-size:13px;padding:30px 0 40px}
         <div><i>⭐</i><p style="margin:0"><b>Avis clients riches</b><span>Texte, captures WhatsApp, notes vocales et vidéos de tes clients.</span></p></div>
       </div>
       <h2>Tarifs</h2>
-      <p class="soft" style="margin-top:-4px">🎁 3 jours d’essai gratuit pour découvrir Vendoo. Ensuite, tu choisis ta formule.</p>
+      <p class="soft" style="margin-top:-4px">🎁 7 jours d’essai gratuit pour découvrir Vendoo. Ensuite, tu choisis ta formule.</p>
       <div class="prix">
         <div class="plan"><div class="soft">Mensuel</div><div class="p">${F(P.mois)} <small>/ mois</small></div><ul><li>Toutes les fonctions</li><li>30 boutiques</li><li>Prix réduit avec un code promo</li></ul></div>
         <div class="plan top">${eco > 0 ? `<span class="tag">${F(eco)} économisés</span>` : ''}<div class="soft">Annuel</div><div class="p">${F(P.an)} <small>/ an</small></div><ul><li>Toutes les fonctions</li><li>30 boutiques</li><li>Un seul paiement pour l’année</li></ul></div>
       </div>
       <div class="card"><h3>Comment ça marche ?</h3><ol class="etapes">
-        <li><b>Crée ton compte</b><span class="soft">Avec ton e-mail ou ton compte Google : 3 jours d’essai gratuit.</span></li>
+        <li><b>Crée ton compte</b><span class="soft">Avec ton e-mail ou ton compte Google : 7 jours d’essai gratuit.</span></li>
         <li><b>Installe ta boutique</b><span class="soft">Un Google Sheets à toi, partagé avec Vendoo : tes commandes restent chez toi.</span></li>
         <li><b>Vends</b><span class="soft">Ajoute tes produits depuis l’application et partage le lien de ta boutique.</span></li>
         <li><b>Abonne-toi</b><span class="soft">Par Mobile Money, quand tu es convaincu.</span></li>
@@ -278,7 +278,7 @@ footer{text-align:center;color:var(--soft);font-size:13px;padding:30px 0 40px}
         ${paye ? `<div class="gros">${c.jours ? c.jours + ' jour' + (c.jours > 1 ? 's' : '') + (c.statut === 'essai' ? ' d’essai' : '') + ' restant' + (c.jours > 1 ? 's' : '') : 'Délai de grâce'}</div><div class="soft">${c.statut === 'essai' ? 'Essai gratuit · ' : c.formule ? 'Abonnement ' + esc(c.formule.toLowerCase()) + ' · ' : ''}jusqu’au ${esc(c.expire)}</div>` : ''}
         ${alerte}
       </div>
-      ${c.statut === 'attente' && c.essaiAActiver ? `<div class="card" style="border:1.5px solid var(--main)"><h3>🎁 Active ton essai gratuit de 3 jours</h3>
+      ${c.statut === 'attente' && c.essaiAActiver ? `<div class="card" style="border:1.5px solid var(--main)"><h3>🎁 Active ton essai gratuit de 7 jours</h3>
         <p class="soft" style="margin:0 0 10px">Pour éviter les abus, chaque personne n’a droit qu’à un seul essai. On le vérifie avec ton compte Mobile Money : une vérification de <b>${F(c.verif)}</b>, et ton essai démarre tout de suite.<br>🎁 Ces ${F(c.verif)} sont <b>déduits de ton abonnement</b> si tu continues avec Vendoo.</p>
         ${CFG && CFG.kkiapay ? `<button class="btn" id="essaiGo">Activer mon essai · ${F(c.verif)}</button>` : '<div class="msg warn">La vérification arrive bientôt. Tu peux déjà t’abonner ci-dessous.</div>'}
         <p class="soft" style="font-size:13px;margin:10px 0 0">Un seul essai par compte Mobile Money.</p><div id="me"></div></div>` : ''}
@@ -422,7 +422,7 @@ footer{text-align:center;color:var(--soft);font-size:13px;padding:30px 0 40px}
   /* ------------ Guide de bienvenue : tout expliquer de A à Z ------------ */
   const GUIDE = [
     ['👋', 'Bienvenue sur Vendoo', `<p>En quelques minutes tu vas avoir :</p><ul><li><b>Ton site boutique</b> : tes clients commandent et paient à la livraison.</li><li><b>Ton application</b> sur ton téléphone : commandes, relances, ventes, pubs.</li><li><b>Ton Google Sheets</b> : toutes tes données, chez toi.</li></ul><p>Ce guide t’explique tout, étape par étape.</p>`],
-    ['🎁', 'Active ton essai gratuit', `<p>Tu as <b>3 jours d’essai</b>, une seule fois. Pour l’activer : une vérification de <b>1 000 F</b> par Mobile Money (bouton « Activer mon essai »).</p><p>Ces 1 000 F sont <b>déduits de ton abonnement</b> si tu continues avec Vendoo.</p>`],
+    ['🎁', 'Active ton essai gratuit', `<p>Tu as <b>7 jours d’essai</b>, une seule fois. Pour l’activer : une vérification de <b>1 000 F</b> par Mobile Money (bouton « Activer mon essai »).</p><p>Ces 1 000 F sont <b>déduits de ton abonnement</b> si tu continues avec Vendoo.</p>`],
     ['📄', 'Installe ta boutique', `<ul><li>Appuie sur <b>« Créer mon Google Sheets »</b> (un fichier vide dans ton Google).</li><li>Dans ce fichier : <b>Partager</b> → ajoute l’e-mail affiché sur ton compte, en <b>Éditeur</b>.</li><li>Copie le lien du fichier, colle-le ici et appuie sur <b>« Installer ma boutique »</b> (environ 1 minute).</li></ul><p>Tes données restent dans ton Google : Vendoo travaille dessus pour toi.</p>`],
     ['📱', 'Ouvre ton application', `<ul><li>Appuie sur <b>« Ouvrir mon application »</b> et entre le <b>mot de passe</b> affiché sur ton compte.</li><li>Installe-la sur ton téléphone : Chrome → menu ⋮ → <b>« Ajouter à l’écran d’accueil »</b> (iPhone : Partager → « Sur l’écran d’accueil »).</li><li>Dans Réglages, active les <b>notifications</b> : chaque commande arrive tout de suite, même application fermée.</li></ul>`],
     ['🛍️', 'Ajoute tes produits', `<p>Dans l’application : <b>Produits → + Ajouter</b>.</p><ul><li>Photos (recadrer, enlever le fond…), nom, accroche, belle description.</li><li><b>Prix par pays</b> et offres (1, 2, 3 pièces…).</li><li>Avis clients : texte, capture WhatsApp, note vocale, vidéo.</li><li>Mets-le <b>en ligne</b> quand il est prêt (sinon il reste en brouillon).</li></ul><p>Le bouton <b>⋮</b> de chaque produit permet de le modifier, dupliquer, copier son lien ou le supprimer.</p>`],
