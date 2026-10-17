@@ -377,6 +377,30 @@ html.ordi .dvgrid{grid-template-columns:repeat(4,minmax(0,1fr))}
 .rrow button.on{background:#fff;color:#111}
 .rrow button:disabled{opacity:.5}
 .rinfo{font-size:13px;color:rgba(255,255,255,.7);text-align:center}
+/* Assistant IA */
+.iabtn{position:fixed;right:16px;bottom:calc(92px + env(safe-area-inset-bottom));z-index:31;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#5B2EE6,#2350D8);color:#fff;display:grid;place-items:center;box-shadow:0 8px 24px rgba(35,80,216,.35)}
+.iabtn svg{width:26px;height:26px}
+.nav.hidden ~ .iabtn{display:none}
+html.ordi .iabtn{bottom:24px;right:24px}
+.iapan{position:fixed;inset:0;z-index:950;background:#fff;display:flex;flex-direction:column}
+html.ordi .iapan{inset:auto 24px 24px auto;width:420px;height:min(680px,calc(100vh - 48px));border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,.25);overflow:hidden}
+.iahd{display:flex;align-items:center;gap:10px;padding:calc(12px + env(safe-area-inset-top)) 14px 12px;border-bottom:1px solid var(--line)}
+.iahd .av{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#5B2EE6,#2350D8);color:#fff;display:grid;place-items:center;font-size:18px}
+.iahd b{flex:1;font-size:17px}.iahd small{display:block;color:var(--soft);font-weight:500;font-size:12px}
+.iahd button{padding:8px 10px;border-radius:10px;font-weight:700;color:var(--soft)}
+.iamsgs{flex:1;overflow-y:auto;padding:16px 14px;display:flex;flex-direction:column;gap:10px;overscroll-behavior:contain}
+.iam{max-width:86%;padding:10px 13px;border-radius:16px;line-height:1.45;font-size:15px;white-space:pre-wrap;word-wrap:break-word}
+.iam.moi{align-self:flex-end;background:var(--main);color:#fff;border-bottom-right-radius:5px}
+.iam.ia{align-self:flex-start;background:var(--surface);color:var(--ink);border-bottom-left-radius:5px}
+.iam.ia a{color:var(--main);font-weight:700}
+.iam.att{color:var(--soft)}
+.iasug{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+.iasug button{text-align:left;padding:11px 13px;border-radius:14px;border:1.5px solid var(--line);font-weight:600;font-size:14px;color:var(--ink)}
+.iabas{display:flex;gap:8px;align-items:flex-end;padding:10px 12px calc(10px + env(safe-area-inset-bottom));border-top:1px solid var(--line)}
+.iabas textarea{flex:1;resize:none;max-height:120px;min-height:46px;border:1.5px solid var(--line);border-radius:16px;padding:12px 14px;font:inherit;font-size:16px;outline:none}
+.iabas textarea:focus{border-color:var(--main)}
+.iabas button{flex:0 0 46px;height:46px;border-radius:50%;background:var(--main);color:#fff;font-size:20px;font-weight:900}
+.iabas button:disabled{opacity:.4}
 /* Vendoo */
 .vband{position:sticky;top:0;z-index:60;display:flex;align-items:center;gap:10px;padding:10px 14px;background:#FFF4E5;color:#7A3E00;font-size:14px;font-weight:600}
 .vband span{flex:1}
@@ -449,6 +473,28 @@ html.ordi .dvgrid{grid-template-columns:repeat(4,minmax(0,1fr))}
 .prhead h1{font-size:30px}
 .btn.small{display:inline-block;width:auto;padding:10px 16px;font-size:15px;border-radius:12px}
 .prod .pimg{flex:0 0 64px;padding:0}
+.prod{align-items:center;cursor:pointer}
+.prod .info small{margin-bottom:0}
+.prod .pmenu{flex:0 0 40px;height:40px;border-radius:12px;font-size:22px;font-weight:800;color:var(--soft);line-height:1}
+.prod .pmenu:active{background:var(--surface)}
+.prod.sel{background:#F2F5FF}
+.pck{flex:0 0 24px;height:24px;border-radius:7px;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;font-size:14px}
+.prod.sel .pck{background:var(--main);border-color:var(--main)}
+.selbar{display:flex;align-items:center;gap:10px;background:var(--surface);border-radius:14px;padding:8px 10px;margin:4px 0 10px}
+.selbar b{flex:1}
+.selbar button{font-weight:700;padding:6px 8px;border-radius:10px;color:var(--main)}
+.selbar #selX{color:var(--ink);font-size:18px}
+.selact{position:sticky;bottom:calc(96px + env(safe-area-inset-bottom));display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:14px;background:#fff;padding:8px 0}
+.selact button{padding:12px 6px;border-radius:12px;background:var(--surface);font-weight:800;font-size:14px}
+.selact button.danger{background:var(--errbg);color:#9B1C1C}
+.selact button:disabled{opacity:.45}
+.pmsheet{display:flex;flex-direction:column;gap:2px}
+.pmtete{display:flex;align-items:center;gap:10px;padding:4px 4px 12px;border-bottom:1px solid var(--line);margin-bottom:6px}
+.pmtete img{width:44px;height:44px;border-radius:10px;object-fit:cover}
+.pmsheet>button,.pmsheet>a{text-align:left;padding:14px 8px;border-radius:12px;font-weight:700;font-size:16px;color:var(--ink);text-decoration:none}
+.pmsheet>button:active,.pmsheet>a:active{background:var(--surface)}
+.pmsheet .danger{color:#B42318}
+.pmsheet .annul{text-align:center;background:var(--surface);margin-top:6px}
 .prod .pname{text-align:left;padding:0}
 .pst{color:#B45309;font-weight:700}.pst.on{color:#0B6B35}
 .editor{position:fixed;inset:0;z-index:50;background:var(--surface);overflow-y:auto;-webkit-overflow-scrolling:touch}
@@ -556,6 +602,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
   <button data-v="apercu" aria-label="Aperçu du site" class="ordi-only"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg><span class="nl">Aperçu du site</span></button>
   <button data-v="settings" aria-label="Réglages"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg><span class="nl">Réglages</span></button>
 </nav>
+<button class="iabtn" id="iaBtn" aria-label="Poser une question à l'assistant"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M9.5 10.5h.01M12 10.5h.01M14.5 10.5h.01" stroke-width="3"/></svg></button>
 <div class="vuebar hidden" id="vuebar" role="group" aria-label="Affichage de l'application"><small>Affichage</small><div class="seg"><button data-vue="ordi">🖥 Ordinateur</button><button data-vue="mobile">📱 Mobile</button></div></div>
 <button class="vueflot hidden" id="vueflot" data-vue="ordi">🖥 Vue ordinateur</button>
 
@@ -1630,6 +1677,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
     if (!l.length) return 'Aucun prix';
     return l.slice(0, 2).map(x => { const pp = PR.pays.find(q => q.nom.toLowerCase() === String(x.pays).toLowerCase()); return `${x.pays} : ${fmt(String(x.p1).replace(/[^\d.,]/g, ''), pp ? pp.devise : '')}`; }).join(' · ') + (l.length > 2 ? ` +${l.length - 2}` : '');
   }
+  let prSel = null;   // sélection de plusieurs produits
   function products(){ drawProducts(); loadPR(); loadPub().then(() => { if (view === 'products' && !document.querySelector('.overlay, .editor')) drawProducts(); }); }
   function drawProducts(){
     if (view !== 'products') return;
@@ -1638,21 +1686,82 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
     else if (pubData) liste = pubData.produits.map(p => ({ id: p.id, nom: p.nom, photos: p.photos, enLigne: true, prix: [] }));
     const nbB = liste ? liste.filter(p => !p.enLigne).length : 0;
     const vis = liste ? liste.filter(p => prFiltre === 'tous' || (prFiltre === 'ligne' ? p.enLigne : !p.enLigne)) : [];
-    app.innerHTML = `<div class="page"><div class="prhead"><h1>Produits</h1><button class="btn blue small" id="prNew">+ Ajouter</button></div>
+    const sel = prSel;
+    app.innerHTML = `<div class="page"><div class="prhead"><h1>Produits</h1>${sel ? '' : `<span style="display:flex;gap:8px">${liste && liste.length ? '<button class="btn ghost small" id="prSel">Sélectionner</button>' : ''}<button class="btn blue small" id="prNew">+ Ajouter</button></span>`}</div>
+      ${sel ? `<div class="selbar"><button id="selX" aria-label="Annuler la sélection">✕</button><b>${sel.size} sélectionné${sel.size > 1 ? 's' : ''}</b><button id="selAll">${vis.length && vis.every(p => sel.has(p.id)) ? 'Tout désélectionner' : 'Tout sélectionner'}</button></div>` : ''}
       <div class="filters">${[['tous', 'Tous'], ['ligne', 'En ligne'], ['brouillon', 'Brouillons' + (nbB ? ' (' + nbB + ')' : '')]].map(([k, l]) => `<button class="${k === prFiltre ? 'on' : ''}" data-pf="${k}">${l}</button>`).join('')}</div>
-      <div id="pl">${!liste ? '<div class="empty">Chargement…</div>' : vis.length ? vis.map(p => {
-        const url = lienProduit(p.id);
-        return `<div class="prod"><button class="pimg" data-edit="${esc(p.id)}" aria-label="Modifier ${esc(p.nom)}"><img src="${esc(vignette(p.photos[0]))}" alt="" loading="lazy"></button><div class="info">
-          <button class="pname" data-edit="${esc(p.id)}"><b>${esc(p.nom)}</b></button>
-          <small>${p.enLigne ? '<span class="pst on">● En ligne</span>' : '<span class="pst">● Brouillon</span>'} ${esc(prixResume(p))}</small>
-          <div class="links"><button data-edit="${esc(p.id)}">✏️ Modifier</button><button data-dup="${esc(p.id)}">⧉ Dupliquer</button><button data-copy="${esc(url)}">🔗 Lien</button><a href="${esc(url)}" target="_blank" rel="noopener">Voir</a></div></div></div>`;
-      }).join('') : `<div class="empty">${prFiltre === 'brouillon' ? 'Aucun brouillon.' : 'Aucun produit. Appuie sur « + Ajouter ».'}</div>`}</div>
-      <a class="btn ghost" style="margin-top:18px" href="${esc(D ? D.sheetUrl : '#')}" target="_blank" rel="noopener">Ouvrir le Google Sheets</a></div>`;
+      <div id="pl">${!liste ? '<div class="empty">Chargement…</div>' : vis.length ? vis.map(p => `<div class="prod ${sel && sel.has(p.id) ? 'sel' : ''}" data-row="${esc(p.id)}">
+          ${sel ? `<span class="pck" aria-hidden="true">${sel.has(p.id) ? '✓' : ''}</span>` : ''}
+          <img src="${esc(vignette(p.photos[0]))}" alt="" loading="lazy">
+          <div class="info"><b>${esc(p.nom)}</b><small>${p.enLigne ? '<span class="pst on">● En ligne</span>' : '<span class="pst">● Brouillon</span>'} ${esc(prixResume(p))}</small></div>
+          ${sel ? '' : `<button class="pmenu" data-pm="${esc(p.id)}" aria-label="Options de ${esc(p.nom)}">⋮</button>`}</div>`).join('') : `<div class="empty">${prFiltre === 'brouillon' ? 'Aucun brouillon.' : 'Aucun produit. Appuie sur « + Ajouter ».'}</div>`}</div>
+      ${sel ? `<div class="selact"><button data-sa="ligne" ${sel.size ? '' : 'disabled'}>● En ligne</button><button data-sa="brouillon" ${sel.size ? '' : 'disabled'}>Brouillon</button><button data-sa="suppr" class="danger" ${sel.size ? '' : 'disabled'}>🗑 Supprimer</button></div>` : `<a class="btn ghost" style="margin-top:18px" href="${esc(D ? D.sheetUrl : '#')}" target="_blank" rel="noopener">Ouvrir le Google Sheets</a>`}</div>`;
+    const pret = () => { if (!PR){ alert('Encore une seconde, les détails des produits arrivent…'); return false; } return true; };
     app.querySelectorAll('[data-pf]').forEach(b => b.onclick = () => { prFiltre = b.dataset.pf; drawProducts(); });
-    app.querySelectorAll('[data-copy]').forEach(b => b.onclick = async () => { try { await navigator.clipboard.writeText(b.dataset.copy); b.textContent = '✓ Copié'; } catch(e){ prompt('Copie ce lien :', b.dataset.copy); } });
-    app.querySelectorAll('[data-edit]').forEach(b => b.onclick = () => { if (!PR){ alert('Encore une seconde, les détails du produit arrivent…'); return; } editer(PR.produits.find(p => p.id === b.dataset.edit)); });
-    app.querySelectorAll('[data-dup]').forEach(b => b.onclick = () => { if (!PR){ alert('Encore une seconde…'); return; } dupliquer(b.dataset.dup); });
-    document.getElementById('prNew').onclick = () => { if (!PR){ alert('Encore une seconde, la liste des pays arrive…'); return; } editer(null); };
+    app.querySelectorAll('[data-row]').forEach(r => r.onclick = e => {
+      if (e.target.closest('.pmenu')) return;
+      const id = r.dataset.row;
+      if (prSel){ prSel.has(id) ? prSel.delete(id) : prSel.add(id); drawProducts(); return; }
+      if (pret()) editer(PR.produits.find(p => p.id === id));
+    });
+    app.querySelectorAll('[data-pm]').forEach(b => b.onclick = () => menuProduit(b.dataset.pm));
+    const ps = document.getElementById('prSel'); if (ps) ps.onclick = () => { if (!pret()) return; prSel = new Set(); drawProducts(); };
+    const sx = document.getElementById('selX'); if (sx) sx.onclick = () => { prSel = null; drawProducts(); };
+    const sa = document.getElementById('selAll'); if (sa) sa.onclick = () => { const tous = vis.every(p => prSel.has(p.id)); vis.forEach(p => tous ? prSel.delete(p.id) : prSel.add(p.id)); drawProducts(); };
+    app.querySelectorAll('[data-sa]').forEach(b => b.onclick = async () => {
+      const ids = [...prSel], ps2 = PR.produits.filter(p => ids.includes(p.id));
+      if (b.dataset.sa === 'suppr'){
+        if (!(await confirmer({titre: 'Supprimer ' + ids.length + ' produit' + (ids.length > 1 ? 's' : '') + ' ?', texte: `${ps2.slice(0, 5).map(p => '• ' + esc(p.nom)).join('<br>')}${ps2.length > 5 ? '<br>…' : ''}<br><br><b>Irréversible :</b> ils disparaissent du site et du Google Sheets, avec leurs photos, prix et avis. Leurs liens ne marcheront plus.`, ok: 'Oui, supprimer'}))) return;
+        supprimerProduits(ids);
+      } else {
+        const enLigne = b.dataset.sa === 'ligne';
+        ps2.forEach(p => { if (!!p.enLigne !== enLigne){ p.enLigne = enLigne; enfiler({action: 'sauver', produit: p, ancienId: p.id}); } });
+        memoPR(); toast(enLigne ? '● Mis en ligne' : 'Passés en brouillon');
+      }
+      prSel = null; drawProducts();
+    });
+    const pn = document.getElementById('prNew'); if (pn) pn.onclick = () => { if (!pret()) return; editer(null); };
+  }
+  function supprimerProduits(ids){
+    PR.produits = PR.produits.filter(p => !ids.includes(p.id)); memoPR();
+    ids.forEach(id => enfiler({action: 'supprimer', id}));
+    toast('🗑 ' + (ids.length > 1 ? ids.length + ' produits supprimés' : 'Produit supprimé'));
+  }
+  // Menu « ⋮ » d'un produit
+  function menuProduit(id){
+    const p = (PR && PR.produits.find(x => x.id === id)) || (pubData && pubData.produits.find(x => x.id === id)); if (!p) return;
+    const url = lienProduit(id);
+    const ov = document.createElement('div'); ov.className = 'overlay';
+    ov.innerHTML = `<div class="detail pmsheet" role="dialog" aria-modal="true" aria-label="Options du produit"><div class="grab"></div>
+      <div class="pmtete"><img src="${esc(vignette(p.photos[0]))}" alt=""><b>${esc(p.nom)}</b></div>
+      <button data-o="edit">✏️ Modifier</button>
+      <button data-o="dup">⧉ Dupliquer</button>
+      <button data-o="lien">🔗 Copier le lien</button>
+      <a href="${esc(url)}" target="_blank" rel="noopener">👁 Voir sur le site</a>
+      ${PR ? `<button data-o="statut">${p.enLigne ? '⏸ Passer en brouillon' : '● Mettre en ligne'}</button>` : ''}
+      <button data-o="sel">☑️ Sélectionner</button>
+      <button data-o="suppr" class="danger">🗑 Supprimer</button>
+      <button data-o="x" class="annul">Annuler</button></div>`;
+    const fermerM = () => ov.remove();
+    ov.onclick = async e => {
+      if (e.target === ov) return fermerM();
+      const b = e.target.closest('[data-o]'); if (!b) return;
+      const o = b.dataset.o;
+      if (o === 'x') return fermerM();
+      if (o === 'lien'){ try { await navigator.clipboard.writeText(url); toast('🔗 Lien copié'); } catch(x){ prompt('Copie ce lien :', url); } return fermerM(); }
+      if (!PR){ alert('Encore une seconde, les détails des produits arrivent…'); return; }
+      const P = PR.produits.find(x => x.id === id);
+      fermerM();
+      if (o === 'edit') editer(P);
+      if (o === 'dup') dupliquer(id);
+      if (o === 'sel'){ prSel = new Set([id]); drawProducts(); }
+      if (o === 'statut'){ P.enLigne = !P.enLigne; memoPR(); enfiler({action: 'sauver', produit: P, ancienId: P.id}); toast(P.enLigne ? '● En ligne' : 'Passé en brouillon'); drawProducts(); }
+      if (o === 'suppr'){
+        if (!(await confirmer({titre: 'Supprimer ce produit ?', texte: `<b>« ${esc(P.nom)} »</b> va disparaître du site et du Google Sheets, avec ses photos, ses prix et ses avis.<br><br><b>Irréversible :</b> son lien ne marchera plus.`, ok: 'Oui, supprimer'}))) return;
+        supprimerProduits([id]); drawProducts();
+      }
+    };
+    document.body.appendChild(ov);
   }
   function dupliquer(id){
     const src = PR && PR.produits.find(x => x.id === id); if (!src) return;
@@ -2366,6 +2475,46 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
       dg.innerHTML = lignes.map(esc).join('<br>'); b.textContent = 'Tester';
     };
   }
+
+  /* ---------- Assistant IA (comme Sidekick de Shopify) ---------- */
+  let IA = []; try { IA = JSON.parse(S.get('adm_ia') || '[]') || []; } catch(e){ IA = []; }
+  const iaTexte = t => esc(t).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+    .replace(/(https?:\/\/[^\s<)]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>')
+    .replace(/\+229 ?01 ?60 ?42 ?21 ?39/g, m => `<a href="https://wa.me/2290160422139" target="_blank" rel="noopener">${m}</a>`);
+  const IA_SUG = ['Comment ajouter un produit ?', 'Comment activer les notifications ?', 'Comment marchent les relances ?', 'Comment ajouter une agence de livraison ?', 'Comment suivre mes pubs TikTok ?', 'Comment fonctionne l’abonnement ?'];
+  function assistantIA(){
+    if (document.getElementById('iaPan')) return;
+    const pan = document.createElement('div'); pan.className = 'iapan'; pan.id = 'iaPan'; pan.setAttribute('role', 'dialog'); pan.setAttribute('aria-label', 'Assistant');
+    pan.innerHTML = `<div class="iahd"><span class="av">✦</span><b>Assistant<small>Pose ta question sur l’application</small></b><button id="iaNew">Nouveau</button><button id="iaX" aria-label="Fermer" style="font-size:20px">✕</button></div>
+      <div class="iamsgs" id="iaMsgs" aria-live="polite"></div>
+      <form class="iabas" id="iaF"><textarea id="iaQ" rows="1" placeholder="Écris ta question…" aria-label="Ta question"></textarea><button id="iaGo" aria-label="Envoyer">➤</button></form>`;
+    document.body.appendChild(pan); document.body.style.overflow = 'hidden';
+    const msgs = pan.querySelector('#iaMsgs'), q = pan.querySelector('#iaQ'), go = pan.querySelector('#iaGo');
+    let attente = false;
+    const dessiner = () => {
+      msgs.innerHTML = (IA.length ? '' : `<div class="iam ia">Bonjour 👋 Je connais tout le fonctionnement de l’application, du site et de Vendoo. Pose-moi ta question.</div><div class="iasug">${IA_SUG.map(t => `<button type="button">${esc(t)}</button>`).join('')}</div>`)
+        + IA.map(m => `<div class="iam ${m.role === 'ia' ? 'ia' : 'moi'}">${m.role === 'ia' ? iaTexte(m.texte) : esc(m.texte)}</div>`).join('')
+        + (attente ? '<div class="iam ia att">…</div>' : '');
+      msgs.querySelectorAll('.iasug button').forEach(b => b.onclick = () => envoyer(b.textContent));
+      msgs.scrollTop = msgs.scrollHeight;
+    };
+    const memo = () => { try { S.set('adm_ia', JSON.stringify(IA.slice(-40))); } catch(e){} };
+    async function envoyer(t){
+      t = String(t || '').trim(); if (!t || attente) return;
+      IA.push({role: 'moi', texte: t}); memo(); q.value = ''; q.style.height = ''; attente = true; go.disabled = true; dessiner();
+      try { const j = await call({type: 'assistant', messages: IA.slice(-12)}); IA.push({role: 'ia', texte: j.texte}); }
+      catch(e){ IA.push({role: 'ia', texte: /assistant|inconnu/i.test(e.message) ? 'Mets à jour le code Apps Script (Code.gs) pour activer l’assistant.' : 'Connexion impossible. Vérifie ta connexion internet et réessaie.'}); }
+      attente = false; go.disabled = false; memo(); dessiner();
+    }
+    pan.querySelector('#iaF').onsubmit = e => { e.preventDefault(); envoyer(q.value); };
+    q.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey && matchMedia('(min-width: 1000px)').matches){ e.preventDefault(); envoyer(q.value); } });
+    q.addEventListener('input', () => { q.style.height = 'auto'; q.style.height = Math.min(120, q.scrollHeight) + 'px'; });
+    pan.querySelector('#iaX').onclick = () => { pan.remove(); document.body.style.overflow = ''; };
+    pan.querySelector('#iaNew').onclick = () => { IA = []; memo(); dessiner(); };
+    dessiner();
+    if (!matchMedia('(pointer: coarse)').matches) q.focus();
+  }
+  document.getElementById('iaBtn').onclick = () => { unlock(); assistantIA(); };
 
   /* ---------- Démarrage ---------- */
   let swFait = false;

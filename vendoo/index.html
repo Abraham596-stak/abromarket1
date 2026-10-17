@@ -83,6 +83,23 @@ label{display:block;font-weight:700;font-size:14px;margin:12px 0 6px}
 .hist td:last-child{text-align:right}
 .copie{display:flex;gap:8px;align-items:center;background:#F3EFFF;border-radius:12px;padding:10px 12px;font-size:14px;word-break:break-all}
 .copie button{flex:0 0 auto}
+/* Guide de bienvenue */
+.gv{position:fixed;inset:0;z-index:100;background:rgba(20,17,43,.55);display:flex;align-items:flex-end;justify-content:center}
+.gvbox{background:#fff;width:100%;max-width:520px;border-radius:24px 24px 0 0;padding:22px 20px calc(18px + env(safe-area-inset-bottom));max-height:92vh;overflow:auto}
+@media (min-width:700px){.gv{align-items:center}.gvbox{border-radius:24px}}
+@keyframes gvm{from{transform:translateY(30px);opacity:0}}
+.gvtop{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.gvtop small{color:var(--soft);font-weight:700}
+.gvem{font-size:52px;line-height:1;margin:6px 0 10px}
+.gvbox h2{margin:0 0 8px;font-size:23px;letter-spacing:-.02em}
+.gvbox p{color:var(--soft);margin:0 0 10px}
+.gvbox ul{margin:0 0 10px;padding-left:20px}
+.gvbox li{margin:4px 0}
+.gvdots{display:flex;gap:6px;justify-content:center;margin:14px 0}
+.gvdots i{width:7px;height:7px;border-radius:99px;background:var(--line)}
+.gvdots i.on{width:22px;background:var(--main)}
+.gvbtns{display:flex;gap:10px}
+.gvbtns .btn{flex:1}
 footer{text-align:center;color:var(--soft);font-size:13px;padding:30px 0 40px}
 .hidden{display:none!important}
 .spin{width:18px;height:18px;border:2.5px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:t .7s linear infinite}
@@ -256,7 +273,8 @@ footer{text-align:center;color:var(--soft);font-size:13px;padding:30px 0 40px}
     const paye = c.statut === 'actif' || c.statut === 'grace' || c.statut === 'essai';
     app.innerHTML = `
       <div class="card" style="margin-top:20px">
-        <div class="statut"><div><div class="soft">Bonjour</div><div style="font-weight:800;font-size:20px">${esc(c.nom)}</div></div><span class="badge b-${c.essaiAActiver && c.statut === 'attente' ? 'essai' : c.statut}">${c.essaiAActiver && c.statut === 'attente' ? 'Essai à activer' : LIB[c.statut] || c.statut}</span></div>
+        <button class="lnk" id="gvOpen" style="float:right;margin:-6px -6px 0 0">📘 Guide</button>
+        <div class="statut" style="clear:both"><div><div class="soft">Bonjour</div><div style="font-weight:800;font-size:20px">${esc(c.nom)}</div></div><span class="badge b-${c.essaiAActiver && c.statut === 'attente' ? 'essai' : c.statut}">${c.essaiAActiver && c.statut === 'attente' ? 'Essai à activer' : LIB[c.statut] || c.statut}</span></div>
         ${paye ? `<div class="gros">${c.jours ? c.jours + ' jour' + (c.jours > 1 ? 's' : '') + (c.statut === 'essai' ? ' d’essai' : '') + ' restant' + (c.jours > 1 ? 's' : '') : 'Délai de grâce'}</div><div class="soft">${c.statut === 'essai' ? 'Essai gratuit · ' : c.formule ? 'Abonnement ' + esc(c.formule.toLowerCase()) + ' · ' : ''}jusqu’au ${esc(c.expire)}</div>` : ''}
         ${alerte}
       </div>
@@ -295,6 +313,8 @@ footer{text-align:center;color:var(--soft);font-size:13px;padding:30px 0 40px}
         <label for="pTel">Numéro WhatsApp</label><input class="field" id="pTel" type="tel" value="${esc(c.tel)}">
         <div id="mprof"></div><button class="btn ghost" id="sProf" style="margin-top:14px">Enregistrer</button></div>`;
     lierEvenements(c);
+    document.getElementById('gvOpen').onclick = guide;
+    if (!S.get('vendoo_guide_' + c.email) && !document.querySelector('.gv')) guide();
   }
   function installation(c){
     if (c.lie) return `<div class="card"><h3>Ma boutique</h3>
@@ -397,6 +417,35 @@ footer{text-align:center;color:var(--soft);font-size:13px;padding:30px 0 40px}
       occupe(b, false);
     };
     app.querySelectorAll('[data-copie]').forEach(b => b.onclick = () => { navigator.clipboard && navigator.clipboard.writeText(b.dataset.copie).then(() => { b.textContent = 'Copié ✓'; }); });
+  }
+
+  /* ------------ Guide de bienvenue : tout expliquer de A à Z ------------ */
+  const GUIDE = [
+    ['👋', 'Bienvenue sur Vendoo', `<p>En quelques minutes tu vas avoir :</p><ul><li><b>Ton site boutique</b> : tes clients commandent et paient à la livraison.</li><li><b>Ton application</b> sur ton téléphone : commandes, relances, ventes, pubs.</li><li><b>Ton Google Sheets</b> : toutes tes données, chez toi.</li></ul><p>Ce guide t’explique tout, étape par étape.</p>`],
+    ['🎁', 'Active ton essai gratuit', `<p>Tu as <b>3 jours d’essai</b>, une seule fois. Pour l’activer : une vérification de <b>1 000 F</b> par Mobile Money (bouton « Activer mon essai »).</p><p>Ces 1 000 F sont <b>déduits de ton abonnement</b> si tu continues avec Vendoo.</p>`],
+    ['📄', 'Installe ta boutique', `<ul><li>Appuie sur <b>« Créer mon Google Sheets »</b> (un fichier vide dans ton Google).</li><li>Dans ce fichier : <b>Partager</b> → ajoute l’e-mail affiché sur ton compte, en <b>Éditeur</b>.</li><li>Copie le lien du fichier, colle-le ici et appuie sur <b>« Installer ma boutique »</b> (environ 1 minute).</li></ul><p>Tes données restent dans ton Google : Vendoo travaille dessus pour toi.</p>`],
+    ['📱', 'Ouvre ton application', `<ul><li>Appuie sur <b>« Ouvrir mon application »</b> et entre le <b>mot de passe</b> affiché sur ton compte.</li><li>Installe-la sur ton téléphone : Chrome → menu ⋮ → <b>« Ajouter à l’écran d’accueil »</b> (iPhone : Partager → « Sur l’écran d’accueil »).</li><li>Dans Réglages, active les <b>notifications</b> : chaque commande arrive tout de suite, même application fermée.</li></ul>`],
+    ['🛍️', 'Ajoute tes produits', `<p>Dans l’application : <b>Produits → + Ajouter</b>.</p><ul><li>Photos (recadrer, enlever le fond…), nom, accroche, belle description.</li><li><b>Prix par pays</b> et offres (1, 2, 3 pièces…).</li><li>Avis clients : texte, capture WhatsApp, note vocale, vidéo.</li><li>Mets-le <b>en ligne</b> quand il est prêt (sinon il reste en brouillon).</li></ul><p>Le bouton <b>⋮</b> de chaque produit permet de le modifier, dupliquer, copier son lien ou le supprimer.</p>`],
+    ['⚙️', 'Règle ta boutique', `<p>Dans ton Google Sheets, onglet <b>Réglages</b> :</p><ul><li>Nom de la boutique, couleur, logo, bandeau, garanties.</li><li><b>WhatsApp</b> qui reçoit les commandes (CallMeBot, gratuit).</li><li><b>Pixels Facebook et TikTok</b> pour tes publicités.</li></ul><p>Onglet <b>Pays</b> : choisis les pays où tu vends (OUI/NON).</p>`],
+    ['🚀', 'Vends', `<ul><li>Copie le <b>lien de ta boutique</b> (sur ton compte) ou d’un produit (⋮ → Copier le lien) et mets-le dans tes pubs, statuts et groupes.</li><li>Pour TikTok : onglet <b>TikTok</b> de l’application → crée une promotion par pub. Tu sauras combien chaque pub te rapporte.</li><li>Jusqu’à <b>30 boutiques</b> : Réglages → Mes boutiques (une par pays ou par agence).</li></ul>`],
+    ['📦', 'Gère tes commandes', `<ul><li>Onglet <b>Commandes</b> : appelle le client, change le statut (Confirmée, En livraison, Livrée…).</li><li>Onglet <b>Relances</b> : les clients qui n’ont pas fini leur commande. Une alerte arrive 5 minutes après, avec le message de relance déjà écrit.</li><li><b>Agences</b> (facultatif) : Réglages → Mes boutiques → 🚚 Agences. L’agence reçoit les commandes de son pays et met à jour les statuts.</li></ul>`],
+    ['✦', 'Besoin d’aide ?', `<ul><li>Dans l’application, le bouton rond <b>✦ Assistant</b> en bas à droite répond à toutes tes questions, à tout moment.</li><li>Avant la fin de ton essai, abonne-toi ici : <b>14 000 F/mois</b> ou <b>100 000 F/an</b>.</li></ul><p>Tu peux revoir ce guide quand tu veux avec le bouton <b>📘 Guide</b> de ton compte.</p>`]
+  ];
+  function guide(){
+    let i = 0;
+    const ov = document.createElement('div'); ov.className = 'gv';
+    const fin = () => { ov.remove(); if (compte) S.set('vendoo_guide_' + compte.email, '1'); };
+    const dess = () => {
+      const [em, t, html] = GUIDE[i];
+      ov.innerHTML = `<div class="gvbox" role="dialog" aria-modal="true" aria-label="Guide"><div class="gvtop"><small>Étape ${i + 1} sur ${GUIDE.length}</small><button class="lnk" id="gvX">Passer</button></div>
+        <div class="gvem">${em}</div><h2>${t}</h2>${html}
+        <div class="gvdots">${GUIDE.map((_, k) => `<i class="${k === i ? 'on' : ''}"></i>`).join('')}</div>
+        <div class="gvbtns">${i ? '<button class="btn ghost" id="gvP">Précédent</button>' : ''}<button class="btn" id="gvN">${i === GUIDE.length - 1 ? 'C’est parti !' : 'Suivant'}</button></div></div>`;
+      ov.querySelector('#gvX').onclick = fin;
+      ov.querySelector('#gvN').onclick = () => { if (i === GUIDE.length - 1) return fin(); i++; dess(); };
+      const pv = ov.querySelector('#gvP'); if (pv) pv.onclick = () => { i--; dess(); };
+    };
+    dess(); document.body.appendChild(ov);
   }
 
   function route(){
