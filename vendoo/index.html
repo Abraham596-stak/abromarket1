@@ -68,6 +68,7 @@ label{display:block;font-weight:700;font-size:14px;margin:12px 0 6px}
 .choix input{accent-color:var(--main)}
 .choix label:has(input:checked){border-color:var(--main);background:#F3EFFF}
 .choix b{display:block;font-size:18px}
+.choix s{display:block;font-size:13px}
 .momo{background:#FFF8E1;border:1px dashed #E0B200;border-radius:14px;padding:14px;margin:12px 0}
 .momo .num{font-size:22px;font-weight:800;letter-spacing:.02em}
 .etapes{counter-reset:e;list-style:none;padding:0;margin:0}
@@ -260,23 +261,24 @@ footer{text-align:center;color:var(--soft);font-size:13px;padding:30px 0 40px}
         ${alerte}
       </div>
       ${c.statut === 'attente' && c.essaiAActiver ? `<div class="card" style="border:1.5px solid var(--main)"><h3>🎁 Active ton essai gratuit de 3 jours</h3>
-        <p class="soft" style="margin:0 0 10px">Pour éviter les abus, chaque personne n’a droit qu’à un seul essai. On le vérifie avec ton compte Mobile Money : une petite vérification de <b>${F(c.verif)}</b>, et ton essai démarre tout de suite.</p>
+        <p class="soft" style="margin:0 0 10px">Pour éviter les abus, chaque personne n’a droit qu’à un seul essai. On le vérifie avec ton compte Mobile Money : une vérification de <b>${F(c.verif)}</b>, et ton essai démarre tout de suite.<br>🎁 Ces ${F(c.verif)} sont <b>déduits de ton abonnement</b> si tu continues avec Vendoo.</p>
         ${CFG && CFG.kkiapay ? `<button class="btn" id="essaiGo">Activer mon essai · ${F(c.verif)}</button>` : '<div class="msg warn">La vérification arrive bientôt. Tu peux déjà t’abonner ci-dessous.</div>'}
-        <p class="soft" style="font-size:13px;margin:10px 0 0">Un seul essai par compte Mobile Money. Les ${F(c.verif)} ne sont pas remboursés.</p><div id="me"></div></div>` : ''}
+        <p class="soft" style="font-size:13px;margin:10px 0 0">Un seul essai par compte Mobile Money.</p><div id="me"></div></div>` : ''}
       ${paye ? installation(c) : ''}
       <div class="card" id="payer"><h3>${c.statut === 'essai' || c.essaiFini ? 'M’abonner' : paye ? 'Renouveler mon abonnement' : 'Payer mon abonnement'}</h3>
         ${c.statut === 'essai' ? '<p class="soft">Les jours d’essai qui restent sont gardés : ton abonnement commence après.</p>' : ''}
         ${enAttente ? `<p class="soft">Paiement de ${F(enAttente.montant)} envoyé le ${esc(enAttente.date)}, en cours de vérification.</p>` : ''}
+        ${c.credit ? `<div class="msg ok">🎁 Tes ${F(c.credit)} de vérification sont déduits : prix déjà réduit ci-dessous.</div>` : ''}
         <div class="choix">
-          <label><input type="radio" name="fo" value="mois" checked> Mensuel<b id="pMois">${P ? F(P.mois) : '…'}</b><span class="soft">30 jours</span></label>
-          <label><input type="radio" name="fo" value="an"> Annuel<b>${P ? F(P.an) : '…'}</b><span class="soft">365 jours</span></label>
+          <label><input type="radio" name="fo" value="mois" checked> Mensuel<b id="pMois">${P ? (c.credit ? `<s class="soft" style="font-weight:600">${F(P.mois)}</s> ` : '') + F(Math.max(0, P.mois - (c.credit || 0))) : '…'}</b><span class="soft">30 jours</span></label>
+          <label><input type="radio" name="fo" value="an"> Annuel<b>${P ? (c.credit ? `<s class="soft" style="font-weight:600">${F(P.an)}</s> ` : '') + F(Math.max(0, P.an - (c.credit || 0))) : '…'}</b><span class="soft">365 jours</span></label>
         </div>
         <div id="zCode"><label for="code">Code promo (optionnel)</label><div class="row"><input class="field" id="code" autocapitalize="characters"><button class="btn sec" id="okCode" style="flex:0 0 auto;width:auto">Appliquer</button></div></div>
-        ${CFG && CFG.kkiapay ? `<button class="btn" id="kkPay" style="margin-top:16px">Payer <span id="montantKk">${P ? F(P.mois) : ''}</span> maintenant</button>
+        ${CFG && CFG.kkiapay ? `<button class="btn" id="kkPay" style="margin-top:16px">Payer <span id="montantKk">${P ? F(Math.max(0, P.mois - (c.credit || 0))) : ''}</span> maintenant</button>
         <p class="soft" style="text-align:center;margin:8px 0 0">Mobile Money ou carte bancaire · activé tout de suite</p>
         <details style="margin-top:14px"><summary class="soft">Payer autrement (envoi MoMo direct, activation après vérification)</summary>` : ''}
         <div class="momo">
-          <div class="soft">1. Envoie <b id="montant">${P ? F(P.mois) : ''}</b> par Mobile Money au :</div>
+          <div class="soft">1. Envoie <b id="montant">${P ? F(Math.max(0, P.mois - (c.credit || 0))) : ''}</b> par Mobile Money au :</div>
           <div class="num">${esc(CFG ? CFG.momo : '…')}</div>
           ${CFG && CFG.nomMomo ? `<div class="soft">Nom : <b>${esc(CFG.nomMomo)}</b></div>` : ''}
           <div class="soft" style="margin-top:6px">2. Tu reçois un SMS de confirmation avec l’<b>ID de la transaction</b>.</div>
@@ -318,14 +320,14 @@ footer{text-align:center;color:var(--soft);font-size:13px;padding:30px 0 40px}
   function lierEvenements(c){
     const P = CFG ? CFG.prix : null; let prixMois = P ? P.mois : 0, codeOk = '';
     const fo = () => (app.querySelector('[name=fo]:checked') || {}).value || 'mois';
-    const montantDu = () => fo() === 'an' ? P.an : prixMois;
+    const montantDu = () => Math.max(0, (fo() === 'an' ? P.an : prixMois) - (c.credit || 0));
     const majMontant = () => { if (!P) return; document.getElementById('montant').textContent = F(montantDu()); const mk = document.getElementById('montantKk'); if (mk) mk.textContent = F(montantDu()); document.getElementById('zCode').classList.toggle('hidden', fo() === 'an'); };
     app.querySelectorAll('[name=fo]').forEach(r => r.onchange = majMontant);
     const mp = document.getElementById('mp');
     document.getElementById('okCode').onclick = async e => {
       const b = e.currentTarget, code = document.getElementById('code').value.trim(); if (!code) return;
       occupe(b, true);
-      try { const j = await call({action: 'code', code}); prixMois = j.prix; codeOk = code; document.getElementById('pMois').innerHTML = `<s class="soft" style="font-weight:600">${F(P.mois)}</s> ${F(j.prix)}`; majMontant(); message(mp, '✅ Code appliqué : ' + F(j.prix) + ' par mois', 'ok'); }
+      try { const j = await call({action: 'code', code}); prixMois = j.prix; codeOk = code; document.getElementById('pMois').innerHTML = `<s class="soft" style="font-weight:600">${F(P.mois)}</s> ${F(Math.max(0, j.prix - (c.credit || 0)))}`; majMontant(); message(mp, '✅ Code appliqué : ' + F(Math.max(0, j.prix - (c.credit || 0))) + (c.credit ? ' ce mois-ci' : ' par mois'), 'ok'); }
       catch(err){ message(mp, esc(err.message)); }
       occupe(b, false);
     };
