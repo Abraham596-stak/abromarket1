@@ -245,6 +245,9 @@ footer{text-align:center;color:var(--soft);font-size:13px;padding:30px 0 40px}
           <label><input type="radio" name="fo" value="an"> Annuel<b>${P ? F(P.an) : '…'}</b><span class="soft">365 jours</span></label>
         </div>
         <div id="zCode"><label for="code">Code promo (optionnel)</label><div class="row"><input class="field" id="code" autocapitalize="characters"><button class="btn sec" id="okCode" style="flex:0 0 auto;width:auto">Appliquer</button></div></div>
+        ${CFG && CFG.kkiapay ? `<button class="btn" id="kkPay" style="margin-top:16px">Payer <span id="montantKk">${P ? F(P.mois) : ''}</span> maintenant</button>
+        <p class="soft" style="text-align:center;margin:8px 0 0">Mobile Money ou carte bancaire · activé tout de suite</p>
+        <details style="margin-top:14px"><summary class="soft">Payer autrement (envoi MoMo direct, activation après vérification)</summary>` : ''}
         <div class="momo">
           <div class="soft">1. Envoie <b id="montant">${P ? F(P.mois) : ''}</b> par Mobile Money au :</div>
           <div class="num">${esc(CFG ? CFG.momo : '…')}</div>
@@ -254,7 +257,8 @@ footer{text-align:center;color:var(--soft);font-size:13px;padding:30px 0 40px}
         <label for="num">Numéro qui a payé</label><input class="field" id="num" type="tel" inputmode="tel" value="${esc(c.tel)}">
         <label for="tx">ID de la transaction (dans le SMS)</label><input class="field" id="tx" autocomplete="off">
         <div id="mp"></div>
-        <button class="btn" id="envoyer" style="margin-top:16px">J’ai payé, envoyer</button>
+        <button class="btn${CFG && CFG.kkiapay ? ' ghost' : ''}" id="envoyer" style="margin-top:16px">J’ai payé, envoyer</button>
+        ${CFG && CFG.kkiapay ? '</details>' : ''}
       </div>
       ${(c.paiements || []).length ? `<div class="card"><h3>Mes paiements</h3><table class="hist">${c.paiements.map(p => `<tr><td>${esc(p.date)}<br><span class="soft">${p.formule === 'an' ? '1 an' : '1 mois'}</span></td><td>${F(p.montant)}<br><span class="soft">${/valider/i.test(p.statut) ? '⏳ en vérification' : /refus/i.test(p.statut) ? '❌ refusé' + (p.raison ? ' : ' + esc(p.raison) : '') : '✅ validé'}</span></td></tr>`).join('')}</table></div>` : ''}
       <div class="card"><h3>Mon profil</h3><div class="soft">${esc(c.email)}${c.google ? ' · Google' : ''}</div>
@@ -286,7 +290,8 @@ footer{text-align:center;color:var(--soft);font-size:13px;padding:30px 0 40px}
   function lierEvenements(c){
     const P = CFG ? CFG.prix : null; let prixMois = P ? P.mois : 0, codeOk = '';
     const fo = () => (app.querySelector('[name=fo]:checked') || {}).value || 'mois';
-    const majMontant = () => { if (!P) return; document.getElementById('montant').textContent = F(fo() === 'an' ? P.an : prixMois); document.getElementById('zCode').classList.toggle('hidden', fo() === 'an'); };
+    const montantDu = () => fo() === 'an' ? P.an : prixMois;
+    const majMontant = () => { if (!P) return; document.getElementById('montant').textContent = F(montantDu()); const mk = document.getElementById('montantKk'); if (mk) mk.textContent = F(montantDu()); document.getElementById('zCode').classList.toggle('hidden', fo() === 'an'); };
     app.querySelectorAll('[name=fo]').forEach(r => r.onchange = majMontant);
     const mp = document.getElementById('mp');
     document.getElementById('okCode').onclick = async e => {
@@ -304,6 +309,28 @@ footer{text-align:center;color:var(--soft);font-size:13px;padding:30px 0 40px}
         S.set('vendoo_compte', JSON.stringify(compte)); dessinerCompte();
         message(document.getElementById('mp'), '✅ Paiement envoyé. Tu reçois un e-mail dès qu’il est validé.', 'ok');
       } catch(err){ message(mp, esc(err.message)); occupe(b, false); }
+    };
+    // Paiement KkiaPay : vérifié par le serveur auprès de KkiaPay, abonnement activé tout de suite
+    const kb = document.getElementById('kkPay');
+    if (kb) kb.onclick = async () => {
+      message(mp, ''); occupe(kb, true);
+      try {
+        await new Promise((ok, ko) => { if (window.openKkiapayWidget) return ok(); const sc = document.createElement('script'); sc.src = 'https://cdn.kkiapay.me/k.js'; sc.onload = ok; sc.onerror = () => ko(new Error('Paiement indisponible, vérifie ta connexion.')); document.head.appendChild(sc); });
+        const formule = fo(), code = formule === 'mois' ? codeOk : '';
+        let fini = false;
+        window.addSuccessListener && addSuccessListener(async rep => {
+          if (fini) return; fini = true;
+          const id = rep && (rep.transactionId || rep.transaction_id || rep.id);
+          message(mp, '⏳ Paiement reçu, activation…', 'ok');
+          for (let essai = 0; essai < 4; essai++){
+            try { const j = await call({action: 'kkiapay', jeton, formule, code, transactionId: id}); compte = j.compte; S.set('vendoo_compte', JSON.stringify(compte)); dessinerCompte(); message(document.getElementById('mp'), '✅ Paiement confirmé : ton abonnement est actif.', 'ok'); scrollTo(0, 0); return; }
+            catch(err){ if (essai === 3) message(mp, esc(err.message) + '<br>Garde l’ID ' + esc(id || '') + ' : ton abonnement sera activé automatiquement dès que KkiaPay confirme.'); else await new Promise(r => setTimeout(r, 4000)); }
+          }
+        });
+        openKkiapayWidget({amount: String(montantDu()), key: CFG.kkiapay.cle, sandbox: !!CFG.kkiapay.test, position: 'center', theme: '#5B2EE6',
+          name: c.nom, email: c.email, phone: String(c.tel || '').replace(/\D/g, ''), data: JSON.stringify({email: c.email, formule, code})});
+      } catch(err){ message(mp, esc(err.message)); }
+      occupe(kb, false);
     };
     const lb = document.getElementById('lier');
     if (lb) lb.onclick = async () => {
