@@ -409,6 +409,37 @@ html.ordi .iapan{inset:auto 24px 24px auto;width:420px;height:min(680px,calc(100
 .iabas textarea:focus{border-color:var(--main)}
 .iabas button{flex:0 0 46px;height:46px;border-radius:50%;background:var(--main);color:#fff;font-size:20px;font-weight:900}
 .iabas button:disabled{opacity:.4}
+/* Tableau de bord du point hebdo */
+.ptback{display:block;margin:-4px 0 6px;padding:6px 0;font-weight:700;color:var(--main)}
+.ptper{display:flex;gap:6px;margin-bottom:10px}
+.ptper button{padding:8px 12px;border-radius:12px;background:var(--surface);font-weight:700;font-size:13px}
+.ptper button.on{background:var(--ink);color:#fff}
+.pthero{padding:16px;border-radius:18px;background:var(--okbg)}
+.pthero.neg{background:var(--errbg)}
+.pthero small{display:block;font-weight:700;color:var(--soft);font-size:13px}
+.pthero b{display:block;font-size:32px;letter-spacing:-.02em;margin:2px 0;color:var(--ok)}
+.pthero.neg b{color:var(--err)}
+.pthero span{font-size:13px;color:var(--soft)}
+.pthero em{font-style:normal;font-weight:800}.pthero em.haut{color:var(--ok)}.pthero em.bas{color:var(--err)}
+.ptk{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}
+.ptk div{background:var(--surface);border-radius:14px;padding:10px;min-width:0}
+.ptk small{display:block;color:var(--soft);font-size:11.5px;font-weight:600}
+.ptk b{display:block;font-size:15px;margin-top:2px;overflow-wrap:anywhere}
+.ptcard{border:1.5px solid var(--line);border-radius:18px;padding:14px;margin-top:12px}
+.ptcard h3{font-size:16px;margin-bottom:4px}
+.pttip{font-size:14px;margin:4px 0 8px}
+.pttip small{display:block;color:var(--soft);font-size:12px}
+.pttip .p{color:var(--ok);font-weight:800}.pttip .n{color:var(--err);font-weight:800}
+.ptchart{width:100%;height:auto;display:block}
+.ptbar{cursor:pointer}.ptbar path{opacity:.5;transition:opacity .15s}.ptbar.on path,.ptbar:hover path{opacity:1}
+.ptax{display:flex;justify-content:space-around;font-size:11px;color:var(--soft);margin-top:4px}
+.ptstack{display:flex;gap:2px;height:16px;border-radius:8px;overflow:hidden;margin:10px 0}
+.ptstack i{display:block;height:100%}
+.ptleg{display:grid;grid-template-columns:1fr auto 48px;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line);font-size:14px}
+.ptleg span{display:flex;align-items:center;gap:8px}
+.ptleg span i{width:10px;height:10px;border-radius:3px;flex:0 0 10px}
+.ptleg em{font-style:normal;color:var(--soft);text-align:right;font-size:13px}
+.pterr{background:var(--errbg);color:var(--err);border-radius:12px;padding:10px;font-size:13px;font-weight:600;margin-top:6px}
 /* Œil du mot de passe */
 .login .pw{position:relative;width:100%}
 .login .pw input{width:100%;padding-right:52px}
@@ -888,16 +919,17 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
   async function pointHebdo(){
     const dev = (D && D.devise) || 'FCFA', nomB = (D && D.boutique) || 'Ma boutique';
     const semaines = []; let l0 = lundi(new Date()); for (let k = 0; k < 12; k++){ const x = new Date(l0); x.setDate(x.getDate() - 7 * k); semaines.push(isoJ(x)); }
-    let sem = semaines[new Date().getDay() === 1 ? 1 : 0], P = null, aide = null, msg = '';
+    let sem = semaines[new Date().getDay() === 1 ? 1 : 0], P = null, aide = null, msg = '', vue = 'dash', per = 4, choix = null;
     const ov = document.createElement('div'); ov.className = 'overlay';
     const appel = async o => { const j = await call(Object.assign({type: 'point', semaine: sem}, o)); P = j.points; aide = j.aide; return j; };
     const champs = [['ca', 'Chiffre d’affaires réel', 'Ce que l’agence te verse, tout retiré'], ['pub', 'Dépenses pub', 'Toutes tes pubs de la semaine'], ['abonnements', 'Abonnements', 'Vendoo, applis, internet…'], ['achat', 'Achat des produits vendus', 'Ce qu’ont coûté les produits vendus']];
-    const dess = () => {
+    const dessForm = () => {
       const pt = (P || []).find(x => x.semaine === sem) || {};
       const fait = new Set((P || []).map(x => x.semaine));
       const tot4 = (P || []).filter(x => semaines.slice(0, 4).includes(x.semaine)).reduce((t, x) => t + x.benefice, 0);
       ov.innerHTML = `<div class="detail bqsheet" role="dialog" aria-modal="true" aria-label="Point hebdomadaire"><div class="grab"></div>
-        <h2>💰 Point de la semaine</h2><p class="sub">${esc(nomB)} · en ${esc(dev)}</p>
+        <button class="lnk ptback" id="ptDash">← Tableau de bord</button>
+        <h2>📝 Point de la semaine</h2><p class="sub">${esc(nomB)} · en ${esc(dev)}</p>
         ${msg ? `<div class="okmsg">${msg}</div>` : ''}
         <div class="ptsem">${semaines.map(w => `<button data-sem="${w}" class="${w === sem ? 'on' : ''} ${fait.has(w) ? 'fait' : ''}">${w === semaines[0] ? 'Cette semaine' : w === semaines[1] ? 'Semaine dernière' : libSem(w)}</button>`).join('')}</div>
         <p class="sub" style="margin:-4px 0 8px">Du ${libSem(sem)}</p>
@@ -913,14 +945,67 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
       const calc = () => { const b = nb('ca') - nb('pub') - nb('abonnements') - nb('achat'); ov.querySelector('#ptBen').textContent = fmt(b, dev); ov.querySelector('#ptRes').classList.toggle('neg', b < 0); };
       ov.querySelectorAll('.ptin input').forEach(i => i.oninput = calc); calc();
       ov.querySelector('#ptX').onclick = () => ov.remove();
+      ov.querySelector('#ptDash').onclick = () => { vue = 'dash'; msg = ''; dess(); };
       ov.querySelectorAll('[data-sem],[data-ouv]').forEach(b => b.onclick = async () => { sem = b.dataset.sem || b.dataset.ouv; msg = ''; aide = null; dess(); try { await appel({}); if (ov.isConnected) dess(); } catch(e){} });
       ov.querySelector('#ptSave').onclick = async e => { const b = e.currentTarget; b.disabled = true; b.textContent = 'Enregistrement…';
-        try { await appel({action: 'sauver', ca: nb('ca'), pub: nb('pub'), abonnements: nb('abonnements'), achat: nb('achat'), note: ov.querySelector('#pt_note').value}); msg = '✅ Point enregistré (aussi dans ton Google Sheets, onglet « 💰 Point hebdo »).'; dess(); }
+        try { await appel({action: 'sauver', ca: nb('ca'), pub: nb('pub'), abonnements: nb('abonnements'), achat: nb('achat'), note: ov.querySelector('#pt_note').value}); msg = '✅ Point enregistré (aussi dans ton Google Sheets, onglet « 💰 Point hebdo »).'; vue = 'dash'; dess(); }
         catch(err){ b.disabled = false; b.textContent = 'Enregistrer le point'; alert(/inconnu|introuvable/i.test(err.message) ? 'Mets à jour le code Apps Script (Code.gs).' : err.message); } };
       const del = ov.querySelector('#ptDel'); if (del) del.onclick = async () => { if (!(await confirmer({titre: 'Effacer ce point ?', texte: 'Le point de la semaine du ' + esc(libSem(sem)) + ' sera effacé.', ok: 'Effacer'}))) return; try { await appel({action: 'supprimer'}); msg = 'Point effacé.'; dess(); } catch(e){ alert(e.message); } };
     };
+    // ---------- Tableau de bord : progression du bénéfice et de quoi il dépend ----------
+    const PCT = (a, b) => b ? Math.round(a / b * 100) : 0;
+    const COUL = {benefice: '#2a78d6', achat: '#eb6834', pub: '#1baf7a', abonnements: '#eda100'};
+    const dessDash = () => {
+      const tous = (P || []).slice().sort((a, b) => a.semaine < b.semaine ? -1 : 1);
+      const L = per ? tous.slice(-per) : tous, av = per ? tous.slice(-2 * per, -per) : [];
+      const som = (l, k) => l.reduce((t, x) => t + (x[k] || 0), 0);
+      const ben = som(L, 'benefice'), ca = som(L, 'ca'), benAv = som(av, 'benefice');
+      const moy = L.length ? Math.round(ben / L.length) : 0, meil = L.slice().sort((a, b) => b.benefice - a.benefice)[0];
+      const evo = av.length && benAv ? Math.round((ben - benAv) / Math.abs(benAv) * 100) : null;
+      const parts = [['benefice', 'Bénéfice net', Math.max(0, ben)], ['achat', 'Achat des produits', som(L, 'achat')], ['pub', 'Publicité', som(L, 'pub')], ['abonnements', 'Abonnements', som(L, 'abonnements')]];
+      const totParts = parts.reduce((t, p) => t + p[2], 0) || 1;
+      // Graphique : bénéfice net par semaine (barres ; ligne du zéro si une semaine est en perte)
+      const W = 340, H = 170, pad = 6, n = L.length, max = Math.max(1, ...L.map(x => x.benefice), 0), min = Math.min(0, ...L.map(x => x.benefice));
+      const y = v => pad + (max - v) / (max - min || 1) * (H - 2 * pad), y0 = y(0), pas = n ? (W - 8) / n : 0, bw = Math.max(6, Math.min(34, pas - 6));
+      const sel = (choix && L.find(x => x.semaine === choix)) || L[L.length - 1];
+      const barres = L.map((x, k) => {
+        const cx = 4 + (k + .5) * pas, neg = x.benefice < 0, h = Math.max(4, Math.abs(y(x.benefice) - y0)), r = Math.min(4, bw / 2);
+        const d = neg ? `M${cx - bw / 2},${y0} h${bw} v${h - r} q0,${r} ${-r},${r} h${-(bw - 2 * r)} q${-r},0 ${-r},${-r} z`
+                      : `M${cx - bw / 2},${y0} v${-(h - r)} q0,${-r} ${r},${-r} h${bw - 2 * r} q${r},0 ${r},${r} v${h - r} z`;
+        return `<g class="ptbar ${sel && sel.semaine === x.semaine ? 'on' : ''}" data-b="${x.semaine}"><rect x="${cx - pas / 2}" y="0" width="${pas}" height="${H}" fill="transparent"/><path d="${d}" fill="${neg ? '#e34948' : '#2a78d6'}"/></g>`;
+      }).join('');
+      ov.innerHTML = `<div class="detail bqsheet" role="dialog" aria-modal="true" aria-label="Point hebdomadaire"><div class="grab"></div>
+        <h2>💰 Point hebdomadaire</h2><p class="sub">${esc(nomB)} · en ${esc(dev)}</p>
+        ${msg ? `<div class="okmsg">${msg}</div>` : ''}
+        <button class="btn blue" id="ptFaire" style="margin:6px 0 14px">📝 Faire le point de la semaine</button>
+        ${!P ? '<div class="empty">Chargement…</div>' : !tous.length ? '<div class="empty">Aucun point pour le moment.<br>Fais ton premier point : ton tableau de bord apparaîtra ici.</div>' : `
+        <div class="ptper">${[[4, '4 semaines'], [12, '12 semaines'], [0, 'Tout']].map(([k, l]) => `<button data-per="${k}" class="${per === k ? 'on' : ''}">${l}</button>`).join('')}</div>
+        <div class="pthero ${ben < 0 ? 'neg' : ''}"><small>Bénéfice net · ${per ? per + ' dernières semaines' : 'depuis le début'}</small><b>${esc(fmt(ben, dev))}</b>
+          <span>${evo === null ? '' : `<em class="${evo < 0 ? 'bas' : 'haut'}">${evo < 0 ? '▼' : '▲'} ${Math.abs(evo)} %</em> vs les ${per} semaines d’avant · `}moyenne ${esc(fmt(moy, dev))} / semaine</span></div>
+        <div class="ptk"><div><small>Chiffre d’affaires réel</small><b>${esc(fmt(ca, dev))}</b></div><div><small>Marge nette</small><b>${PCT(ben, ca)} %</b></div><div><small>Meilleure semaine</small><b>${meil ? esc(fmt(meil.benefice, dev)) : '–'}</b><small>${meil ? libSem(meil.semaine) : ''}</small></div></div>
+        <div class="ptcard"><h3>Bénéfice net par semaine</h3>
+          ${sel ? `<div class="pttip"><b>${libSem(sel.semaine)}</b> : <span class="${sel.benefice < 0 ? 'n' : 'p'}">${esc(fmt(sel.benefice, dev))}</span><small>CA ${esc(fmt(sel.ca, dev))} − achats ${esc(fmt(sel.achat, dev))} − pub ${esc(fmt(sel.pub, dev))} − abonnements ${esc(fmt(sel.abonnements, dev))}</small></div>` : ''}
+          <svg viewBox="0 0 ${W} ${H}" class="ptchart" role="img" aria-label="Bénéfice net par semaine"><line x1="0" x2="${W}" y1="${y0}" y2="${y0}" stroke="#C9CEDB" stroke-width="1"/>${barres}</svg>
+          <div class="ptax">${L.map(x => `<span>${isoJ2(x.semaine).getDate()}/${isoJ2(x.semaine).getMonth() + 1}</span>`).join('')}</div>
+          <p class="sub" style="margin-top:6px">Touche une barre pour voir le détail de la semaine.</p></div>
+        <div class="ptcard"><h3>De quoi dépend ton bénéfice</h3><p class="sub">Ce que devient ton chiffre d’affaires réel (${esc(fmt(ca, dev))})</p>
+          ${ben < 0 ? `<div class="pterr">Tes dépenses dépassent ton chiffre d’affaires de ${esc(fmt(-ben, dev))} sur cette période.</div>` : ''}
+          <div class="ptstack">${parts.filter(p => p[2] > 0).map(p => `<i style="width:${p[2] / totParts * 100}%;background:${COUL[p[0]]}" title="${esc(p[1])}"></i>`).join('')}</div>
+          ${parts.map(p => `<div class="ptleg"><span><i style="background:${COUL[p[0]]}"></i>${esc(p[1])}</span><b>${esc(fmt(p[0] === 'benefice' ? ben : p[2], dev))}</b><em>${PCT(p[0] === 'benefice' ? ben : p[2], ca)} %</em></div>`).join('')}
+          <p class="sub" style="margin-top:8px">${(() => { const c = parts.slice(1).sort((a, b) => b[2] - a[2])[0]; return c && c[2] ? `👉 Ta plus grosse dépense : <b>${esc(c[1].toLowerCase())}</b> (${PCT(c[2], ca)} % de ton chiffre d’affaires).` : ''; })()}</p></div>
+        <div class="pthist"><h3>Toutes mes semaines</h3>${tous.slice().reverse().map(x => `<button class="pth" data-ouv="${x.semaine}"><span>${libSem(x.semaine)}<small>CA ${esc(fmt(x.ca, dev))} · marge ${PCT(x.benefice, x.ca)} %</small></span><b class="${x.benefice < 0 ? 'n' : 'p'}">${esc(fmt(x.benefice, dev))}</b></button>`).join('')}</div>`}
+        <button class="btn ghost" id="ptX" style="margin-top:12px">Fermer</button></div>`;
+      ov.querySelector('#ptX').onclick = () => ov.remove();
+      const ouvrirForm = async w => { vue = 'form'; msg = ''; sem = w; aide = null; dess(); try { await appel({}); if (ov.isConnected && vue === 'form') dess(); } catch(e){} };
+      ov.querySelector('#ptFaire').onclick = () => ouvrirForm(semaines[new Date().getDay() === 1 ? 1 : 0]);
+      ov.querySelectorAll('[data-per]').forEach(b => b.onclick = () => { per = +b.dataset.per; choix = null; dess(); });
+      ov.querySelectorAll('[data-b]').forEach(b => b.onclick = () => { choix = b.dataset.b; dess(); });
+      ov.querySelectorAll('.pthist [data-ouv]').forEach(b => b.onclick = () => ouvrirForm(b.dataset.ouv));
+    };
+    const dess = () => vue === 'dash' ? dessDash() : dessForm();
     ov.onclick = e => { if (e.target === ov) ov.remove(); };
     document.body.appendChild(ov); dess();
+
     try { await appel({}); if (ov.isConnected) dess(); } catch(e){ msg = 'Impossible de charger : ' + esc(/inconnu|introuvable/i.test(e.message) ? 'mets à jour le code Apps Script (Code.gs).' : e.message); if (ov.isConnected) dess(); }
   }
   function nouvelleBoutique(ov, retour){
