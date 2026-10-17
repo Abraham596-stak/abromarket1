@@ -46,7 +46,7 @@ jobs:
                   urls += [a.get(k) for a in p.get('avis', []) for k in ('photo', 'avatar') if a.get(k)]
               logo = d.get('reglages', {}).get('Logo (lien image, optionnel)')
               if logo: urls.append(logo)
-              imgs = {}
+              imgs, imgsm = {}, {}
               for u in dict.fromkeys(u.strip() for u in urls if u and u.strip()):
                   # v2 : images nettes (1600 px, qualité 88) et jamais rognées
                   nom = 'img/' + hashlib.sha1(u.encode()).hexdigest()[:14] + '-v2.webp'
@@ -62,8 +62,18 @@ jobs:
                           print('ignorée :', u, e)
                           continue
                   imgs[u] = nom
+                  # Version téléphone (1080 px) : 2 à 3 fois plus légère, toujours nette
+                  nomm = nom.replace('-v2.webp', '-v2-m.webp')
+                  if not os.path.exists('boutique/' + nomm):
+                      try:
+                          im = Image.open('boutique/' + nom); im.thumbnail((1080, 1080), Image.LANCZOS)
+                          im.save('boutique/' + nomm, 'WEBP', quality=82, method=6)
+                      except Exception as e:
+                          print('version téléphone ignorée :', u, e)
+                  if os.path.exists('boutique/' + nomm): imgsm[u] = nomm
               d['imgs'] = imgs
-              return set(imgs.values())
+              d['imgsM'] = imgsm
+              return set(imgs.values()) | set(imgsm.values())
 
           # Boutique principale (data.json) puis chaque boutique Vendoo (data/<code>.json)
           gardees, codes = set(), ['']

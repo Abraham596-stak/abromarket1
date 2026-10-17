@@ -409,6 +409,11 @@ html.ordi .iapan{inset:auto 24px 24px auto;width:420px;height:min(680px,calc(100
 .iabas textarea:focus{border-color:var(--main)}
 .iabas button{flex:0 0 46px;height:46px;border-radius:50%;background:var(--main);color:#fff;font-size:20px;font-weight:900}
 .iabas button:disabled{opacity:.4}
+/* Œil du mot de passe */
+.login .pw{position:relative;width:100%}
+.login .pw input{width:100%;padding-right:52px}
+.pwb{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:44px;height:44px;display:grid;place-items:center;color:var(--soft);border-radius:10px}
+.pwb svg{width:22px;height:22px}
 /* Point hebdomadaire */
 .ptile{display:flex;align-items:center;gap:12px;width:100%;margin-top:12px;padding:14px;border-radius:18px;background:linear-gradient(135deg,#EAF7EF,#F2F5FF);text-align:left;border:1.5px solid var(--line)}
 .ptile span{font-size:26px}.ptile div{flex:1}.ptile b{display:block;font-size:16px}.ptile small{color:var(--soft);font-size:13px}.ptile i{font-style:normal;font-size:24px;color:var(--soft)}
@@ -1083,9 +1088,12 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
       <div class="logo"><img src="${VENDOO ? '../vendoo/icon-192.png' : 'icon-192.png'}" alt=""></div>
       <h1>Ta boutique, en direct.</h1>
       <p>Entre le mot de passe de l'application. Tu le trouves dans ton Google Sheets, onglet « Réglages ».</p>
-      <input id="pw" type="password" inputmode="numeric" autocomplete="current-password" placeholder="Mot de passe" aria-label="Mot de passe">
+      <div class="pw"><input id="pw" type="password" inputmode="numeric" autocomplete="current-password" placeholder="Mot de passe" aria-label="Mot de passe"><button type="button" class="pwb" id="pwOeil" aria-label="Afficher le mot de passe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2.5 12S6 5 12 5s9.5 7 9.5 7-3.5 7-9.5 7-9.5-7-9.5-7z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
       <button class="btn" type="submit">Ouvrir mon tableau de bord</button>
       <div class="err" id="lerr">${esc(msg || '')}</div></form>`;
+    document.getElementById('pwOeil').onclick = () => { const i = document.getElementById('pw'), vu = i.type === 'password'; i.type = vu ? 'text' : 'password';
+      document.getElementById('pwOeil').innerHTML = vu ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l18 18"/><path d="M10.6 5.1A10 10 0 0 1 12 5c6 0 9.5 7 9.5 7a17 17 0 0 1-3 3.9M6.3 6.3A17 17 0 0 0 2.5 12S6 19 12 19a9.6 9.6 0 0 0 4.2-.9"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>' : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2.5 12S6 5 12 5s9.5 7 9.5 7-3.5 7-9.5 7-9.5-7-9.5-7z"/><circle cx="12" cy="12" r="3"/></svg>';
+      i.focus(); };
     document.getElementById('lf').onsubmit = async e => {
       e.preventDefault(); unlock();
       key = document.getElementById('pw').value.trim();

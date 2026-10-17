@@ -100,6 +100,11 @@ label{display:block;font-weight:700;font-size:14px;margin:12px 0 6px}
 .gvdots i.on{width:22px;background:var(--main)}
 .gvbtns{display:flex;gap:10px}
 .gvbtns .btn{flex:1}
+.pw{position:relative}
+.pw input{padding-right:52px}
+.pwb{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:44px;height:44px;border:0;background:none;color:var(--soft);cursor:pointer;display:grid;place-items:center;border-radius:10px}
+.pwb svg{width:22px;height:22px}
+.plan[data-fo]{cursor:pointer}
 footer{text-align:center;color:var(--soft);font-size:13px;padding:30px 0 40px}
 .hidden{display:none!important}
 .spin{width:18px;height:18px;border:2.5px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:t .7s linear infinite}
@@ -119,6 +124,7 @@ footer{text-align:center;color:var(--soft);font-size:13px;padding:30px 0 40px}
   const S = { get: k => { try { return localStorage.getItem(k); } catch(e){ return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch(e){} }, del: k => { try { localStorage.removeItem(k); } catch(e){} } };
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const F = n => Number(n || 0).toLocaleString('fr-FR').replace(/ /g, ' ') + ' F';
+  let choixFo = S.get('vendoo_fo') === 'an' ? 'an' : 'mois';
   let CFG = null, jeton = S.get('vendoo_jeton') || '', compte = null;
   try { compte = JSON.parse(S.get('vendoo_compte') || 'null'); } catch(e){}
 
@@ -176,8 +182,8 @@ footer{text-align:center;color:var(--soft);font-size:13px;padding:30px 0 40px}
       <h2>Tarifs</h2>
       <p class="soft" style="margin-top:-4px">🎁 7 jours d’essai gratuit pour découvrir Vendoo. Ensuite, tu choisis ta formule.</p>
       <div class="prix">
-        <div class="plan"><div class="soft">Mensuel</div><div class="p">${F(P.mois)} <small>/ mois</small></div><ul><li>Toutes les fonctions</li><li>30 boutiques</li><li>Prix réduit avec un code promo</li></ul></div>
-        <div class="plan top">${eco > 0 ? `<span class="tag">${F(eco)} économisés</span>` : ''}<div class="soft">Annuel</div><div class="p">${F(P.an)} <small>/ an</small></div><ul><li>Toutes les fonctions</li><li>30 boutiques</li><li>Un seul paiement pour l’année</li></ul></div>
+        <div class="plan" data-fo="mois" role="button" tabindex="0"><div class="soft">Mensuel</div><div class="p">${F(P.mois)} <small>/ mois</small></div><ul><li>Toutes les fonctions</li><li>30 boutiques</li><li>Prix réduit avec un code promo</li></ul><span class="btn sec" style="margin-top:12px">Choisir le mensuel</span></div>
+        <div class="plan top" data-fo="an" role="button" tabindex="0">${eco > 0 ? `<span class="tag">${F(eco)} économisés</span>` : ''}<div class="soft">Annuel</div><div class="p">${F(P.an)} <small>/ an</small></div><ul><li>Toutes les fonctions</li><li>30 boutiques</li><li>Un seul paiement pour l’année</li></ul><span class="btn" style="margin-top:12px">Choisir l’annuel</span></div>
       </div>
       <div class="card"><h3>Comment ça marche ?</h3><ol class="etapes">
         <li><b>Crée ton compte</b><span class="soft">Avec ton e-mail ou ton compte Google : 7 jours d’essai gratuit.</span></li>
@@ -186,9 +192,23 @@ footer{text-align:center;color:var(--soft);font-size:13px;padding:30px 0 40px}
         <li><b>Abonne-toi</b><span class="soft">Par Mobile Money, quand tu es convaincu.</span></li>
       </ol></div>
       <a class="btn" href="#inscription" style="margin:8px 0 10px">Commencer mon essai gratuit</a>`;
+    app.querySelectorAll('[data-fo]').forEach(c => c.onclick = () => { choixFo = c.dataset.fo; S.set('vendoo_fo', choixFo); location.hash = jeton ? '#payer' : '#inscription'; });
   }
 
   /* ------------ Connexion / inscription ------------ */
+  // Œil pour afficher / cacher le mot de passe
+  function oeil(root){
+    (root || document).querySelectorAll('input[type=password]:not([data-oeil])').forEach(i => {
+      i.dataset.oeil = '1';
+      const w = document.createElement('div'); w.className = 'pw'; i.parentNode.insertBefore(w, i); w.appendChild(i);
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'pwb'; b.setAttribute('aria-label', 'Afficher le mot de passe');
+      const ico = vu => vu ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l18 18"/><path d="M10.6 5.1A10 10 0 0 1 12 5c6 0 9.5 7 9.5 7a17 17 0 0 1-3 3.9M6.3 6.3A17 17 0 0 0 2.5 12S6 19 12 19a9.6 9.6 0 0 0 4.2-.9"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>'
+        : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2.5 12S6 5 12 5s9.5 7 9.5 7-3.5 7-9.5 7-9.5-7-9.5-7z"/><circle cx="12" cy="12" r="3"/></svg>';
+      b.innerHTML = ico(false);
+      b.onclick = () => { const vu = i.type === 'password'; i.type = vu ? 'text' : 'password'; b.innerHTML = ico(vu); b.setAttribute('aria-label', vu ? 'Cacher le mot de passe' : 'Afficher le mot de passe'); i.focus(); };
+      w.appendChild(b);
+    });
+  }
   function auth(mode){
     hBtn.textContent = 'Accueil'; hBtn.onclick = () => { location.hash = ''; };
     app.innerHTML = `
@@ -206,6 +226,7 @@ footer{text-align:center;color:var(--soft);font-size:13px;padding:30px 0 40px}
         ${mode === 'connexion' ? '<p style="text-align:center;margin:14px 0 0"><button class="lnk" id="oubli">Mot de passe oublié ?</button></p>' : ''}
       </div>`;
     app.querySelectorAll('[data-m]').forEach(b => b.onclick = () => { location.hash = '#' + b.dataset.m; });
+    oeil(app);
     const m = document.getElementById('m');
     document.getElementById('f').onsubmit = async e => {
       e.preventDefault(); const btn = e.target.querySelector('.btn'); occupe(btn, true); message(m, '');
@@ -239,6 +260,7 @@ footer{text-align:center;color:var(--soft);font-size:13px;padding:30px 0 40px}
       <label for="mdp">Nouveau mot de passe</label><input class="field" id="mdp" type="password" autocomplete="new-password" minlength="6"></div>
       <div id="m"></div><button class="btn" id="go" style="margin-top:16px">Recevoir le code</button>
       <p style="text-align:center;margin:14px 0 0"><a href="#connexion">Retour</a></p></div>`;
+    oeil(app);
     const m = document.getElementById('m'), go = document.getElementById('go'); let etape = 1;
     go.onclick = async () => {
       const email = document.getElementById('email').value; occupe(go, true); message(m, '');
@@ -288,8 +310,8 @@ footer{text-align:center;color:var(--soft);font-size:13px;padding:30px 0 40px}
         ${enAttente ? `<p class="soft">Paiement de ${F(enAttente.montant)} envoyé le ${esc(enAttente.date)}, en cours de vérification.</p>` : ''}
         ${c.credit ? `<div class="msg ok">🎁 Tes ${F(c.credit)} de vérification sont déduits : prix déjà réduit ci-dessous.</div>` : ''}
         <div class="choix">
-          <label><input type="radio" name="fo" value="mois" checked> Mensuel<b id="pMois">${P ? (c.credit ? `<s class="soft" style="font-weight:600">${F(P.mois)}</s> ` : '') + F(Math.max(0, P.mois - (c.credit || 0))) : '…'}</b><span class="soft">30 jours</span></label>
-          <label><input type="radio" name="fo" value="an"> Annuel<b>${P ? (c.credit ? `<s class="soft" style="font-weight:600">${F(P.an)}</s> ` : '') + F(Math.max(0, P.an - (c.credit || 0))) : '…'}</b><span class="soft">365 jours</span></label>
+          <label><input type="radio" name="fo" value="mois" ${choixFo === 'mois' ? 'checked' : ''}> Mensuel<b id="pMois">${P ? (c.credit ? `<s class="soft" style="font-weight:600">${F(P.mois)}</s> ` : '') + F(Math.max(0, P.mois - (c.credit || 0))) : '…'}</b><span class="soft">30 jours</span></label>
+          <label><input type="radio" name="fo" value="an" ${choixFo === 'an' ? 'checked' : ''}> Annuel<b>${P ? (c.credit ? `<s class="soft" style="font-weight:600">${F(P.an)}</s> ` : '') + F(Math.max(0, P.an - (c.credit || 0))) : '…'}</b><span class="soft">365 jours</span></label>
         </div>
         <div id="zCode"><label for="code">Code promo (optionnel)</label><div class="row"><input class="field" id="code" autocapitalize="characters"><button class="btn sec" id="okCode" style="flex:0 0 auto;width:auto">Appliquer</button></div></div>
         ${CFG && CFG.kkiapay ? `<button class="btn" id="kkPay" style="margin-top:16px">Payer <span id="montantKk">${P ? F(Math.max(0, P.mois - (c.credit || 0))) : ''}</span> maintenant</button>
@@ -342,7 +364,8 @@ footer{text-align:center;color:var(--soft);font-size:13px;padding:30px 0 40px}
     const fo = () => (app.querySelector('[name=fo]:checked') || {}).value || 'mois';
     const montantDu = () => Math.max(0, (fo() === 'an' ? P.an : prixMois) - (c.credit || 0));
     const majMontant = () => { if (!P) return; document.getElementById('montant').textContent = F(montantDu()); const mk = document.getElementById('montantKk'); if (mk) mk.textContent = F(montantDu()); document.getElementById('zCode').classList.toggle('hidden', fo() === 'an'); };
-    app.querySelectorAll('[name=fo]').forEach(r => r.onchange = majMontant);
+    app.querySelectorAll('[name=fo]').forEach(r => r.onchange = () => { choixFo = fo(); S.set('vendoo_fo', choixFo); majMontant(); });
+    majMontant();
     const mp = document.getElementById('mp');
     document.getElementById('okCode').onclick = async e => {
       const b = e.currentTarget, code = document.getElementById('code').value.trim(); if (!code) return;
@@ -450,7 +473,7 @@ footer{text-align:center;color:var(--soft);font-size:13px;padding:30px 0 40px}
 
   function route(){
     const h = location.hash.replace('#', '');
-    if (h === 'compte' || h === 'payer') return compteVue();
+    if (h === 'compte' || h === 'payer'){ compteVue(); if (h === 'payer') setTimeout(() => { const p = document.getElementById('payer'); if (p) p.scrollIntoView({behavior: 'smooth'}); }, 300); return; }
     if (h === 'connexion' || h === 'inscription') return jeton ? (location.hash = '#compte') : auth(h);
     accueil();
   }
