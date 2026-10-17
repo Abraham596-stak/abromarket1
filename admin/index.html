@@ -388,6 +388,9 @@ html.ordi .dvgrid{grid-template-columns:repeat(4,minmax(0,1fr))}
 .avatar2 small{font-size:10px;color:var(--soft);font-weight:700}
 .avatar2 img{width:100%;height:100%;object-fit:cover}
 .avchamps{flex:1;min-width:0;display:grid;gap:6px}
+.avverif{display:flex;gap:8px;align-items:center;margin-top:8px;font-size:13px;color:var(--soft)}
+.avverif input{width:20px;height:20px;accent-color:#1a7f37}
+.avverif b{color:#1a7f37}
 .avmed{display:grid;gap:6px;margin-top:8px}
 .avm{box-sizing:border-box;width:100%;min-width:0;overflow:hidden;word-break:break-all;display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 12px;border-radius:12px;background:var(--surface);font-weight:700;font-size:14px;text-align:left}
 .avm.on{background:#EAF7EF;flex-direction:column;align-items:stretch}
@@ -1676,6 +1679,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
               <div class="avchamps"><input class="field" data-an="${i}" value="${esc(a.nom)}" placeholder="Nom (ex : Maman Rose)">
                 <div class="g2"><input class="field" data-aag="${i}" value="${esc(a.age || '')}" placeholder="Âge (ex : 53 ans)"><select class="field" data-ano="${i}">${[5,4,3,2,1].map(n => `<option value="${n}" ${Number(a.note) === n ? 'selected' : ''}>${'★'.repeat(n)}</option>`).join('')}</select></div></div></div>
             <textarea class="field" data-at="${i}" rows="3" placeholder="Ce que dit le client (optionnel si tu mets une capture, un vocal ou une vidéo)" style="margin-top:6px">${esc(a.texte)}</textarea>
+            <label class="avverif"><input type="checkbox" data-aver="${i}" ${a.verifie ? 'checked' : ''}> <span><b>✔ Achat vérifié</b> — ce client a vraiment commandé chez nous</span></label>
             <div class="avmed">
               ${[['photo', '🖼', 'Capture d’écran'], ['audio', '🎤', 'Note vocale'], ['video', '🎬', 'Vidéo']].map(([c, ic, lb]) => a[c]
                 ? `<div class="avm on"><span>${ic} ${lb} ajoutée</span>${c === 'photo' ? `<img class="blkimg" src="${esc(img(a.photo))}" alt="">` : apercus[a[c]] ? (c === 'audio' ? `<audio controls src="${apercus[a[c]]}"></audio>` : `<video controls playsinline src="${apercus[a[c]]}"></video>`) : `<small>${esc(String(a[c]).slice(0, 60))}</small>`}<button data-amx="${i}|${c}">Retirer</button></div>`
@@ -1701,6 +1705,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
       ed.querySelectorAll('[data-an]').forEach(t => P.avis[t.dataset.an].nom = t.value);
       ed.querySelectorAll('[data-at]').forEach(t => P.avis[t.dataset.at].texte = t.value);
       ed.querySelectorAll('[data-aag]').forEach(t => P.avis[t.dataset.aag].age = t.value);
+      ed.querySelectorAll('[data-aver]').forEach(t => P.avis[t.dataset.aver].verifie = t.checked);
       ed.querySelectorAll('[data-ano]').forEach(t => P.avis[t.dataset.ano].note = Number(t.value));
       ed.querySelectorAll('[data-px]').forEach(t => {
         const [pays, champ] = t.dataset.px.split('|');
@@ -1763,7 +1768,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
       }));
       ed.querySelector('#fAdd').onclick = maj(() => faq.push({q: '', r: ''}));
       ed.querySelectorAll('[data-fx]').forEach(b => b.onclick = maj(() => faq.splice(+b.dataset.fx, 1)));
-      ed.querySelector('#aAdd').onclick = maj(() => P.avis.push({nom: '', texte: '', note: 5, photo: '', age: '', avatar: '', audio: '', video: ''}));
+      ed.querySelector('#aAdd').onclick = maj(() => P.avis.push({nom: '', texte: '', note: 5, photo: '', age: '', avatar: '', audio: '', video: '', verifie: true}));
       ed.querySelectorAll('[data-ax]').forEach(b => b.onclick = async () => { if (await confirmer({titre: 'Retirer cet avis ?', texte: 'L’avis sera retiré du produit quand tu enregistreras.', ok: 'Retirer l’avis'})) maj(() => P.avis.splice(+b.dataset.ax, 1))(); });
       ed.querySelectorAll('[data-amed]').forEach(b => b.onclick = () => { const [i, c] = b.dataset.amed.split('|'); ajouterMediaAvis(+i, c); });
       ed.querySelectorAll('[data-amx]').forEach(b => b.onclick = maj(() => { const [i, c] = b.dataset.amx.split('|'); P.avis[+i][c] = ''; }));
