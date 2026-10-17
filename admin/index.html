@@ -693,11 +693,12 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
         ${!BQS ? '<div class="empty">Chargement…</div>' : l.map(b => `<div class="bqrow ${(b.code || '') === BQ ? 'on' : ''}">
           <div class="bqi"><b>${esc(b.nom)}</b><small>${b.principale ? 'Boutique principale' : esc(b.pays || '')}${b.agence ? ' · agence : ' + esc(b.agence) : ''}${!b.active ? ' · <span style="color:var(--err)">désactivée</span>' : ''}</small></div>
           ${(b.code || '') === BQ ? '<span class="bqcur">Ouverte</span>' : `<button class="chip" style="background:var(--main);border-color:var(--main)" data-bo="${esc(b.code || '')}">Ouvrir</button>`}
-          <div class="bqa"><a href="${esc(b.sheetUrl)}" target="_blank" rel="noopener">📄 Sheets</a><button data-bl="${esc(siteDe(b.code || ''))}">🔗 Lien du site</button>${b.principale ? '' : `<button class="bqdel" data-bd="${esc(b.code)}" data-bn="${esc(b.nom)}">🗑 Supprimer</button>`}</div></div>`).join('')}
+          <div class="bqa"><a href="${esc(b.sheetUrl)}" target="_blank" rel="noopener">📄 Sheets</a><button data-bl="${esc(siteDe(b.code || ''))}">🔗 Lien du site</button><button data-bag="${esc(b.code || '')}" data-bn="${esc(b.nom)}">🚚 Agences</button>${b.principale ? '' : `<button class="bqdel" data-bd="${esc(b.code)}" data-bn="${esc(b.nom)}">🗑 Supprimer</button>`}</div></div>`).join('')}
         ${BQS && n < max ? '<button class="btn blue" id="bqNew" style="margin-top:14px">＋ Créer une nouvelle boutique</button>' : ''}
         <button class="btn ghost" id="bqX" style="margin-top:10px">Fermer</button></div>`;
       ov.querySelector('#bqX').onclick = () => ov.remove();
       ov.querySelectorAll('[data-bo]').forEach(b => b.onclick = () => ouvrirBoutique(b.dataset.bo));
+      ov.querySelectorAll('[data-bag]').forEach(b => b.onclick = () => agences(ov, b.dataset.bag, b.dataset.bn, dessiner));
       ov.querySelectorAll('[data-bl]').forEach(b => b.onclick = async () => { try { await navigator.clipboard.writeText(b.dataset.bl); b.textContent = '✓ Copié'; } catch(e){ prompt('Lien du site :', b.dataset.bl); } });
       const nb = ov.querySelector('#bqNew'); if (nb) nb.onclick = () => nouvelleBoutique(ov, dessiner);
       ov.querySelectorAll('[data-bd]').forEach(b => b.onclick = async () => {
@@ -767,6 +768,34 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
     document.body.appendChild(ov); dessiner();
     try { await appel({}); if (ov.isConnected) dessiner(); } catch(e){ if (ov.isConnected) dessiner('Impossible de charger Vendoo : ' + esc(/inconnu/i.test(e.message) ? 'mets à jour le code Apps Script (Code.gs).' : e.message)); }
   }
+  // Agences d'une boutique : une par pays, à ajouter, changer ou retirer à tout moment
+  async function agences(ov, code, nom, retour){
+    let L = null;
+    const appel = async o => { const r = await fetch(API, {method: 'POST', body: JSON.stringify(Object.assign({type: 'boutiques', key, v: VID, code}, o))}); const j = await r.json(); if (!j.ok) throw new Error(j.erreur || 'Erreur'); L = j.pays; return j; };
+    const dess = msg => {
+      ov.innerHTML = `<div class="detail bqsheet" role="dialog" aria-modal="true" aria-label="Agences"><div class="grab"></div>
+        <h2>🚚 Agences – ${esc(nom)}</h2><p class="sub">Une agence par pays (facultatif). Elle reçoit les commandes de ce pays dans son propre fichier. Si tu la retires ou la changes, elle perd l'accès à toutes les commandes de cette boutique.</p>
+        ${msg ? `<div class="okmsg">${msg}</div>` : ''}
+        ${!L ? '<div class="empty">Chargement…</div>' : !L.length ? '<div class="empty">Aucun pays actif dans cette boutique.</div>' : L.map(p => `<div class="bqrow" style="grid-template-columns:1fr">
+          <div class="bqi"><b>${esc(p.nom)}</b><small>${p.agence ? 'Agence : ' + esc(p.agence) : 'Pas d’agence (tu livres toi-même)'}</small></div>
+          <input class="field" data-agm="${esc(p.code)}" type="email" value="${esc(p.agence)}" placeholder="E-mail Google de l'agence (facultatif)">
+          <div class="bqa"><button data-ags="${esc(p.code)}" style="background:var(--main);color:#fff">Enregistrer</button>${p.agence ? `<button class="bqdel" data-agx="${esc(p.code)}" data-agn="${esc(p.agence)}">Retirer l'agence</button>` : ''}${p.fichier ? `<a href="${esc(p.fichier)}" target="_blank" rel="noopener">📄 Son fichier</a>` : ''}</div></div>`).join('')}
+        <button class="btn ghost" id="agR" style="margin-top:12px">← Retour</button></div>`;
+      ov.querySelector('#agR').onclick = () => retour();
+      const go = async (b, pays, email, ok) => { b.disabled = true; b.textContent = '…'; try { await appel({action: 'agence', pays, email}); BQS = null; try { localStorage.removeItem(K_BQS); } catch(x){} dess(ok); } catch(e){ alert(e.message); dess(); } };
+      ov.querySelectorAll('[data-ags]').forEach(b => b.onclick = async () => {
+        const p = L.find(x => x.code === b.dataset.ags), email = ov.querySelector(`[data-agm="${b.dataset.ags}"]`).value.trim();
+        if (p.agence && email.toLowerCase() !== p.agence.toLowerCase() && !(await confirmer({titre: 'Changer d’agence ?', texte: `<b>${esc(p.agence)}</b> va perdre l'accès à toutes les commandes de cette boutique. ${email ? `<b>${esc(email)}</b> recevra un nouveau fichier avec les prochaines commandes.` : ''}`, ok: 'Oui, changer'}))) return;
+        go(b, b.dataset.ags, email, email ? '✅ Agence enregistrée : elle a reçu l’accès à son fichier.' : 'Agence retirée.');
+      });
+      ov.querySelectorAll('[data-agx]').forEach(b => b.onclick = async () => {
+        if (!(await confirmer({titre: 'Retirer cette agence ?', texte: `<b>${esc(b.dataset.agn)}</b> va perdre l'accès à toutes les commandes de cette boutique (son fichier part à la corbeille). Tes commandes restent dans ton Google Sheets.`, ok: 'Retirer'}))) return;
+        go(b, b.dataset.agx, '', '🗑 Agence retirée : elle n’a plus accès aux commandes.');
+      });
+    };
+    dess();
+    try { await appel({action: 'agences'}); if (ov.isConnected) dess(); } catch(e){ dess('Impossible de charger : ' + esc(/inconnue|introuvable/i.test(e.message) ? 'mets à jour le code Apps Script (Code.gs).' : e.message)); }
+  }
   function nouvelleBoutique(ov, retour){
     const pays = (BQS && BQS.paysListe) || [];
     ov.innerHTML = `<div class="detail bqsheet" role="dialog" aria-modal="true" aria-label="Nouvelle boutique"><div class="grab"></div>
@@ -776,7 +805,8 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
       <label class="lbl" for="nbNom">Nom de la boutique</label><input class="field" id="nbNom" placeholder="Ex : ABROMARKET Togo">
       <label class="lbl">Pays de vente (l'agence de ce pays recevra les commandes)</label>
       <div class="pchips" id="nbPays">${pays.map(p => `<label class="pchip"><input type="checkbox" value="${esc(p.code)}"><span>${esc(p.nom)}</span></label>`).join('')}</div>
-      <label class="lbl" for="nbAg">Email Google de l'agence (elle aura accès aux commandes de cette boutique)</label><input class="field" id="nbAg" type="email" placeholder="agence@gmail.com (optionnel)">
+      <label class="lbl" for="nbAg">Email Google de l'agence <span style="font-weight:500;color:var(--soft)">— facultatif</span></label><input class="field" id="nbAg" type="email" placeholder="Laisse vide si tu n'as pas encore d'agence">
+      <p class="sub" style="margin:4px 0 0">Tu pourras l'ajouter, la changer ou la retirer plus tard : Mes boutiques → 🚚 Agences.</p>
       <label class="lbl" for="nbWa">WhatsApp qui reçoit les commandes (avec l'indicatif)</label><input class="field" id="nbWa" inputmode="tel" placeholder="Ex : 22890000000 (vide = le même que ta boutique principale)">
       <label class="lbl" for="nbMail">Email qui reçoit les commandes</label><input class="field" id="nbMail" type="email" placeholder="Vide = le même que ta boutique principale">
       <label class="lbl" for="nbPre">Préfixe des numéros de commande</label><input class="field" id="nbPre" maxlength="6" placeholder="Ex : TG (commandes TG1001, TG1002…)">
