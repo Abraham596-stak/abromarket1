@@ -652,6 +652,10 @@ html.ordi .edbody{max-width:860px;padding:20px 24px 60px}
 html.ordi .savebadge{bottom:24px;left:calc(50% + 118px)}
 html.ordi .toast{left:auto;right:24px;max-width:420px}
 html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
+.cal{width:1.05em;height:1.05em;vertical-align:-.15em;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.pdic .cal{width:22px;height:22px}
+.ptmod{font-style:normal;font-size:12px;font-weight:700;color:var(--main);margin-left:4px}
+.ptedit{display:block;margin-top:6px;font-weight:700;color:var(--main);padding:4px 0}
 </style>
 </head>
 <body>
@@ -695,6 +699,24 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
   const fichierData = () => VENDOO ? 'data/v-' + vId() + (BQ ? '-' + BQ : '') + '.json' : (BQ ? 'data/' + BQ + '.json' : 'data.json');
   const lienProduit = id => lienSite('p=' + encodeURIComponent(id));
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  /* ---------- Tout en français : erreurs réseau, réponses du serveur Google ---------- */
+  const frErr = m => { m = String(m || '').replace(/^(Exception|Error|TypeError|SyntaxError):\s*/i, '');
+    if (/failed to fetch|networkerror|load failed|network request failed|internet disconnected/i.test(m)) return navigator.onLine === false ? 'Pas de connexion internet. Vérifie ta connexion puis réessaie.' : 'Connexion au serveur impossible. Réessaie dans un instant.';
+    if (/unexpected token|not valid json|json\.parse|unexpected end of json|is not valid json/i.test(m)) return 'Le serveur Google n’a pas répondu correctement. Réessaie dans un instant.';
+    if (/too many times|invoked too many|quota|rate limit|simultaneous/i.test(m)) return 'Google est très sollicité en ce moment. Réessaie dans une minute.';
+    if (/timed? ?out|timeout|maximum execution time|délai/i.test(m)) return 'Le serveur a mis trop de temps à répondre. Réessaie.';
+    if (/lock|verrou/i.test(m) && /timeout|wait|attente/i.test(m)) return 'Le serveur est occupé. Réessaie dans un instant.';
+    if (/permission|not authorized|authorization|access denied|unauthorized/i.test(m)) return 'Accès refusé par Google. Vérifie que le fichier est bien partagé.';
+    if (/cannot read prop|undefined is not|is not a function|is not defined|null/i.test(m)) return 'Une erreur est survenue. Actualise l’application et réessaie.';
+    return m || 'Erreur, réessaie.'; };
+  try {
+    const _f = window.fetch.bind(window);
+    window.fetch = async (...a) => { try { return await _f(...a); } catch(e){ if (e && e.name === 'AbortError') throw e; throw new Error(frErr(e && e.message)); } };
+    Response.prototype.json = async function(){ const t = await this.text(); try { return JSON.parse(t); } catch(e){ throw new Error('Le serveur Google n’a pas répondu correctement. Réessaie dans un instant.'); } };
+    const _al = window.alert.bind(window); window.alert = m => _al(frErr(m));
+  } catch(e){}
+  const CAL = '<svg class="cal" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>';
   const fmt = (n, d) => (Number(n)||0).toLocaleString('fr-FR', {maximumFractionDigits: 2}).replace(/[  ]/g, ' ') + (d ? ' ' + d : '');
   const short = n => { n = Number(n)||0; return n >= 1e6 ? (n/1e6).toFixed(1).replace('.0','') + ' M' : n >= 1e3 ? Math.round(n/1e3) + ' k' : String(Math.round(n)); };
 
@@ -821,7 +843,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
         if (!(await confirmer({titre: 'Supprimer cette boutique ?', texte: `Tu vas supprimer <b>« ${esc(b.dataset.bn)} »</b> : son site, ses produits, ses commandes et le fichier de son agence.<br><br>Son Google Sheets part dans la <b>corbeille de ton Google Drive</b> (récupérable pendant 30 jours). Le lien de son site ne marchera plus.`, ok: 'Oui, supprimer la boutique'}))) return;
         b.disabled = true; b.textContent = 'Suppression…';
         try {
-          const r = await fetch(API, {method: 'POST', body: JSON.stringify({type: 'boutiques', action: 'supprimer', key, code, v: VID})}); const j = await r.json(); if (!j.ok) throw new Error(j.erreur);
+          const r = await fetch(API, {method: 'POST', body: JSON.stringify({type: 'boutiques', action: 'supprimer', key, code, v: VID})}); const j = await r.json(); if (!j.ok) throw new Error(frErr(j.erreur));
           if (BQS) BQS.boutiques = BQS.boutiques.filter(x => x.code !== code);
           try { localStorage.setItem(K_BQS, JSON.stringify(BQS)); Object.keys(localStorage).filter(k => k.indexOf('adm_' + code + '_') === 0).forEach(k => localStorage.removeItem(k)); } catch(e){}
           if (code === BQ) { ouvrirBoutique(''); return; }
@@ -831,7 +853,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
     };
     ov.onclick = e => { if (e.target === ov) ov.remove(); };
     document.body.appendChild(ov); dessiner();
-    try { const r = await fetch(API, {method: 'POST', body: JSON.stringify({type: 'boutiques', key, v: VID})}); const j = await r.json(); if (!j.ok) throw new Error(j.erreur);
+    try { const r = await fetch(API, {method: 'POST', body: JSON.stringify({type: 'boutiques', key, v: VID})}); const j = await r.json(); if (!j.ok) throw new Error(frErr(j.erreur));
       BQS = j; try { localStorage.setItem(K_BQS, JSON.stringify(j)); } catch(e){} if (ov.isConnected) dessiner(); }
     catch(e){ if (ov.isConnected && !BQS) dessiner('Impossible de charger tes boutiques : ' + esc(/introuvable|inconnu/i.test(e.message) ? 'mets à jour le code Apps Script (Code.gs).' : e.message)); }
   }
@@ -840,7 +862,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
     const ov = document.createElement('div'); ov.className = 'overlay';
     let V = null, onglet = 'payer';
     const LIB = {actif: 'Actif', essai: 'Essai', grace: 'Grâce', attente: 'Pas payé', expire: 'Coupé', bloque: 'Suspendu'};
-    const appel = async (o) => { const r = await fetch(API, {method: 'POST', body: JSON.stringify(Object.assign({type: 'vendoo', action: 'admin', key}, o))}); const j = await r.json(); if (!j.ok) throw new Error(j.erreur || 'Erreur'); V = j; return j; };
+    const appel = async (o) => { const r = await fetch(API, {method: 'POST', body: JSON.stringify(Object.assign({type: 'vendoo', action: 'admin', key}, o))}); const j = await r.json(); if (!j.ok) throw new Error(frErr(j.erreur) || 'Erreur'); V = j; return j; };
     const dessiner = msg => {
       const av = V ? V.paiements.filter(p => /valider/i.test(p.statut)) : [];
       ov.innerHTML = `<div class="detail bqsheet" role="dialog" aria-modal="true" aria-label="Vendoo"><div class="grab"></div>
@@ -886,7 +908,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
   // Agences d'une boutique : une par pays, à ajouter, changer ou retirer à tout moment
   async function agences(ov, code, nom, retour){
     let L = null;
-    const appel = async o => { const r = await fetch(API, {method: 'POST', body: JSON.stringify(Object.assign({type: 'boutiques', key, v: VID, code}, o))}); const j = await r.json(); if (!j.ok) throw new Error(j.erreur || 'Erreur'); L = j.pays; return j; };
+    const appel = async o => { const r = await fetch(API, {method: 'POST', body: JSON.stringify(Object.assign({type: 'boutiques', key, v: VID, code}, o))}); const j = await r.json(); if (!j.ok) throw new Error(frErr(j.erreur) || 'Erreur'); L = j.pays; return j; };
     const dess = msg => {
       ov.innerHTML = `<div class="detail bqsheet" role="dialog" aria-modal="true" aria-label="Agences"><div class="grab"></div>
         <h2>🚚 Agences – ${esc(nom)}</h2><p class="sub">Une agence par pays (facultatif). Elle reçoit les commandes de ce pays dans son propre fichier. Si tu la retires ou la changes, elle perd l'accès à toutes les commandes de cette boutique.</p>
@@ -919,9 +941,12 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
   async function pointHebdo(){
     const dev = (D && D.devise) || 'FCFA', nomB = (D && D.boutique) || 'Ma boutique';
     const semaines = []; let l0 = lundi(new Date()); for (let k = 0; k < 12; k++){ const x = new Date(l0); x.setDate(x.getDate() - 7 * k); semaines.push(isoJ(x)); }
-    let sem = semaines[new Date().getDay() === 1 ? 1 : 0], P = null, aide = null, msg = '', vue = 'dash', per = 4, choix = null;
+    let sem = semaines[new Date().getDay() === 1 ? 1 : 0], P = null, aide = null, msg = '', err = '', vue = 'dash', per = 4, choix = null;
     const ov = document.createElement('div'); ov.className = 'overlay';
-    const appel = async o => { const j = await call(Object.assign({type: 'point', semaine: sem}, o)); P = j.points; aide = j.aide; return j; };
+    const appel = async o => { const j = await call(Object.assign({type: 'point', semaine: sem}, o)); P = j.points; aide = j.aide; err = ''; return j; };
+    const charger = async () => { err = ''; try { await appel({}); } catch(e){ err = esc(/inconnu|introuvable/i.test(e.message) ? 'Mets à jour le code Apps Script (Code.gs).' : e.message); } if (ov.isConnected) dess(); };
+    const errBloc = () => err ? `<div class="pterr" style="margin-bottom:10px">Impossible de charger : ${err}<button class="btn ghost" id="ptRe" style="margin-top:8px">↻ Réessayer</button></div>` : '';
+    const brancherRe = () => { const b = ov.querySelector('#ptRe'); if (b) b.onclick = () => { err = ''; dess(); charger(); }; };
     const champs = [['ca', 'Chiffre d’affaires réel', 'Ce que l’agence te verse, tout retiré'], ['pub', 'Dépenses pub', 'Toutes tes pubs de la semaine'], ['abonnements', 'Abonnements', 'Vendoo, applis, internet…'], ['achat', 'Achat des produits vendus', 'Ce qu’ont coûté les produits vendus']];
     const dessForm = () => {
       const pt = (P || []).find(x => x.semaine === sem) || {};
@@ -929,27 +954,28 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
       const tot4 = (P || []).filter(x => semaines.slice(0, 4).includes(x.semaine)).reduce((t, x) => t + x.benefice, 0);
       ov.innerHTML = `<div class="detail bqsheet" role="dialog" aria-modal="true" aria-label="Point hebdomadaire"><div class="grab"></div>
         <button class="lnk ptback" id="ptDash">← Tableau de bord</button>
-        <h2>📝 Point de la semaine</h2><p class="sub">${esc(nomB)} · en ${esc(dev)}</p>
-        ${msg ? `<div class="okmsg">${msg}</div>` : ''}
+        <h2>${pt.semaine ? '✏️ Modifier le point' : '📝 Point de la semaine'}</h2><p class="sub">${esc(nomB)} · en ${esc(dev)}</p>
+        ${msg ? `<div class="okmsg">${msg}</div>` : ''}${errBloc()}
         <div class="ptsem">${semaines.map(w => `<button data-sem="${w}" class="${w === sem ? 'on' : ''} ${fait.has(w) ? 'fait' : ''}">${w === semaines[0] ? 'Cette semaine' : w === semaines[1] ? 'Semaine dernière' : libSem(w)}</button>`).join('')}</div>
         <p class="sub" style="margin:-4px 0 8px">Du ${libSem(sem)}</p>
-        ${aide ? `<div class="ptaide">D’après l’application : <b>${aide.commandes}</b> commande${aide.commandes > 1 ? 's' : ''} (${esc(fmt(aide.commande, dev))}), dont <b>${aide.livrees}</b> livrée${aide.livrees > 1 ? 's' : ''} (${esc(fmt(aide.livre, dev))}).</div>` : !P ? '<div class="ptaide">Chargement…</div>' : ''}
+        ${pt.semaine ? '<div class="ptaide">✏️ Ce point est déjà enregistré. Change les montants puis appuie sur « Enregistrer les modifications ».</div>' : ''}${aide ? `<div class="ptaide">D’après l’application : <b>${aide.commandes}</b> commande${aide.commandes > 1 ? 's' : ''} (${esc(fmt(aide.commande, dev))}), dont <b>${aide.livrees}</b> livrée${aide.livrees > 1 ? 's' : ''} (${esc(fmt(aide.livre, dev))}).</div>` : !P && !err ? '<div class="ptaide">Chargement…</div>' : ''}
         ${champs.map(([k, l, aideTxt]) => `<div class="ptin"><label for="pt_${k}">${l}<small>${aideTxt}</small></label><input class="field" id="pt_${k}" inputmode="numeric" placeholder="0" value="${pt[k] ? esc(String(pt[k])) : ''}"></div>`).join('')}
         <input class="field" id="pt_note" placeholder="Note (facultatif)" value="${esc(pt.note || '')}" style="margin-top:10px">
         <div class="ptres" id="ptRes"><small>Bénéfice net de la semaine</small><b id="ptBen">0</b></div>
-        <button class="btn blue" id="ptSave">Enregistrer le point</button>
+        <button class="btn blue" id="ptSave">${pt.semaine ? 'Enregistrer les modifications' : 'Enregistrer le point'}</button>
         ${pt.semaine ? '<button class="btn ghost" id="ptDel" style="margin-top:8px">Effacer ce point</button>' : ''}
-        ${P && P.length ? `<div class="pthist"><h3>Mes points · 4 dernières semaines : <span style="color:${tot4 < 0 ? 'var(--err)' : 'var(--ok)'}">${esc(fmt(tot4, dev))}</span></h3>${P.slice(0, 12).map(x => `<button class="pth" data-ouv="${x.semaine}"><span>${libSem(x.semaine)}<small>CA ${esc(fmt(x.ca, dev))} · pub ${esc(fmt(x.pub, dev))} · achats ${esc(fmt(x.achat, dev))}</small></span><b class="${x.benefice < 0 ? 'n' : 'p'}">${esc(fmt(x.benefice, dev))}</b></button>`).join('')}</div>` : ''}
+        ${P && P.length ? `<div class="pthist"><h3>Mes points · 4 dernières semaines : <span style="color:${tot4 < 0 ? 'var(--err)' : 'var(--ok)'}">${esc(fmt(tot4, dev))}</span></h3>${P.slice(0, 12).map(x => `<button class="pth" data-ouv="${x.semaine}"><span>${libSem(x.semaine)} <em class="ptmod">✏️ Modifier</em><small>CA ${esc(fmt(x.ca, dev))} · pub ${esc(fmt(x.pub, dev))} · achats ${esc(fmt(x.achat, dev))}</small></span><b class="${x.benefice < 0 ? 'n' : 'p'}">${esc(fmt(x.benefice, dev))}</b></button>`).join('')}</div>` : ''}
         <button class="btn ghost" id="ptX" style="margin-top:12px">Fermer</button></div>`;
       const nb = id => Number(String(ov.querySelector('#pt_' + id).value).replace(/[^\d.-]/g, '')) || 0;
       const calc = () => { const b = nb('ca') - nb('pub') - nb('abonnements') - nb('achat'); ov.querySelector('#ptBen').textContent = fmt(b, dev); ov.querySelector('#ptRes').classList.toggle('neg', b < 0); };
       ov.querySelectorAll('.ptin input').forEach(i => i.oninput = calc); calc();
       ov.querySelector('#ptX').onclick = () => ov.remove();
       ov.querySelector('#ptDash').onclick = () => { vue = 'dash'; msg = ''; dess(); };
-      ov.querySelectorAll('[data-sem],[data-ouv]').forEach(b => b.onclick = async () => { sem = b.dataset.sem || b.dataset.ouv; msg = ''; aide = null; dess(); try { await appel({}); if (ov.isConnected) dess(); } catch(e){} });
+      ov.querySelectorAll('[data-sem],[data-ouv]').forEach(b => b.onclick = () => { sem = b.dataset.sem || b.dataset.ouv; msg = ''; aide = null; dess(); charger(); }); brancherRe();
       ov.querySelector('#ptSave').onclick = async e => { const b = e.currentTarget; b.disabled = true; b.textContent = 'Enregistrement…';
-        try { await appel({action: 'sauver', ca: nb('ca'), pub: nb('pub'), abonnements: nb('abonnements'), achat: nb('achat'), note: ov.querySelector('#pt_note').value}); msg = '✅ Point enregistré (aussi dans ton Google Sheets, onglet « 💰 Point hebdo »).'; vue = 'dash'; dess(); }
-        catch(err){ b.disabled = false; b.textContent = 'Enregistrer le point'; alert(/inconnu|introuvable/i.test(err.message) ? 'Mets à jour le code Apps Script (Code.gs).' : err.message); } };
+        const modif = !!((P || []).find(x => x.semaine === sem));
+        try { await appel({action: 'sauver', ca: nb('ca'), pub: nb('pub'), abonnements: nb('abonnements'), achat: nb('achat'), note: ov.querySelector('#pt_note').value}); msg = modif ? '✅ Point modifié (aussi dans ton Google Sheets, onglet « 💰 Point hebdo »).' : '✅ Point enregistré (aussi dans ton Google Sheets, onglet « 💰 Point hebdo »). Tu peux le modifier à tout moment.'; vue = 'dash'; dess(); }
+        catch(x){ b.disabled = false; b.textContent = modif ? 'Enregistrer les modifications' : 'Enregistrer le point'; alert(/inconnu|introuvable/i.test(x.message) ? 'Mets à jour le code Apps Script (Code.gs).' : x.message); } };
       const del = ov.querySelector('#ptDel'); if (del) del.onclick = async () => { if (!(await confirmer({titre: 'Effacer ce point ?', texte: 'Le point de la semaine du ' + esc(libSem(sem)) + ' sera effacé.', ok: 'Effacer'}))) return; try { await appel({action: 'supprimer'}); msg = 'Point effacé.'; dess(); } catch(e){ alert(e.message); } };
     };
     // ---------- Tableau de bord : progression du bénéfice et de quoi il dépend ----------
@@ -976,15 +1002,15 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
       }).join('');
       ov.innerHTML = `<div class="detail bqsheet" role="dialog" aria-modal="true" aria-label="Point hebdomadaire"><div class="grab"></div>
         <h2>💰 Point hebdomadaire</h2><p class="sub">${esc(nomB)} · en ${esc(dev)}</p>
-        ${msg ? `<div class="okmsg">${msg}</div>` : ''}
+        ${msg ? `<div class="okmsg">${msg}</div>` : ''}${errBloc()}
         <button class="btn blue" id="ptFaire" style="margin:6px 0 14px">📝 Faire le point de la semaine</button>
-        ${!P ? '<div class="empty">Chargement…</div>' : !tous.length ? '<div class="empty">Aucun point pour le moment.<br>Fais ton premier point : ton tableau de bord apparaîtra ici.</div>' : `
+        ${!P ? (err ? '' : '<div class="empty">Chargement…</div>') : !tous.length ? '<div class="empty">Aucun point pour le moment.<br>Fais ton premier point : ton tableau de bord apparaîtra ici.</div>' : `
         <div class="ptper">${[[4, '4 semaines'], [12, '12 semaines'], [0, 'Tout']].map(([k, l]) => `<button data-per="${k}" class="${per === k ? 'on' : ''}">${l}</button>`).join('')}</div>
         <div class="pthero ${ben < 0 ? 'neg' : ''}"><small>Bénéfice net · ${per ? per + ' dernières semaines' : 'depuis le début'}</small><b>${esc(fmt(ben, dev))}</b>
           <span>${evo === null ? '' : `<em class="${evo < 0 ? 'bas' : 'haut'}">${evo < 0 ? '▼' : '▲'} ${Math.abs(evo)} %</em> vs les ${per} semaines d’avant · `}moyenne ${esc(fmt(moy, dev))} / semaine</span></div>
         <div class="ptk"><div><small>Chiffre d’affaires réel</small><b>${esc(fmt(ca, dev))}</b></div><div><small>Marge nette</small><b>${PCT(ben, ca)} %</b></div><div><small>Meilleure semaine</small><b>${meil ? esc(fmt(meil.benefice, dev)) : '–'}</b><small>${meil ? libSem(meil.semaine) : ''}</small></div></div>
         <div class="ptcard"><h3>Bénéfice net par semaine</h3>
-          ${sel ? `<div class="pttip"><b>${libSem(sel.semaine)}</b> : <span class="${sel.benefice < 0 ? 'n' : 'p'}">${esc(fmt(sel.benefice, dev))}</span><small>CA ${esc(fmt(sel.ca, dev))} − achats ${esc(fmt(sel.achat, dev))} − pub ${esc(fmt(sel.pub, dev))} − abonnements ${esc(fmt(sel.abonnements, dev))}</small></div>` : ''}
+          ${sel ? `<div class="pttip"><b>${libSem(sel.semaine)}</b> : <span class="${sel.benefice < 0 ? 'n' : 'p'}">${esc(fmt(sel.benefice, dev))}</span><small>CA ${esc(fmt(sel.ca, dev))} − achats ${esc(fmt(sel.achat, dev))} − pub ${esc(fmt(sel.pub, dev))} − abonnements ${esc(fmt(sel.abonnements, dev))}</small><button class="lnk ptedit" data-ouv="${sel.semaine}">✏️ Modifier cette semaine</button></div>` : ''}
           <svg viewBox="0 0 ${W} ${H}" class="ptchart" role="img" aria-label="Bénéfice net par semaine"><line x1="0" x2="${W}" y1="${y0}" y2="${y0}" stroke="#C9CEDB" stroke-width="1"/>${barres}</svg>
           <div class="ptax">${L.map(x => `<span>${isoJ2(x.semaine).getDate()}/${isoJ2(x.semaine).getMonth() + 1}</span>`).join('')}</div>
           <p class="sub" style="margin-top:6px">Touche une barre pour voir le détail de la semaine.</p></div>
@@ -993,20 +1019,20 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
           <div class="ptstack">${parts.filter(p => p[2] > 0).map(p => `<i style="width:${p[2] / totParts * 100}%;background:${COUL[p[0]]}" title="${esc(p[1])}"></i>`).join('')}</div>
           ${parts.map(p => `<div class="ptleg"><span><i style="background:${COUL[p[0]]}"></i>${esc(p[1])}</span><b>${esc(fmt(p[0] === 'benefice' ? ben : p[2], dev))}</b><em>${PCT(p[0] === 'benefice' ? ben : p[2], ca)} %</em></div>`).join('')}
           <p class="sub" style="margin-top:8px">${(() => { const c = parts.slice(1).sort((a, b) => b[2] - a[2])[0]; return c && c[2] ? `👉 Ta plus grosse dépense : <b>${esc(c[1].toLowerCase())}</b> (${PCT(c[2], ca)} % de ton chiffre d’affaires).` : ''; })()}</p></div>
-        <div class="pthist"><h3>Toutes mes semaines</h3>${tous.slice().reverse().map(x => `<button class="pth" data-ouv="${x.semaine}"><span>${libSem(x.semaine)}<small>CA ${esc(fmt(x.ca, dev))} · marge ${PCT(x.benefice, x.ca)} %</small></span><b class="${x.benefice < 0 ? 'n' : 'p'}">${esc(fmt(x.benefice, dev))}</b></button>`).join('')}</div>`}
+        <div class="pthist"><h3>Toutes mes semaines</h3>${tous.slice().reverse().map(x => `<button class="pth" data-ouv="${x.semaine}"><span>${libSem(x.semaine)} <em class="ptmod">✏️ Modifier</em><small>CA ${esc(fmt(x.ca, dev))} · marge ${PCT(x.benefice, x.ca)} %</small></span><b class="${x.benefice < 0 ? 'n' : 'p'}">${esc(fmt(x.benefice, dev))}</b></button>`).join('')}</div>`}
         <button class="btn ghost" id="ptX" style="margin-top:12px">Fermer</button></div>`;
       ov.querySelector('#ptX').onclick = () => ov.remove();
-      const ouvrirForm = async w => { vue = 'form'; msg = ''; sem = w; aide = null; dess(); try { await appel({}); if (ov.isConnected && vue === 'form') dess(); } catch(e){} };
+      const ouvrirForm = w => { vue = 'form'; msg = ''; sem = w; aide = null; dess(); charger(); };
       ov.querySelector('#ptFaire').onclick = () => ouvrirForm(semaines[new Date().getDay() === 1 ? 1 : 0]);
       ov.querySelectorAll('[data-per]').forEach(b => b.onclick = () => { per = +b.dataset.per; choix = null; dess(); });
       ov.querySelectorAll('[data-b]').forEach(b => b.onclick = () => { choix = b.dataset.b; dess(); });
-      ov.querySelectorAll('.pthist [data-ouv]').forEach(b => b.onclick = () => ouvrirForm(b.dataset.ouv));
+      ov.querySelectorAll('.pthist [data-ouv], .ptedit[data-ouv]').forEach(b => b.onclick = () => ouvrirForm(b.dataset.ouv)); brancherRe();
     };
     const dess = () => vue === 'dash' ? dessDash() : dessForm();
     ov.onclick = e => { if (e.target === ov) ov.remove(); };
     document.body.appendChild(ov); dess();
 
-    try { await appel({}); if (ov.isConnected) dess(); } catch(e){ msg = 'Impossible de charger : ' + esc(/inconnu|introuvable/i.test(e.message) ? 'mets à jour le code Apps Script (Code.gs).' : e.message); if (ov.isConnected) dess(); }
+    charger();
   }
   function nouvelleBoutique(ov, retour){
     const pays = (BQS && BQS.paysListe) || [];
@@ -1035,7 +1061,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
       try {
         const r = await fetch(API, {method: 'POST', body: JSON.stringify({type: 'boutiques', action: 'creer', key, v: VID, fichier: (ov.querySelector('#nbFi') || {}).value || '', nom, pays: codes.join(','), agence: ov.querySelector('#nbAg').value.trim(),
           whatsapp: ov.querySelector('#nbWa').value.trim(), email: ov.querySelector('#nbMail').value.trim(), prefixe: ov.querySelector('#nbPre').value.trim(), copier: ov.querySelector('#nbCop').checked})});
-        const j = await r.json(); if (!j.ok) throw new Error(j.erreur || 'Erreur');
+        const j = await r.json(); if (!j.ok) throw new Error(frErr(j.erreur) || 'Erreur');
         BQS = null; try { localStorage.removeItem(K_BQS); } catch(x){}
         ov.innerHTML = `<div class="detail bqsheet"><div class="grab"></div><h2>✅ Boutique créée</h2>
           <p class="sub"><b>${esc(j.nom)}</b> est prête. Son site sera en ligne dans 10 minutes environ.</p>
@@ -1052,10 +1078,14 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
 
   /* ---------- Échanges avec le Google Sheets ---------- */
   async function call(body){
-    const r = await fetch(API, {method:'POST', body: JSON.stringify(Object.assign({key, b: BQ, v: VID}, body))});
-    const j = await r.json();
+    // Lecture : si Google répond mal (page d'erreur, réseau coupé), on réessaie tout seul 2 fois
+    let j, n = body && body.action ? 1 : 3;
+    for (let k = 0; ; k++){
+      try { const r = await fetch(API, {method:'POST', body: JSON.stringify(Object.assign({key, b: BQ, v: VID}, body))}); j = await r.json(); break; }
+      catch(e){ if (k >= n - 1) throw e; await new Promise(ok => setTimeout(ok, 800 * (k + 1))); }
+    }
     if (!j.ok && j.erreur === 'VENDOO_BLOQUE'){ vendooBloque(j.vendoo || {}); throw new Error('VENDOO_BLOQUE'); }
-    if (!j.ok) throw new Error(j.erreur || 'Erreur');
+    if (!j.ok) throw new Error(frErr(j.erreur) || 'Erreur');
     if (j.vendoo) vendooBandeau(j.vendoo);
     return j;
   }
@@ -1254,7 +1284,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
     const fx = /^f:/.test(actuelle) ? actuelle.split(':') : ['', isoJ(new Date()), isoJ(new Date())];
     const liste = (avecTout ? [['tout', 'Depuis le début']] : []).concat(PERIODES);
     ov.innerHTML = `<div class="detail pdsheet" role="dialog" aria-modal="true" aria-label="Plage de dates"><div class="grab"></div><h2 style="font-size:22px;margin-bottom:6px">Plage de dates</h2>
-      <button class="pdrow" id="pdFixe"><span class="pdic">📅</span><span><b>Dates fixes</b><small>${/^f:/.test(actuelle) ? esc(libelle(actuelle)) : 'Choisir un jour ou une période précise'}</small></span><span class="pdchev">›</span></button>
+      <button class="pdrow" id="pdFixe"><span class="pdic">${CAL}</span><span><b>Dates fixes</b><small>${/^f:/.test(actuelle) ? esc(libelle(actuelle)) : 'Choisir un jour ou une période précise'}</small></span><span class="pdchev">›</span></button>
       <div class="pdfixe hidden" id="pdFx"><div class="g2"><label>Du<input class="field" type="date" id="pdA" value="${fx[1]}" max="${isoJ(new Date())}"></label><label>Au<input class="field" type="date" id="pdB" value="${fx[2]}" max="${isoJ(new Date())}"></label></div>
         <button class="btn blue" id="pdOk" style="margin-top:10px">Appliquer</button></div>
       <div class="pdsep"></div>
@@ -1293,7 +1323,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
         </div>
         <div class="chart" id="chart"></div>
         <div class="legend"><span>${esc(libelle(periode))}</span><span class="p">${periode === 'jour' ? 'Hier' : 'Période précédente'}</span></div>
-        <div class="periods"><button class="chip on pdbtn" id="pdBtn">📅 ${esc(libelle(periode))} ▾</button></div>
+        <div class="periods"><button class="chip on pdbtn" id="pdBtn">${CAL} ${esc(libelle(periode))} ▾</button></div>
       </div>
       <div class="sheet">
         <h2>Bonjour ! <span>Voici ton activité</span></h2>
@@ -1320,7 +1350,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
     app.querySelectorAll('[data-m]').forEach(b => b.onclick = () => { metric = b.dataset.m; home(); });
     document.getElementById('pdBtn').onclick = () => choisirPeriode(periode, false, async k => {
       periode = k; SS.set('adm_periode', k); const c = fromCache(periode);
-      if (c){ D = c; home(); } else { const b = document.getElementById('pdBtn'); if (b) b.textContent = '📅 ' + libelle(k) + ' …'; }
+      if (c){ D = c; home(); } else { const b = document.getElementById('pdBtn'); if (b) b.innerHTML = CAL + ' ' + esc(libelle(k)) + ' …'; }
       setBusy(true); busy = false; await refresh();
     });
     app.querySelectorAll('[data-go]').forEach(b => b.onclick = () => go(b.dataset.go));
@@ -1695,7 +1725,8 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
     OneSignalDeferred.push(async OneSignal => {
       try {
         await OneSignal.init({ appId: D.onesignal, serviceWorkerPath: 'abromarket1/admin/OneSignalSDKWorker.js',
-          serviceWorkerParam: { scope: '/abromarket1/admin/' }, notifyButton: { enable: false } });
+          serviceWorkerParam: { scope: '/abromarket1/admin/' }, notifyButton: { enable: false },
+          welcomeNotification: { title: VENDOO ? 'Vendoo' : 'ABROMARKET', message: 'Notifications activées ✅ Tu seras prévenu à chaque nouvelle commande.' } });
         // Permission déjà donnée mais abonnement perdu (nettoyage du téléphone, mise à jour…) : on se réabonne tout seul
         if ('Notification' in window && Notification.permission === 'granted' && !OneSignal.User.PushSubscription.optedIn){
           try { await OneSignal.User.PushSubscription.optIn(); } catch(x){}
@@ -1705,7 +1736,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
         pushOn = !!(OneSignal.Notifications.permission && OneSignal.User.PushSubscription.optedIn); osFini = true;
         OneSignal.User.PushSubscription.addEventListener('change', () => { pushOn = !!OneSignal.User.PushSubscription.optedIn; if (view === 'home' || view === 'settings') render(); });
         osOk(true);
-      } catch(e){ osErr = (e && e.message) || String(e); osOk(false); }
+      } catch(e){ osErr = frErr((e && e.message) || String(e)); osOk(false); }
       if (view === 'home' || view === 'settings') render();
     });
   }
@@ -2387,7 +2418,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
     return `<div class="tt-top">
       <h1><span class="tt-logo"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M14 3v11.5a3.5 3.5 0 1 1-3.5-3.5"/><path d="M14 3c.4 2.6 2.4 4.6 5 4.8"/></svg></span>Promotions TikTok</h1>
       <p class="sub">Combien chaque promotion t'a rapporté de commandes.</p>
-      <div class="periods"><button class="chip on" id="ttPd">📅 ${esc(libelle(ttPer))} ▾</button></div>
+      <div class="periods"><button class="chip on" id="ttPd">${CAL} ${esc(libelle(ttPer))} ▾</button></div>
       <div class="ttsum">
         <div><small>Dépensé</small><b>${F(dep)}</b></div>
         <div><small>Commandes</small><b>${cmd}</b></div>

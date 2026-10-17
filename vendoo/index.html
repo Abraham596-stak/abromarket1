@@ -123,6 +123,22 @@ footer{text-align:center;color:var(--soft);font-size:13px;padding:30px 0 40px}
   document.getElementById('an').textContent = new Date().getFullYear();
   const S = { get: k => { try { return localStorage.getItem(k); } catch(e){ return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch(e){} }, del: k => { try { localStorage.removeItem(k); } catch(e){} } };
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  /* ---------- Tout en français : erreurs réseau, réponses du serveur Google ---------- */
+  const frErr = m => { m = String(m || '').replace(/^(Exception|Error|TypeError|SyntaxError):\s*/i, '');
+    if (/failed to fetch|networkerror|load failed|network request failed|internet disconnected/i.test(m)) return navigator.onLine === false ? 'Pas de connexion internet. Vérifie ta connexion puis réessaie.' : 'Connexion au serveur impossible. Réessaie dans un instant.';
+    if (/unexpected token|not valid json|json\.parse|unexpected end of json|is not valid json/i.test(m)) return 'Le serveur Google n’a pas répondu correctement. Réessaie dans un instant.';
+    if (/too many times|invoked too many|quota|rate limit|simultaneous/i.test(m)) return 'Google est très sollicité en ce moment. Réessaie dans une minute.';
+    if (/timed? ?out|timeout|maximum execution time|délai/i.test(m)) return 'Le serveur a mis trop de temps à répondre. Réessaie.';
+    if (/lock|verrou/i.test(m) && /timeout|wait|attente/i.test(m)) return 'Le serveur est occupé. Réessaie dans un instant.';
+    if (/permission|not authorized|authorization|access denied|unauthorized/i.test(m)) return 'Accès refusé par Google. Vérifie que le fichier est bien partagé.';
+    if (/cannot read prop|undefined is not|is not a function|is not defined|null/i.test(m)) return 'Une erreur est survenue. Actualise l’application et réessaie.';
+    return m || 'Erreur, réessaie.'; };
+  try {
+    const _f = window.fetch.bind(window);
+    window.fetch = async (...a) => { try { return await _f(...a); } catch(e){ if (e && e.name === 'AbortError') throw e; throw new Error(frErr(e && e.message)); } };
+    Response.prototype.json = async function(){ const t = await this.text(); try { return JSON.parse(t); } catch(e){ throw new Error('Le serveur Google n’a pas répondu correctement. Réessaie dans un instant.'); } };
+    const _al = window.alert.bind(window); window.alert = m => _al(frErr(m));
+  } catch(e){}
   const F = n => Number(n || 0).toLocaleString('fr-FR').replace(/ /g, ' ') + ' F';
   let choixFo = S.get('vendoo_fo') === 'an' ? 'an' : 'mois';
   let CFG = null, jeton = S.get('vendoo_jeton') || '', compte = null;
@@ -131,7 +147,7 @@ footer{text-align:center;color:var(--soft);font-size:13px;padding:30px 0 40px}
   async function call(body){
     const r = await fetch(API, {method: 'POST', body: JSON.stringify(Object.assign({type: 'vendoo'}, body))});
     const j = await r.json();
-    if (!j.ok){ if (j.erreur === 'SESSION'){ deconnexion(); throw new Error('Ta session a expiré. Reconnecte-toi.'); } throw new Error(j.erreur || 'Erreur, réessaie.'); }
+    if (!j.ok){ if (j.erreur === 'SESSION'){ deconnexion(); throw new Error('Ta session a expiré. Reconnecte-toi.'); } throw new Error(frErr(j.erreur) || 'Erreur, réessaie.'); }
     return j;
   }
   const config = () => CFG ? Promise.resolve(CFG) : call({action: 'config'}).then(j => (CFG = j));
