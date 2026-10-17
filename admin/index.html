@@ -382,6 +382,17 @@ html.ordi .dvgrid{grid-template-columns:repeat(4,minmax(0,1fr))}
 .pchip input{accent-color:var(--main)}
 .confirm2{display:flex;gap:10px;align-items:flex-start;margin-top:14px;font-size:15px}
 .confirm2 input{width:20px;height:20px;accent-color:var(--main);flex:0 0 20px;margin-top:2px}
+/* Avis clients riches */
+.avtete{display:flex;gap:10px;align-items:flex-start}
+.avatar2{flex:0 0 64px;width:64px;height:64px;border-radius:50%;background:var(--surface);border:2px dashed var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:22px;overflow:hidden}
+.avatar2 small{font-size:10px;color:var(--soft);font-weight:700}
+.avatar2 img{width:100%;height:100%;object-fit:cover}
+.avchamps{flex:1;min-width:0;display:grid;gap:6px}
+.avmed{display:grid;gap:6px;margin-top:8px}
+.avm{box-sizing:border-box;width:100%;min-width:0;overflow:hidden;word-break:break-all;display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 12px;border-radius:12px;background:var(--surface);font-weight:700;font-size:14px;text-align:left}
+.avm.on{background:#EAF7EF;flex-direction:column;align-items:stretch}
+.avm.on button{align-self:flex-start;color:#9B1C1C;font-size:13px;font-weight:700}
+.avm audio,.avm video{width:100%;max-height:260px;border-radius:10px}
 /* Confirmation */
 .cfov{position:fixed;inset:0;z-index:90;background:rgba(18,48,143,.55);display:flex;align-items:center;justify-content:center;padding:20px;animation:fd .15s ease-out}
 @keyframes fd{from{opacity:0}}
@@ -1406,7 +1417,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
         for (const t of toks) h = h.split(t).join(await resoudre(t) || '');
         P.description = h;
       } else P.description = (await Promise.all(String(P.description || '').split('\n').map(resoudre))).filter(Boolean).join('\n');
-      for (const a of P.avis || []) a.photo = await resoudre(a.photo);
+      for (const a of P.avis || []) for (const c of ['photo', 'avatar', 'audio', 'video']) a[c] = await resoudre(a[c]);
     }
     return Object.assign({type: 'produits'}, o);
   }
@@ -1415,7 +1426,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
     PR.produits.forEach(p => {
       p.photos = p.photos.map(u => u === de ? vers : u).filter(Boolean);
       p.description = /^\s*</.test(String(p.description || '')) ? String(p.description).split(de).join(vers) : String(p.description || '').split('\n').map(l => l === de ? vers : l).filter(Boolean).join('\n');
-      (p.avis || []).forEach(a => { if (a.photo === de) a.photo = vers; });
+      (p.avis || []).forEach(a => ['photo', 'avatar', 'audio', 'video'].forEach(c => { if (a[c] === de) a[c] = vers; }));
     });
     memoPR();
   }
@@ -1568,6 +1579,23 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
       };
     });
   }
+  // Notes vocales et vidéos : envoyées telles quelles (25 Mo maximum)
+  function fichierInstantane(file, nom){
+    return new Promise((ok, ko) => {
+      if (file.size > 25 * 1024 * 1024){ ko(new Error('Fichier trop lourd (25 Mo maximum). Pour une longue vidéo, mets-la sur YouTube ou TikTok et colle le lien.')); return; }
+      const fr = new FileReader(); fr.onerror = () => ko(new Error('Fichier illisible'));
+      fr.onload = () => {
+        const b64 = fr.result, tok = 'upload:' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+        apercus[tok] = b64;
+        const mime = file.type || (/\.(ogg|opus)$/i.test(file.name) ? 'audio/ogg' : /\.m4a$/i.test(file.name) ? 'audio/mp4' : 'application/octet-stream');
+        const envoi = async essai => { try { return (await call({type: 'produits', action: 'image', b64, mime, nom})).url; } catch(e){ if (essai < 3){ await new Promise(r => setTimeout(r, 4000)); return envoi(essai + 1); } throw e; } };
+        uploads[tok] = envoi(0).then(url => { apercus[url] = b64; remplacerPartout(tok, url); return url; });
+        uploads[tok].catch(() => {});
+        ok(tok);
+      };
+      fr.readAsDataURL(file);
+    });
+  }
   function choisirPhotos(multiple){
     return new Promise(ok => { const i = document.createElement('input'); i.type = 'file'; i.accept = 'image/*'; i.multiple = !!multiple; i.onchange = () => ok([...i.files]); i.click(); });
   }
@@ -1642,10 +1670,17 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
           <div class="addrow"><button id="fAdd">+ Ajouter une question</button></div></div>
 
         <div class="card"><h3>Avis clients</h3>
-          ${P.avis.map((a, i) => `<div class="blk"><div class="blkh"><span>Avis ${i + 1}</span><button data-ax="${i}" aria-label="Supprimer">✕</button></div>
-            <div class="g2"><input class="field" data-an="${i}" value="${esc(a.nom)}" placeholder="Nom affiché (ex : Maman, 53 ans)"><select class="field" data-ano="${i}">${[5,4,3,2,1].map(n => `<option value="${n}" ${Number(a.note) === n ? 'selected' : ''}>${'★'.repeat(n)}</option>`).join('')}</select></div>
-            <textarea class="field" data-at="${i}" rows="3" placeholder="Ce que dit le client" style="margin-top:6px">${esc(a.texte)}</textarea>
-            ${a.photo ? `<img class="blkimg" src="${esc(img(a.photo))}" alt="">` : ''}<button class="lnk" data-ap="${i}">${a.photo ? 'Changer la photo' : '+ Photo (optionnel)'}</button></div>`).join('')}
+          <p class="tag">Pour chaque avis, mets ce que tu as : un texte, une capture d'écran WhatsApp, une note vocale ou une vidéo du client.</p>
+          ${P.avis.map((a, i) => `<div class="blk avblk"><div class="blkh"><span>Avis ${i + 1}</span><button data-ax="${i}" aria-label="Supprimer">✕</button></div>
+            <div class="avtete"><button class="avatar2" data-amed="${i}|avatar" aria-label="Photo du client">${a.avatar ? `<img src="${esc(img(a.avatar))}" alt="">` : '👤<small>Photo</small>'}</button>
+              <div class="avchamps"><input class="field" data-an="${i}" value="${esc(a.nom)}" placeholder="Nom (ex : Maman Rose)">
+                <div class="g2"><input class="field" data-aag="${i}" value="${esc(a.age || '')}" placeholder="Âge (ex : 53 ans)"><select class="field" data-ano="${i}">${[5,4,3,2,1].map(n => `<option value="${n}" ${Number(a.note) === n ? 'selected' : ''}>${'★'.repeat(n)}</option>`).join('')}</select></div></div></div>
+            <textarea class="field" data-at="${i}" rows="3" placeholder="Ce que dit le client (optionnel si tu mets une capture, un vocal ou une vidéo)" style="margin-top:6px">${esc(a.texte)}</textarea>
+            <div class="avmed">
+              ${[['photo', '🖼', 'Capture d’écran'], ['audio', '🎤', 'Note vocale'], ['video', '🎬', 'Vidéo']].map(([c, ic, lb]) => a[c]
+                ? `<div class="avm on"><span>${ic} ${lb} ajoutée</span>${c === 'photo' ? `<img class="blkimg" src="${esc(img(a.photo))}" alt="">` : apercus[a[c]] ? (c === 'audio' ? `<audio controls src="${apercus[a[c]]}"></audio>` : `<video controls playsinline src="${apercus[a[c]]}"></video>`) : `<small>${esc(String(a[c]).slice(0, 60))}</small>`}<button data-amx="${i}|${c}">Retirer</button></div>`
+                : `<button class="avm" data-amed="${i}|${c}">${ic} + ${lb}</button>`).join('')}
+            </div></div>`).join('')}
           <div class="addrow"><button id="aAdd">+ Ajouter un avis</button></div></div>
 
         <div class="card"><h3>Lien du produit</h3><label class="lbl" for="eId">Fin du lien (sans espace ni accent)</label><input class="field" id="eId" value="${esc(P.id)}" placeholder="automatique d'après le titre">
@@ -1665,6 +1700,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
       ed.querySelectorAll('[data-fr]').forEach(t => faq[t.dataset.fr].r = t.value);
       ed.querySelectorAll('[data-an]').forEach(t => P.avis[t.dataset.an].nom = t.value);
       ed.querySelectorAll('[data-at]').forEach(t => P.avis[t.dataset.at].texte = t.value);
+      ed.querySelectorAll('[data-aag]').forEach(t => P.avis[t.dataset.aag].age = t.value);
       ed.querySelectorAll('[data-ano]').forEach(t => P.avis[t.dataset.ano].note = Number(t.value));
       ed.querySelectorAll('[data-px]').forEach(t => {
         const [pays, champ] = t.dataset.px.split('|');
@@ -1673,6 +1709,24 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
       });
     }
     const maj = fn => () => { lire(); fn(); sale = true; dessiner(); };
+    // Avis : photo du client, capture d'écran (image), note vocale (audio) ou vidéo — fichier du téléphone ou lien
+    async function ajouterMediaAvis(i, champ){
+      lire();
+      if (champ === 'audio' || champ === 'video'){
+        const lien = prompt(champ === 'audio' ? 'Colle un lien (Google Drive…) OU laisse vide et appuie sur OK pour choisir la note vocale dans ton téléphone :' : 'Colle un lien (YouTube, TikTok, Google Drive…) OU laisse vide et appuie sur OK pour choisir la vidéo dans ton téléphone :', '');
+        if (lien === null) return;
+        if (/^https?:\/\//.test(lien.trim())){ P.avis[i][champ] = lien.trim(); sale = true; dessiner(); return; }
+      }
+      const accept = champ === 'audio' ? 'audio/*,.ogg,.opus,.m4a,.mp3,.aac' : champ === 'video' ? 'video/*' : 'image/*';
+      const f = await new Promise(ok => { const inp = document.createElement('input'); inp.type = 'file'; inp.accept = accept; inp.onchange = () => ok(inp.files[0]); inp.click(); });
+      if (!f) return;
+      try {
+        const tok = (champ === 'audio' || champ === 'video') ? await fichierInstantane(f, P.nom || 'avis') : await photoInstantanee(f, P.nom || 'avis');
+        P.avis[i][champ] = tok; sale = true;
+        uploads[tok].then(url => { P.avis.forEach(a => ['photo', 'avatar', 'audio', 'video'].forEach(c => { if (a[c] === tok) a[c] = url; })); }).catch(e => alert('Envoi impossible : ' + e.message));
+        dessiner();
+      } catch(e){ alert(e.message); }
+    }
     async function ajouterImages(cible, bouton){
       const files = await choisirPhotos(cible === 'photos'); if (!files.length) return;
       lire();
@@ -1709,9 +1763,10 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
       }));
       ed.querySelector('#fAdd').onclick = maj(() => faq.push({q: '', r: ''}));
       ed.querySelectorAll('[data-fx]').forEach(b => b.onclick = maj(() => faq.splice(+b.dataset.fx, 1)));
-      ed.querySelector('#aAdd').onclick = maj(() => P.avis.push({nom: '', texte: '', note: 5, photo: ''}));
+      ed.querySelector('#aAdd').onclick = maj(() => P.avis.push({nom: '', texte: '', note: 5, photo: '', age: '', avatar: '', audio: '', video: ''}));
       ed.querySelectorAll('[data-ax]').forEach(b => b.onclick = async () => { if (await confirmer({titre: 'Retirer cet avis ?', texte: 'L’avis sera retiré du produit quand tu enregistreras.', ok: 'Retirer l’avis'})) maj(() => P.avis.splice(+b.dataset.ax, 1))(); });
-      ed.querySelectorAll('[data-ap]').forEach(b => b.onclick = e => ajouterImages(+b.dataset.ap, e.currentTarget));
+      ed.querySelectorAll('[data-amed]').forEach(b => b.onclick = () => { const [i, c] = b.dataset.amed.split('|'); ajouterMediaAvis(+i, c); });
+      ed.querySelectorAll('[data-amx]').forEach(b => b.onclick = maj(() => { const [i, c] = b.dataset.amx.split('|'); P.avis[+i][c] = ''; }));
       ed.querySelectorAll('[data-copy]').forEach(b => b.onclick = async () => { try { await navigator.clipboard.writeText(b.dataset.copy); b.textContent = '✓ Lien copié'; } catch(e){ prompt('Copie ce lien :', b.dataset.copy); } });
       ed.querySelectorAll('input, textarea, select').forEach(i => i.addEventListener('input', () => sale = true));
       ed.querySelectorAll('textarea').forEach(t => { const a = () => { t.style.height = 'auto'; t.style.height = t.scrollHeight + 2 + 'px'; }; t.addEventListener('input', a); a(); });

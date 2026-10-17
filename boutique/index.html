@@ -121,6 +121,16 @@ details p{color:var(--soft);margin-top:8px}
 .review p{margin:8px 0}
 .review .who{font-weight:700}
 .review img{border-radius:10px;margin-top:8px;max-height:320px;object-fit:contain;width:100%;background:#fff}
+.review .rhead{display:flex;gap:10px;align-items:center}
+.review .rav{flex:0 0 44px;width:44px;height:44px;border-radius:50%;object-fit:cover;margin:0;max-height:none;background:#ddd}
+.review .rini{display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;background:var(--accent,#0B6E4F)}
+.review .rage{font-weight:500;opacity:.75}
+.review .rok{font-size:11px;color:#1a7f37;font-weight:700;margin-left:4px}
+.review .raud{margin-top:10px;background:#fff;border-radius:12px;padding:8px}
+.review .raud audio{width:100%;display:block}
+.review .raud iframe{width:100%;height:60px;border:0;display:block}
+.review .raud small{display:block;font-weight:700;margin-bottom:4px;font-size:12px}
+.review .vid{margin-top:10px}
 .rdots{display:flex;gap:6px;justify-content:center;margin-top:12px}
 .rdots span{width:7px;height:7px;border-radius:50%;background:var(--line)}
 .rdots span.on{background:var(--main)}
@@ -316,6 +326,13 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
   }
   const isUrl = s => /^https?:\/\/\S+$/i.test(s);
   // Vidéo : YouTube, TikTok, Google Drive ou fichier .mp4
+  function audioAvis(u){
+    u = String(u||'').trim(); let m;
+    const t = '<small>🎤 Note vocale du client</small>';
+    if ((m = u.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:export=\w+&)?id=)([\w-]{20,})/))) return `<div class="raud">${t}<iframe src="https://drive.google.com/file/d/${m[1]}/preview" loading="lazy"></iframe></div>`;
+    if (/^https?:\/\//.test(u)) return `<div class="raud">${t}<audio controls preload="none" src="${esc(u)}"></audio></div>`;
+    return '';
+  }
   function video(u){
     u = String(u || '').trim(); let m;
     if ((m = u.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|shorts\/|embed\/))([\w-]{6,})/))) return `<div class="vid${/shorts/.test(u) ? ' v' : ''}"><iframe src="https://www.youtube.com/embed/${m[1]}" loading="lazy" allowfullscreen allow="autoplay; encrypted-media; picture-in-picture"></iframe></div>`;
@@ -518,7 +535,7 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
       </div></div><div class="pbelow">
       ${desc ? `<section><h2>Description</h2><div class="rich">${rich(P.description)}</div>
         ${P.boite.length ? `<div class="box"><h3>Dans la boîte</h3><ul>${P.boite.map(a=>`<li>${esc(a)}</li>`).join('')}</ul></div>` : ''}</section>` : ''}
-      ${nAvis ? `<section><h2>Ils l'ont déjà reçu</h2><div class="reviews" id="revs">${P.avis.map(a=>`<div class="review"><div class="rs">${'★'.repeat(a.note)}${'☆'.repeat(5-a.note)}</div><p>${esc(a.texte)}</p><div class="who">${esc(a.nom)}</div>${a.photo?`<img src="${esc(img(a.photo))}" alt="" loading="lazy">`:''}</div>`).join('')}</div>
+      ${nAvis ? `<section><h2>Ils l'ont déjà reçu</h2><div class="reviews" id="revs">${P.avis.map(a=>`<div class="review"><div class="rhead">${a.avatar?`<img class="rav" src="${esc(img(a.avatar))}" alt="" loading="lazy">`:`<span class="rav rini">${esc((a.nom||'C').trim().charAt(0).toUpperCase())}</span>`}<div><div class="who">${esc(a.nom)}${a.age?`<span class="rage">, ${esc(/an/i.test(a.age)?a.age:a.age+' ans')}</span>`:''}</div><div class="rs">${'★'.repeat(a.note)}${'☆'.repeat(5-a.note)}</div></div></div>${a.texte?`<p>${esc(a.texte)}</p>`:''}${a.photo?`<img src="${esc(img(a.photo))}" alt="" loading="lazy">`:''}${a.audio?audioAvis(a.audio):''}${a.video?video(a.video):''}</div>`).join('')}</div>
         ${nAvis > 1 ? `<div class="rdots" id="rdots">${P.avis.map((_,i)=>`<span class="${i?'':'on'}"></span>`).join('')}</div>` : ''}</section>` : ''}
       ${P.faq.length ? `<section><h2>Questions fréquentes</h2>${P.faq.map(f=>`<details><summary>${esc(f.q)}</summary><p>${esc(f.r)}</p></details>`).join('')}</section>` : ''}
       ${trust()}
