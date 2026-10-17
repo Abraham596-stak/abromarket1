@@ -145,7 +145,7 @@ footer{text-align:center;color:var(--soft);font-size:13px;padding:30px 0 40px}
         <h1>Ta boutique en ligne,<br><em>paiement à la livraison</em></h1>
         <p>Crée ton site, reçois tes commandes sur WhatsApp et gère tout depuis ton téléphone. Jusqu’à 30 boutiques sur un seul compte.</p>
         <a class="btn" href="#inscription">Essayer gratuitement 3 jours</a>
-        <p class="soft" style="margin-top:12px">Sans payer pour commencer · Tes données restent dans ton Google</p>
+        <p class="soft" style="margin-top:12px">Un essai par personne · Tes données restent dans ton Google</p>
       </section>
       <div class="feat">
         <div><i>🏪</i><p style="margin:0"><b>30 boutiques par compte</b><span>Une boutique par agence ou par pays : les commandes ne se mélangent jamais.</span></p></div>
@@ -244,7 +244,8 @@ footer{text-align:center;color:var(--soft);font-size:13px;padding:30px 0 40px}
     const c = compte; if (!c){ app.innerHTML = '<div class="card" style="margin-top:20px">Chargement…</div>'; return; }
     const P = CFG ? CFG.prix : null, enAttente = (c.paiements || []).find(p => /valider/i.test(p.statut));
     let alerte = '';
-    if (c.statut === 'attente' && c.essaiRefuse && !enAttente) alerte = `<div class="msg warn">Tu as déjà utilisé ton essai gratuit sur ce téléphone. Abonne-toi pour ouvrir tes boutiques.</div>`;
+    if (c.statut === 'attente' && c.essaiAActiver && !enAttente) alerte = '';
+    else if (c.statut === 'attente' && c.essaiRefuse && !enAttente) alerte = `<div class="msg warn">Tu as déjà utilisé ton essai gratuit sur ce téléphone. Abonne-toi pour ouvrir tes boutiques.</div>`;
     else if (c.statut === 'attente') alerte = enAttente ? `<div class="msg ok">⏳ Paiement reçu, en cours de vérification. Ton abonnement sera activé très vite.</div>` : `<div class="msg warn">Paie ton abonnement pour activer tes boutiques.</div>`;
     if (c.statut === 'actif' && c.alerte) alerte = `<div class="msg warn">⚠️ Ton abonnement se termine dans ${c.jours} jour${c.jours > 1 ? 's' : ''}. Renouvelle-le pour ne pas être coupé.</div>`;
     if (c.statut === 'grace') alerte = `<div class="msg warn">⚠️ Ton abonnement est terminé. Tes boutiques seront coupées dans ${c.grace} jour${c.grace > 1 ? 's' : ''}.</div>`;
@@ -254,10 +255,14 @@ footer{text-align:center;color:var(--soft);font-size:13px;padding:30px 0 40px}
     const paye = c.statut === 'actif' || c.statut === 'grace' || c.statut === 'essai';
     app.innerHTML = `
       <div class="card" style="margin-top:20px">
-        <div class="statut"><div><div class="soft">Bonjour</div><div style="font-weight:800;font-size:20px">${esc(c.nom)}</div></div><span class="badge b-${c.statut}">${LIB[c.statut] || c.statut}</span></div>
+        <div class="statut"><div><div class="soft">Bonjour</div><div style="font-weight:800;font-size:20px">${esc(c.nom)}</div></div><span class="badge b-${c.essaiAActiver && c.statut === 'attente' ? 'essai' : c.statut}">${c.essaiAActiver && c.statut === 'attente' ? 'Essai à activer' : LIB[c.statut] || c.statut}</span></div>
         ${paye ? `<div class="gros">${c.jours ? c.jours + ' jour' + (c.jours > 1 ? 's' : '') + (c.statut === 'essai' ? ' d’essai' : '') + ' restant' + (c.jours > 1 ? 's' : '') : 'Délai de grâce'}</div><div class="soft">${c.statut === 'essai' ? 'Essai gratuit · ' : c.formule ? 'Abonnement ' + esc(c.formule.toLowerCase()) + ' · ' : ''}jusqu’au ${esc(c.expire)}</div>` : ''}
         ${alerte}
       </div>
+      ${c.statut === 'attente' && c.essaiAActiver ? `<div class="card" style="border:1.5px solid var(--main)"><h3>🎁 Active ton essai gratuit de 3 jours</h3>
+        <p class="soft" style="margin:0 0 10px">Pour éviter les abus, chaque personne n’a droit qu’à un seul essai. On le vérifie avec ton compte Mobile Money : une petite vérification de <b>${F(c.verif)}</b>, et ton essai démarre tout de suite.</p>
+        ${CFG && CFG.kkiapay ? `<button class="btn" id="essaiGo">Activer mon essai · ${F(c.verif)}</button>` : '<div class="msg warn">La vérification arrive bientôt. Tu peux déjà t’abonner ci-dessous.</div>'}
+        <p class="soft" style="font-size:13px;margin:10px 0 0">Un seul essai par compte Mobile Money. Les ${F(c.verif)} ne sont pas remboursés.</p><div id="me"></div></div>` : ''}
       ${paye ? installation(c) : ''}
       <div class="card" id="payer"><h3>${c.statut === 'essai' || c.essaiFini ? 'M’abonner' : paye ? 'Renouveler mon abonnement' : 'Payer mon abonnement'}</h3>
         ${c.statut === 'essai' ? '<p class="soft">Les jours d’essai qui restent sont gardés : ton abonnement commence après.</p>' : ''}
@@ -309,6 +314,7 @@ footer{text-align:center;color:var(--soft);font-size:13px;padding:30px 0 40px}
       </ol></div>`;
   }
   const formLier = () => `<input class="field" id="api" placeholder="https://docs.google.com/spreadsheets/d/…" style="margin-top:8px" autocomplete="off"><div id="ml"></div><button class="btn" id="lier" style="margin-top:10px">Installer ma boutique</button>`;
+  const chargerKk = () => new Promise((ok, ko) => { if (window.openKkiapayWidget) return ok(); const sc = document.createElement('script'); sc.src = 'https://cdn.kkiapay.me/k.js'; sc.onload = ok; sc.onerror = () => ko(new Error('Paiement indisponible, vérifie ta connexion.')); document.head.appendChild(sc); });
   function lierEvenements(c){
     const P = CFG ? CFG.prix : null; let prixMois = P ? P.mois : 0, codeOk = '';
     const fo = () => (app.querySelector('[name=fo]:checked') || {}).value || 'mois';
@@ -332,12 +338,33 @@ footer{text-align:center;color:var(--soft);font-size:13px;padding:30px 0 40px}
         message(document.getElementById('mp'), '✅ Paiement envoyé. Tu reçois un e-mail dès qu’il est validé.', 'ok');
       } catch(err){ message(mp, esc(err.message)); occupe(b, false); }
     };
+    // Essai gratuit : vérification Mobile Money (100 F) puis essai lancé par le serveur
+    const eg = document.getElementById('essaiGo');
+    if (eg) eg.onclick = async () => {
+      const me = document.getElementById('me'); message(me, ''); occupe(eg, true);
+      try {
+        await chargerKk();
+        let fini = false;
+        addSuccessListener(async rep => {
+          if (fini) return; fini = true;
+          const id = rep && (rep.transactionId || rep.transaction_id || rep.id);
+          message(me, '⏳ Vérification reçue, lancement de ton essai…', 'ok');
+          for (let essai = 0; essai < 4; essai++){
+            try { const j = await call({action: 'essai', jeton, transactionId: id}); compte = j.compte; S.set('vendoo_compte', JSON.stringify(compte)); dessinerCompte(); scrollTo(0, 0); return; }
+            catch(err){ if (essai === 3 || /déjà|uniquement|incorrect/.test(err.message)){ message(me, esc(err.message)); call({action: 'moi', jeton}).then(x => { compte = x.compte; S.set('vendoo_compte', JSON.stringify(compte)); }).catch(() => {}); return; } await new Promise(r => setTimeout(r, 4000)); }
+          }
+        });
+        openKkiapayWidget({amount: String(c.verif), key: CFG.kkiapay.cle, sandbox: !!CFG.kkiapay.test, position: 'center', theme: '#5B2EE6', paymentmethod: 'momo',
+          name: c.nom, email: c.email, phone: String(c.tel || '').replace(/\D/g, ''), data: JSON.stringify({email: c.email, type: 'essai'})});
+      } catch(err){ message(me, esc(err.message)); }
+      occupe(eg, false);
+    };
     // Paiement KkiaPay : vérifié par le serveur auprès de KkiaPay, abonnement activé tout de suite
     const kb = document.getElementById('kkPay');
     if (kb) kb.onclick = async () => {
       message(mp, ''); occupe(kb, true);
       try {
-        await new Promise((ok, ko) => { if (window.openKkiapayWidget) return ok(); const sc = document.createElement('script'); sc.src = 'https://cdn.kkiapay.me/k.js'; sc.onload = ok; sc.onerror = () => ko(new Error('Paiement indisponible, vérifie ta connexion.')); document.head.appendChild(sc); });
+        await chargerKk();
         const formule = fo(), code = formule === 'mois' ? codeOk : '';
         let fini = false;
         window.addSuccessListener && addSuccessListener(async rep => {
