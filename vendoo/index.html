@@ -60,7 +60,7 @@ label{display:block;font-weight:700;font-size:14px;margin:12px 0 6px}
 #gbtn{display:flex;justify-content:center;min-height:44px}
 .statut{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .badge{font-size:13px;font-weight:800;padding:4px 10px;border-radius:99px;white-space:nowrap}
-.b-actif{background:#E7F6EF;color:var(--ok)}.b-grace,.b-attente{background:#FFF4E5;color:var(--warn)}.b-expire,.b-bloque{background:#FEECEB;color:var(--bad)}
+.b-actif{background:#E7F6EF;color:var(--ok)}.b-essai{background:#EEEAFE;color:var(--main2)}.b-grace,.b-attente{background:#FFF4E5;color:var(--warn)}.b-expire,.b-bloque{background:#FEECEB;color:var(--bad)}
 .gros{font-size:28px;font-weight:800;letter-spacing:-.02em;margin:6px 0 0}
 .soft{color:var(--soft);font-size:14px}
 .choix{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -126,8 +126,8 @@ footer{text-align:center;color:var(--soft);font-size:13px;padding:30px 0 40px}
       <section class="hero">
         <h1>Ta boutique en ligne,<br><em>paiement à la livraison</em></h1>
         <p>Crée ton site, reçois tes commandes sur WhatsApp et gère tout depuis ton téléphone. Jusqu’à 30 boutiques sur un seul compte.</p>
-        <a class="btn" href="#inscription">Créer mon compte</a>
-        <p class="soft" style="margin-top:12px">Paiement par Mobile Money · Tes données restent dans ton Google</p>
+        <a class="btn" href="#inscription">Essayer gratuitement 7 jours</a>
+        <p class="soft" style="margin-top:12px">Sans payer pour commencer · Tes données restent dans ton Google</p>
       </section>
       <div class="feat">
         <div><i>🏪</i><p style="margin:0"><b>30 boutiques par compte</b><span>Une boutique par agence ou par pays : les commandes ne se mélangent jamais.</span></p></div>
@@ -138,17 +138,18 @@ footer{text-align:center;color:var(--soft);font-size:13px;padding:30px 0 40px}
         <div><i>⭐</i><p style="margin:0"><b>Avis clients riches</b><span>Texte, captures WhatsApp, notes vocales et vidéos de tes clients.</span></p></div>
       </div>
       <h2>Tarifs</h2>
+      <p class="soft" style="margin-top:-4px">🎁 7 jours d’essai gratuit pour découvrir Vendoo. Ensuite, tu choisis ta formule.</p>
       <div class="prix">
         <div class="plan"><div class="soft">Mensuel</div><div class="p">${F(P.mois)} <small>/ mois</small></div><ul><li>Toutes les fonctions</li><li>30 boutiques</li><li>Prix réduit avec un code promo</li></ul></div>
         <div class="plan top">${eco > 0 ? `<span class="tag">${F(eco)} économisés</span>` : ''}<div class="soft">Annuel</div><div class="p">${F(P.an)} <small>/ an</small></div><ul><li>Toutes les fonctions</li><li>30 boutiques</li><li>Un seul paiement pour l’année</li></ul></div>
       </div>
       <div class="card"><h3>Comment ça marche ?</h3><ol class="etapes">
-        <li><b>Crée ton compte</b><span class="soft">Avec ton e-mail ou ton compte Google.</span></li>
-        <li><b>Paie par Mobile Money</b><span class="soft">Tu envoies l’ID de la transaction, ton abonnement est activé dès la vérification.</span></li>
+        <li><b>Crée ton compte</b><span class="soft">Avec ton e-mail ou ton compte Google : 7 jours d’essai gratuit.</span></li>
         <li><b>Installe ta boutique</b><span class="soft">Un Google Sheets à toi, partagé avec Vendoo : tes commandes restent chez toi.</span></li>
         <li><b>Vends</b><span class="soft">Ajoute tes produits depuis l’application et partage le lien de ta boutique.</span></li>
+        <li><b>Abonne-toi</b><span class="soft">Par Mobile Money, quand tu es convaincu.</span></li>
       </ol></div>
-      <a class="btn" href="#inscription" style="margin:8px 0 10px">Commencer maintenant</a>`;
+      <a class="btn" href="#inscription" style="margin:8px 0 10px">Commencer mon essai gratuit</a>`;
   }
 
   /* ------------ Connexion / inscription ------------ */
@@ -164,7 +165,7 @@ footer{text-align:center;color:var(--soft);font-size:13px;padding:30px 0 40px}
           <label for="email">E-mail</label><input class="field" id="email" type="email" autocomplete="email" required>
           <label for="mdp">Mot de passe</label><input class="field" id="mdp" type="password" autocomplete="${mode === 'inscription' ? 'new-password' : 'current-password'}" minlength="6" required>
           <div id="m"></div>
-          <button class="btn" style="margin-top:16px">${mode === 'inscription' ? 'Créer mon compte' : 'Se connecter'}</button>
+          <button class="btn" style="margin-top:16px">${mode === 'inscription' ? 'Commencer mon essai gratuit' : 'Se connecter'}</button>
         </form>
         ${mode === 'connexion' ? '<p style="text-align:center;margin:14px 0 0"><button class="lnk" id="oubli">Mot de passe oublié ?</button></p>' : ''}
       </div>`;
@@ -213,7 +214,7 @@ footer{text-align:center;color:var(--soft);font-size:13px;padding:30px 0 40px}
   }
 
   /* ------------ Mon compte ------------ */
-  const LIB = {actif: 'Actif', grace: 'Délai de grâce', attente: 'En attente de paiement', expire: 'Coupé', bloque: 'Suspendu'};
+  const LIB = {actif: 'Actif', essai: 'Essai gratuit', grace: 'Délai de grâce', attente: 'En attente de paiement', expire: 'Coupé', bloque: 'Suspendu'};
   function compteVue(){
     if (!jeton){ location.hash = '#connexion'; return; }
     hBtn.textContent = 'Se déconnecter'; hBtn.onclick = () => { deconnexion(); location.hash = ''; };
@@ -228,17 +229,19 @@ footer{text-align:center;color:var(--soft);font-size:13px;padding:30px 0 40px}
     if (c.statut === 'attente') alerte = enAttente ? `<div class="msg ok">⏳ Paiement reçu, en cours de vérification. Ton abonnement sera activé très vite.</div>` : `<div class="msg warn">Paie ton abonnement pour activer tes boutiques.</div>`;
     if (c.statut === 'actif' && c.alerte) alerte = `<div class="msg warn">⚠️ Ton abonnement se termine dans ${c.jours} jour${c.jours > 1 ? 's' : ''}. Renouvelle-le pour ne pas être coupé.</div>`;
     if (c.statut === 'grace') alerte = `<div class="msg warn">⚠️ Ton abonnement est terminé. Tes boutiques seront coupées dans ${c.grace} jour${c.grace > 1 ? 's' : ''}.</div>`;
-    if (c.statut === 'expire') alerte = `<div class="msg err">⛔ Tes boutiques sont coupées. Rien n’est perdu : tout revient dès que ton paiement est validé.</div>`;
+    if (c.statut === 'essai') alerte = `<div class="msg ok">🎁 Ton essai gratuit se termine le ${esc(c.expire)}. Abonne-toi quand tu veux pour continuer ensuite${c.alerte ? ' : il ne reste que ' + c.jours + ' jour' + (c.jours > 1 ? 's' : '') : ''}.</div>`;
+    if (c.statut === 'expire') alerte = c.essaiFini ? `<div class="msg err">⏳ Ton essai gratuit est terminé. Abonne-toi pour continuer : tes boutiques, produits et commandes t’attendent.</div>` : `<div class="msg err">⛔ Tes boutiques sont coupées. Rien n’est perdu : tout revient dès que ton paiement est validé.</div>`;
     if (c.statut === 'bloque') alerte = `<div class="msg err">Ton compte est suspendu. Contacte Vendoo.</div>`;
-    const paye = c.statut === 'actif' || c.statut === 'grace';
+    const paye = c.statut === 'actif' || c.statut === 'grace' || c.statut === 'essai';
     app.innerHTML = `
       <div class="card" style="margin-top:20px">
         <div class="statut"><div><div class="soft">Bonjour</div><div style="font-weight:800;font-size:20px">${esc(c.nom)}</div></div><span class="badge b-${c.statut}">${LIB[c.statut] || c.statut}</span></div>
-        ${paye ? `<div class="gros">${c.jours ? c.jours + ' jour' + (c.jours > 1 ? 's' : '') + ' restant' + (c.jours > 1 ? 's' : '') : 'Délai de grâce'}</div><div class="soft">${c.formule ? 'Abonnement ' + esc(c.formule.toLowerCase()) + ' · ' : ''}jusqu’au ${esc(c.expire)}</div>` : ''}
+        ${paye ? `<div class="gros">${c.jours ? c.jours + ' jour' + (c.jours > 1 ? 's' : '') + (c.statut === 'essai' ? ' d’essai' : '') + ' restant' + (c.jours > 1 ? 's' : '') : 'Délai de grâce'}</div><div class="soft">${c.statut === 'essai' ? 'Essai gratuit · ' : c.formule ? 'Abonnement ' + esc(c.formule.toLowerCase()) + ' · ' : ''}jusqu’au ${esc(c.expire)}</div>` : ''}
         ${alerte}
       </div>
       ${paye ? installation(c) : ''}
-      <div class="card" id="payer"><h3>${paye ? 'Renouveler mon abonnement' : 'Payer mon abonnement'}</h3>
+      <div class="card" id="payer"><h3>${c.statut === 'essai' || c.essaiFini ? 'M’abonner' : paye ? 'Renouveler mon abonnement' : 'Payer mon abonnement'}</h3>
+        ${c.statut === 'essai' ? '<p class="soft">Les jours d’essai qui restent sont gardés : ton abonnement commence après.</p>' : ''}
         ${enAttente ? `<p class="soft">Paiement de ${F(enAttente.montant)} envoyé le ${esc(enAttente.date)}, en cours de vérification.</p>` : ''}
         <div class="choix">
           <label><input type="radio" name="fo" value="mois" checked> Mensuel<b id="pMois">${P ? F(P.mois) : '…'}</b><span class="soft">30 jours</span></label>

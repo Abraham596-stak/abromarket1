@@ -380,6 +380,7 @@ html.ordi .dvgrid{grid-template-columns:repeat(4,minmax(0,1fr))}
 /* Vendoo */
 .vband{position:sticky;top:0;z-index:60;display:flex;align-items:center;gap:10px;padding:10px 14px;background:#FFF4E5;color:#7A3E00;font-size:14px;font-weight:600}
 .vband span{flex:1}
+.vband.essai{background:#EEEAFE;color:#3B1C9E}.vband.essai a{background:#5B2EE6}
 .vband a{flex:0 0 auto;background:#7A3E00;color:#fff;border-radius:10px;padding:7px 12px;font-weight:800;text-decoration:none}
 .vbloc{position:fixed;inset:0;z-index:1000;background:#fff;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center}
 .vbloc>div{max-width:380px}
@@ -387,7 +388,7 @@ html.ordi .dvgrid{grid-template-columns:repeat(4,minmax(0,1fr))}
 .vbloc h1{font-size:24px;margin:16px 0 8px}
 .vbloc p{color:var(--soft);margin:0 0 20px}
 .vbloc .btn{display:flex;align-items:center;justify-content:center;text-decoration:none}
-.vstat{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
+.vstat{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:12px 0}
 .vstat div{background:var(--surface);border-radius:14px;padding:10px;text-align:center}
 .vstat b{display:block;font-size:20px}
 .vstat small{color:var(--soft);font-size:12px}
@@ -398,7 +399,7 @@ html.ordi .dvgrid{grid-template-columns:repeat(4,minmax(0,1fr))}
 .vpay .act{display:flex;gap:8px;margin-top:10px}
 .vpay .act button{flex:1;padding:10px;border-radius:12px;font-weight:800}
 .vbadge{font-size:12px;font-weight:800;padding:3px 9px;border-radius:99px;white-space:nowrap}
-.vb-actif{background:var(--okbg);color:var(--ok)}.vb-grace,.vb-attente{background:#FFF4E5;color:#B45309}.vb-expire,.vb-bloque{background:var(--errbg);color:var(--err)}
+.vb-actif{background:var(--okbg);color:var(--ok)}.vb-essai{background:#EEEAFE;color:#3B1C9E}.vb-grace,.vb-attente{background:#FFF4E5;color:#B45309}.vb-expire,.vb-bloque{background:var(--errbg);color:var(--err)}
 /* Mes boutiques */
 .store{color:inherit;text-align:left}
 .store .stn{max-width:52vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -722,7 +723,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
   async function vendooAdmin(){
     const ov = document.createElement('div'); ov.className = 'overlay';
     let V = null, onglet = 'payer';
-    const LIB = {actif: 'Actif', grace: 'Grâce', attente: 'Pas payé', expire: 'Coupé', bloque: 'Suspendu'};
+    const LIB = {actif: 'Actif', essai: 'Essai', grace: 'Grâce', attente: 'Pas payé', expire: 'Coupé', bloque: 'Suspendu'};
     const appel = async (o) => { const r = await fetch(API, {method: 'POST', body: JSON.stringify(Object.assign({type: 'vendoo', action: 'admin', key}, o))}); const j = await r.json(); if (!j.ok) throw new Error(j.erreur || 'Erreur'); V = j; return j; };
     const dessiner = msg => {
       const av = V ? V.paiements.filter(p => /valider/i.test(p.statut)) : [];
@@ -730,7 +731,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
         <h2>Vendoo</h2>
         ${msg ? `<div class="okmsg">${msg}</div>` : ''}
         ${!V ? '<div class="empty">Chargement…</div>' : `
-        <div class="vstat"><div><b>${V.stats.actifs}</b><small>abonnés actifs</small></div><div><b>${V.stats.aValider}</b><small>à valider</small></div><div><b>${short(V.stats.encaisse30)}</b><small>F sur 30 j</small></div></div>
+        <div class="vstat"><div><b>${V.stats.actifs}</b><small>abonnés actifs</small></div><div><b>${V.stats.essais || 0}</b><small>en essai</small></div><div><b>${V.stats.aValider}</b><small>à valider</small></div><div><b>${short(V.stats.encaisse30)}</b><small>F sur 30 j</small></div></div>
         <div class="seg" style="display:flex;margin:6px 0 4px">${[['payer', 'Paiements' + (av.length ? ' (' + av.length + ')' : '')], ['abos', 'Abonnés (' + V.comptes.length + ')'], ['codes', 'Codes promo']].map(([k, l]) => `<button data-vo="${k}" class="${onglet === k ? 'on' : ''}" style="flex:1">${l}</button>`).join('')}</div>
         ${onglet === 'payer' ? (V.paiements.length ? V.paiements.map(p => `<div class="vpay ${/valider/i.test(p.statut) ? 'av' : ''}">
             <div class="l"><b>${esc(p.nom || p.email)}</b><b>${fmt(p.montant)} F</b></div>
@@ -820,21 +821,23 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
   const PAYER = 'https://abraham596-stak.github.io/abromarket1/vendoo/#compte';
   function vendooBandeau(L){
     const el = document.getElementById('vband'); if (!el) return;
-    const t = L.statut === 'grace' ? `⚠️ Abonnement Vendoo terminé : tes boutiques seront coupées dans ${L.grace} jour${L.grace > 1 ? 's' : ''}.`
+    const t = L.statut === 'essai' ? `🎁 Essai gratuit Vendoo : ${L.jours} jour${L.jours > 1 ? 's' : ''} restant${L.jours > 1 ? 's' : ''}.`
+      : L.statut === 'grace' ? `⚠️ Abonnement Vendoo terminé : tes boutiques seront coupées dans ${L.grace} jour${L.grace > 1 ? 's' : ''}.`
       : L.statut === 'actif' && L.alerte ? `⏳ Ton abonnement Vendoo se termine dans ${L.jours} jour${L.jours > 1 ? 's' : ''}.` : '';
-    el.innerHTML = t ? `<span>${t}</span><a href="${PAYER}" target="_blank" rel="noopener">Renouveler</a>` : '';
+    el.innerHTML = t ? `<span>${t}</span><a href="${PAYER}" target="_blank" rel="noopener">${L.statut === 'essai' ? 'M’abonner' : 'Renouveler'}</a>` : '';
+    el.classList.toggle('essai', L.statut === 'essai');
     el.classList.toggle('hidden', !t);
   }
   function vendooBloque(L){
     if (document.getElementById('vbloc')) return;
-    const titre = L.statut === 'inconnu' ? 'Relie ta boutique à ton compte Vendoo' : L.statut === 'attente' ? 'Active ton abonnement Vendoo' : L.statut === 'bloque' ? 'Compte Vendoo suspendu' : 'Tes boutiques sont coupées';
-    const texte = L.statut === 'inconnu' ? 'Sur le site Vendoo, connecte-toi puis colle le lien de ton application Apps Script dans « Installer ma boutique ».'
+    const titre = L.essaiFini ? 'Ton essai gratuit est terminé' : L.statut === 'inconnu' ? 'Relie ta boutique à ton compte Vendoo' : L.statut === 'attente' ? 'Active ton abonnement Vendoo' : L.statut === 'bloque' ? 'Compte Vendoo suspendu' : 'Tes boutiques sont coupées';
+    const texte = L.essaiFini ? 'Abonne-toi pour continuer : tes boutiques, tes produits et tes commandes t’attendent, rien n’est perdu.' : L.statut === 'inconnu' ? 'Sur le site Vendoo, connecte-toi puis colle le lien de ton application Apps Script dans « Installer ma boutique ».'
       : L.statut === 'attente' ? 'Paie ton abonnement par Mobile Money depuis ton compte Vendoo. Tout s’ouvre dès que ton paiement est validé.'
       : L.statut === 'bloque' ? 'Contacte Vendoo pour réactiver ton compte.'
       : 'Ton abonnement Vendoo est terminé' + (L.expire ? ' depuis le ' + esc(L.expire) : '') + '. Rien n’est perdu : tes produits et commandes reviennent dès que ton paiement est validé.';
     const ov = document.createElement('div'); ov.id = 'vbloc'; ov.className = 'vbloc';
     ov.innerHTML = `<div><img src="../vendoo/icon-192.png" alt="" width="72" height="72"><h1>${titre}</h1><p>${texte}</p>
-      <a class="btn blue" href="${PAYER}">${L.statut === 'inconnu' ? 'Ouvrir mon compte Vendoo' : 'Payer mon abonnement'}</a>
+      <a class="btn blue" href="${PAYER}">${L.statut === 'inconnu' ? 'Ouvrir mon compte Vendoo' : L.essaiFini ? 'M’abonner' : 'Payer mon abonnement'}</a>
       <button class="btn ghost" id="vRe" style="margin-top:10px">J’ai payé, réessayer</button></div>`;
     document.body.appendChild(ov); finDemarrage();
     ov.querySelector('#vRe').onclick = () => location.reload();
@@ -2296,7 +2299,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
     const perm = 'Notification' in window ? Notification.permission : 'unsupported';
     app.innerHTML = `<div class="page"><h1>Réglages</h1>
       ${D.vendoo && D.vendoo.statut === 'proprietaire' ? `<div class="set"><div><b>Vendoo – abonnés et paiements</b><p>Valider les paiements MoMo, voir les abonnés, codes promo.</p></div><button class="chip" style="background:#5B2EE6;border-color:#5B2EE6" id="vAdm">Ouvrir</button></div>` : ''}
-      ${VENDOO && D.vendoo && D.vendoo.statut !== 'proprietaire' ? `<div class="set"><div><b>Mon abonnement Vendoo</b><p>${D.vendoo.statut === 'actif' ? 'Actif jusqu’au ' + esc(D.vendoo.expire || '') + ' (' + D.vendoo.jours + ' j)' : D.vendoo.statut === 'grace' ? 'Terminé : coupure dans ' + D.vendoo.grace + ' j' : esc(D.vendoo.statut || '')}</p></div><a class="chip" style="background:#5B2EE6;border-color:#5B2EE6" href="${PAYER}" target="_blank" rel="noopener">Gérer</a></div>` : ''}
+      ${VENDOO && D.vendoo && D.vendoo.statut !== 'proprietaire' ? `<div class="set"><div><b>Mon abonnement Vendoo</b><p>${D.vendoo.statut === 'essai' ? 'Essai gratuit jusqu’au ' + esc(D.vendoo.expire || '') + ' (' + D.vendoo.jours + ' j)' : D.vendoo.statut === 'actif' ? 'Actif jusqu’au ' + esc(D.vendoo.expire || '') + ' (' + D.vendoo.jours + ' j)' : D.vendoo.statut === 'grace' ? 'Terminé : coupure dans ' + D.vendoo.grace + ' j' : esc(D.vendoo.statut || '')}</p></div><a class="chip" style="background:#5B2EE6;border-color:#5B2EE6" href="${PAYER}" target="_blank" rel="noopener">Gérer</a></div>` : ''}
       <div class="set"><div><b>Mes boutiques${VENDOO ? '' : ' (Vendoo)'}</b><p>Jusqu'à 30 boutiques : une par agence ou par pays. Chacune a ses produits, ses commandes et son lien.</p></div><button class="chip" style="background:var(--main);border-color:var(--main)" id="bqSet">Ouvrir</button></div>
       <div class="set"><div><b>Son des nouvelles commandes</b><p>Un « ding » à chaque commande, quand l'application est ouverte.</p></div><button class="switch ${sound?'on':''}" id="sw" role="switch" aria-checked="${sound}" aria-label="Son des nouvelles commandes"></button></div>
       <div class="set"><div><b>Tester le son</b><p>Vérifie que le volume de ton téléphone est assez fort.</p></div><button class="chip" style="background:var(--surface);color:var(--ink);border-color:var(--line)" id="test">Écouter</button></div>
