@@ -2553,6 +2553,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
     app.innerHTML = `<div class="page"><h1>Réglages</h1>
       ${D.vendoo && D.vendoo.statut === 'proprietaire' ? `<div class="set"><div><b>Vendoo – abonnés et paiements</b><p>Valider les paiements MoMo, voir les abonnés, codes promo.</p></div><button class="chip" style="background:#5B2EE6;border-color:#5B2EE6" id="vAdm">Ouvrir</button></div>` : ''}
       ${VENDOO && D.vendoo && D.vendoo.statut !== 'proprietaire' ? `<div class="set"><div><b>Mon abonnement Vendoo</b><p>${D.vendoo.statut === 'essai' ? 'Essai gratuit jusqu’au ' + esc(D.vendoo.expire || '') + ' (' + D.vendoo.jours + ' j)' : D.vendoo.statut === 'actif' ? 'Actif jusqu’au ' + esc(D.vendoo.expire || '') + ' (' + D.vendoo.jours + ' j)' : D.vendoo.statut === 'grace' ? 'Terminé : coupure dans ' + D.vendoo.grace + ' j' : esc(D.vendoo.statut || '')}</p></div><a class="chip" style="background:#5B2EE6;border-color:#5B2EE6" href="${PAYER}" target="_blank" rel="noopener">Gérer</a></div>` : ''}
+      <div class="set"><div><b>🚚 Agences de livraison</b><p>L’e-mail de l’agence qui reçoit les commandes de chaque pays : l’ajouter, le changer ou le retirer.</p></div><button class="chip" style="background:var(--main);border-color:var(--main)" id="agSet">Ouvrir</button></div>
       <div class="set"><div><b>💰 Point hebdomadaire</b><p>Ce que l’agence te verse, tes pubs, tes abonnements, tes achats : ton bénéfice net de la semaine.</p></div><button class="chip" style="background:var(--main);border-color:var(--main)" id="ptSet">Ouvrir</button></div>
       <div class="set"><div><b>Mes boutiques${VENDOO ? '' : ' (Vendoo)'}</b><p>Jusqu'à 30 boutiques : une par agence ou par pays. Chacune a ses produits, ses commandes et son lien.</p></div><button class="chip" style="background:var(--main);border-color:var(--main)" id="bqSet">Ouvrir</button></div>
       <div class="set"><div><b>Son des nouvelles commandes</b><p>Un « ding » à chaque commande, quand l'application est ouverte.</p></div><button class="switch ${sound?'on':''}" id="sw" role="switch" aria-checked="${sound}" aria-label="Son des nouvelles commandes"></button></div>
@@ -2573,6 +2574,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
     document.getElementById('out').onclick = () => logout();
     document.getElementById('bqSet').onclick = () => mesBoutiques();
     document.getElementById('ptSet').onclick = () => pointHebdo();
+    document.getElementById('agSet').onclick = () => { const ov = document.createElement('div'); ov.className = 'overlay'; ov.onclick = e => { if (e.target === ov) ov.remove(); }; document.body.appendChild(ov); agences(ov, BQ, (D && D.boutique) || 'Ma boutique', () => ov.remove()); };
     const va = document.getElementById('vAdm'); if (va) va.onclick = () => vendooAdmin();
     app.querySelectorAll('[data-go2]').forEach(b => b.onclick = () => go(b.dataset.go2));
     document.getElementById('testPush').onclick = async e => {
