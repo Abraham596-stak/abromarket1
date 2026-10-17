@@ -20,13 +20,13 @@
 <script>window.OneSignalDeferred = window.OneSignalDeferred || [];</script>
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 <script>
-const API_ABRO = "https://script.google.com/macros/s/AKfycbwgdtcXlXB9niD3hactnz4SLIrpY_q74iQQZwkr1vrUBjczfCCVWwamG69uqnUQZsba/exec";
-// Vendoo : chaque abonné ouvre l'application avec ?api=<son lien Apps Script> (gardé sur le téléphone)
-const API = (() => { let a = ''; try { const u = new URLSearchParams(location.search).get('api');
-  if (u === 'abro') localStorage.removeItem('vendoo_api');
-  else if (u && /^https:\/\/script\.google\.com\/macros\/s\/[\w-]{20,}\/exec$/.test(u)) localStorage.setItem('vendoo_api', u);
-  a = localStorage.getItem('vendoo_api') || ''; } catch(e){} return a || API_ABRO; })();
-const VENDOO = API !== API_ABRO;
+const API = "https://script.google.com/macros/s/AKfycbwgdtcXlXB9niD3hactnz4SLIrpY_q74iQQZwkr1vrUBjczfCCVWwamG69uqnUQZsba/exec";
+// Vendoo : un abonné ouvre l'application avec ?vendoo=<son id> (gardé sur le téléphone ; ?vendoo=abro = revenir à ABROMARKET)
+const VID = (() => { let v = ''; try { const u = new URLSearchParams(location.search).get('vendoo');
+  if (u === 'abro') localStorage.removeItem('vendoo_v');
+  else if (u && /^[a-f0-9]{10,16}$/.test(u)) localStorage.setItem('vendoo_v', u);
+  v = localStorage.getItem('vendoo_v') || ''; } catch(e){} return v; })();
+const VENDOO = !!VID;
 const SITE = "https://abraham596-stak.github.io/abromarket1/boutique/";
 if (VENDOO){
   document.title = 'Vendoo';
@@ -562,16 +562,18 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
 (function(){
   const app = document.getElementById('app'), nav = document.getElementById('nav');
   // Boutique en cours (Vendoo) : '' = boutique principale ; chaque boutique garde ses propres données sur le téléphone
+  // Abonné Vendoo : tout ce qui est gardé sur le téléphone est séparé de celui du propriétaire
+  const K_B = VID ? 'adm_b_v' + VID : 'adm_b', K_BQS = VID ? 'adm_bqs_v' + VID : 'adm_bqs';
   const BQ = (() => {
     const u = new URLSearchParams(location.search); let b = u.get('b');
     if (b === null && u.get('cmd')) b = '';
-    try { if (b !== null) localStorage.setItem('adm_b', b); else b = localStorage.getItem('adm_b') || ''; } catch(e){ b = b || ''; }
+    try { if (b !== null) localStorage.setItem(K_B, b); else b = localStorage.getItem(K_B) || ''; } catch(e){ b = b || ''; }
     return String(b || '').toLowerCase().replace(/[^a-z0-9-]/g, '');
   })();
-  const cleS = k => BQ && !/^adm_(key|affichage|sound|b|apvue)$/.test(k) ? k.replace(/^adm_/, 'adm_' + BQ + '_') : k;
+  const cleS = k => { let p = VID && !/^adm_(affichage|sound|apvue)$/.test(k) ? 'v' + VID + '_' : ''; if (BQ && !/^adm_(key|affichage|sound|b|apvue)$/.test(k)) p += BQ + '_'; return p ? k.replace(/^adm_/, 'adm_' + p) : k; };
   const S = { get(k){ try{return localStorage.getItem(cleS(k))}catch(e){return null} }, set(k,v){ try{localStorage.setItem(cleS(k),v)}catch(e){} }, del(k){ try{localStorage.removeItem(cleS(k))}catch(e){} } };
   // Abonné Vendoo : ses sites sont à ?v=<son id>
-  const vId = () => { if (!VENDOO) return ''; const v = D && D.vendoo && D.vendoo.id; if (v){ try { localStorage.setItem('vendoo_id', v); } catch(e){} return v; } try { return localStorage.getItem('vendoo_id') || ''; } catch(e){ return ''; } };
+  const vId = () => VID;
   const siteDe = (code, qs) => { const p = []; if (vId()) p.push('v=' + vId()); if (code) p.push('b=' + code); if (qs) p.push(qs); return SITE + (p.length ? '?' + p.join('&') : ''); };
   const lienSite = qs => siteDe(BQ, qs);
   const fichierData = () => VENDOO ? 'data/v-' + vId() + (BQ ? '-' + BQ : '') + '.json' : (BQ ? 'data/' + BQ + '.json' : 'data.json');
@@ -678,8 +680,8 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
   }
 
   /* ---------- Mes boutiques (Vendoo) : passer de l'une à l'autre, en créer une nouvelle ---------- */
-  let BQS = null; try { BQS = JSON.parse(localStorage.getItem('adm_bqs') || 'null'); } catch(e){}
-  function ouvrirBoutique(code){ try { localStorage.setItem('adm_b', code || ''); } catch(e){} location.href = location.pathname + (code ? '?b=' + encodeURIComponent(code) : '?b='); }
+  let BQS = null; try { BQS = JSON.parse(localStorage.getItem(K_BQS) || 'null'); } catch(e){}
+  function ouvrirBoutique(code){ try { localStorage.setItem(K_B, code || ''); } catch(e){} location.href = location.pathname + (code ? '?b=' + encodeURIComponent(code) : '?b='); }
   async function mesBoutiques(){
     const ov = document.createElement('div'); ov.className = 'overlay';
     const dessiner = msg => {
@@ -702,9 +704,9 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
         if (!(await confirmer({titre: 'Supprimer cette boutique ?', texte: `Tu vas supprimer <b>« ${esc(b.dataset.bn)} »</b> : son site, ses produits, ses commandes et le fichier de son agence.<br><br>Son Google Sheets part dans la <b>corbeille de ton Google Drive</b> (récupérable pendant 30 jours). Le lien de son site ne marchera plus.`, ok: 'Oui, supprimer la boutique'}))) return;
         b.disabled = true; b.textContent = 'Suppression…';
         try {
-          const r = await fetch(API, {method: 'POST', body: JSON.stringify({type: 'boutiques', action: 'supprimer', key, code})}); const j = await r.json(); if (!j.ok) throw new Error(j.erreur);
+          const r = await fetch(API, {method: 'POST', body: JSON.stringify({type: 'boutiques', action: 'supprimer', key, code, v: VID})}); const j = await r.json(); if (!j.ok) throw new Error(j.erreur);
           if (BQS) BQS.boutiques = BQS.boutiques.filter(x => x.code !== code);
-          try { localStorage.setItem('adm_bqs', JSON.stringify(BQS)); Object.keys(localStorage).filter(k => k.indexOf('adm_' + code + '_') === 0).forEach(k => localStorage.removeItem(k)); } catch(e){}
+          try { localStorage.setItem(K_BQS, JSON.stringify(BQS)); Object.keys(localStorage).filter(k => k.indexOf('adm_' + code + '_') === 0).forEach(k => localStorage.removeItem(k)); } catch(e){}
           if (code === BQ) { ouvrirBoutique(''); return; }
           dessiner('🗑 Boutique supprimée.');
         } catch(e){ b.disabled = false; b.textContent = '🗑 Supprimer'; alert('Suppression impossible : ' + e.message); }
@@ -712,8 +714,8 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
     };
     ov.onclick = e => { if (e.target === ov) ov.remove(); };
     document.body.appendChild(ov); dessiner();
-    try { const r = await fetch(API, {method: 'POST', body: JSON.stringify({type: 'boutiques', key})}); const j = await r.json(); if (!j.ok) throw new Error(j.erreur);
-      BQS = j; try { localStorage.setItem('adm_bqs', JSON.stringify(j)); } catch(e){} if (ov.isConnected) dessiner(); }
+    try { const r = await fetch(API, {method: 'POST', body: JSON.stringify({type: 'boutiques', key, v: VID})}); const j = await r.json(); if (!j.ok) throw new Error(j.erreur);
+      BQS = j; try { localStorage.setItem(K_BQS, JSON.stringify(j)); } catch(e){} if (ov.isConnected) dessiner(); }
     catch(e){ if (ov.isConnected && !BQS) dessiner('Impossible de charger tes boutiques : ' + esc(/introuvable|inconnu/i.test(e.message) ? 'mets à jour le code Apps Script (Code.gs).' : e.message)); }
   }
   /* ---------- Vendoo : panneau du propriétaire (paiements MoMo, abonnés, codes promo) ---------- */
@@ -768,6 +770,8 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
     const pays = (BQS && BQS.paysListe) || [];
     ov.innerHTML = `<div class="detail bqsheet" role="dialog" aria-modal="true" aria-label="Nouvelle boutique"><div class="grab"></div>
       <h2>Nouvelle boutique</h2><p class="sub">Elle fonctionne exactement comme ta boutique principale : site, application, commandes, relances, TikTok, WhatsApp.</p>
+      ${BQS && BQS.abonne ? `<div class="help" style="margin:4px 0 10px"><b>1.</b> <a href="https://sheets.new" target="_blank" rel="noopener">Crée un Google Sheets vide</a> dans ton Google.<br><b>2.</b> Appuie sur « Partager » et ajoute <b>${esc(BQS.partage)}</b> en « Éditeur ».<br><b>3.</b> Colle son lien ici : tes données restent dans ton Google.</div>
+      <label class="lbl" for="nbFi">Lien du Google Sheets de cette boutique</label><input class="field" id="nbFi" placeholder="https://docs.google.com/spreadsheets/d/…">` : ''}
       <label class="lbl" for="nbNom">Nom de la boutique</label><input class="field" id="nbNom" placeholder="Ex : ABROMARKET Togo">
       <label class="lbl">Pays de vente (l'agence de ce pays recevra les commandes)</label>
       <div class="pchips" id="nbPays">${pays.map(p => `<label class="pchip"><input type="checkbox" value="${esc(p.code)}"><span>${esc(p.nom)}</span></label>`).join('')}</div>
@@ -786,10 +790,10 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
       if (!codes.length){ alert('Choisis au moins un pays de vente.'); return; }
       b.disabled = true; b.textContent = 'Création en cours… (environ 30 secondes)';
       try {
-        const r = await fetch(API, {method: 'POST', body: JSON.stringify({type: 'boutiques', action: 'creer', key, nom, pays: codes.join(','), agence: ov.querySelector('#nbAg').value.trim(),
+        const r = await fetch(API, {method: 'POST', body: JSON.stringify({type: 'boutiques', action: 'creer', key, v: VID, fichier: (ov.querySelector('#nbFi') || {}).value || '', nom, pays: codes.join(','), agence: ov.querySelector('#nbAg').value.trim(),
           whatsapp: ov.querySelector('#nbWa').value.trim(), email: ov.querySelector('#nbMail').value.trim(), prefixe: ov.querySelector('#nbPre').value.trim(), copier: ov.querySelector('#nbCop').checked})});
         const j = await r.json(); if (!j.ok) throw new Error(j.erreur || 'Erreur');
-        BQS = null; try { localStorage.removeItem('adm_bqs'); } catch(x){}
+        BQS = null; try { localStorage.removeItem(K_BQS); } catch(x){}
         ov.innerHTML = `<div class="detail bqsheet"><div class="grab"></div><h2>✅ Boutique créée</h2>
           <p class="sub"><b>${esc(j.nom)}</b> est prête. Son site sera en ligne dans 10 minutes environ.</p>
           <div class="linkbox">${esc(siteDe(j.code))}</div>
@@ -805,7 +809,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
 
   /* ---------- Échanges avec le Google Sheets ---------- */
   async function call(body){
-    const r = await fetch(API, {method:'POST', body: JSON.stringify(Object.assign({key, b: BQ}, body))});
+    const r = await fetch(API, {method:'POST', body: JSON.stringify(Object.assign({key, b: BQ, v: VID}, body))});
     const j = await r.json();
     if (!j.ok && j.erreur === 'VENDOO_BLOQUE'){ vendooBloque(j.vendoo || {}); throw new Error('VENDOO_BLOQUE'); }
     if (!j.ok) throw new Error(j.erreur || 'Erreur');
@@ -1409,6 +1413,8 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
         if ('Notification' in window && Notification.permission === 'granted' && !OneSignal.User.PushSubscription.optedIn){
           try { await OneSignal.User.PushSubscription.optIn(); } catch(x){}
         }
+        // Étiquette du téléphone : les notifications de l'abonné ne vont qu'à ses téléphones
+        try { if (VENDOO) OneSignal.User.addTag('vendoo', VID); else OneSignal.User.removeTag('vendoo'); } catch(x){}
         pushOn = !!(OneSignal.Notifications.permission && OneSignal.User.PushSubscription.optedIn); osFini = true;
         OneSignal.User.PushSubscription.addEventListener('change', () => { pushOn = !!OneSignal.User.PushSubscription.optedIn; if (view === 'home' || view === 'settings') render(); });
         osOk(true);
@@ -1427,6 +1433,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
     try {
       await OneSignal.Notifications.requestPermission();
       await OneSignal.User.PushSubscription.optIn();
+      try { if (VENDOO) OneSignal.User.addTag('vendoo', VID); } catch(x){}
     } catch(e){ alert("Erreur : " + ((e && e.message) || e)); }
     pushOn = !!(OneSignal.Notifications.permission && OneSignal.User.PushSubscription.optedIn);
     if (!pushOn && 'Notification' in window && Notification.permission === 'denied') alert("Les notifications sont bloquées pour ce site. Dans Chrome : ⋮ → Paramètres → Paramètres des sites → Notifications → autorise abraham596-stak.github.io.");

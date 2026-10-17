@@ -101,14 +101,14 @@ jobs:
               abonnes = []
               print('liste Vendoo indisponible :', e)
           for ab in abonnes:
-              vid, api = re.sub(r'[^a-f0-9]', '', ab.get('id', ''))[:16], ab.get('api', '')
-              if not vid or not re.match(r'^https://script\.google\.com/macros/s/[\w-]+/exec$', api): continue
+              vid = re.sub(r'[^a-f0-9]', '', ab.get('id', ''))[:16]
+              if not vid: continue
               if time.time() - debut > 300:
                   print('temps écoulé, abonnés restants au prochain passage')
                   garder('v-' + vid + '.json'); garder('v-' + vid + '-')
                   continue
               try:
-                  sous = [''] + json.loads(lire(api + '?liste=1')).get('boutiques', [])
+                  sous = [''] + json.loads(lire(API + '?v=' + vid + '&liste=1')).get('boutiques', [])
               except Exception as e:
                   print('abonné ignoré :', vid, e)
                   garder('v-' + vid + '.json'); garder('v-' + vid + '-')
@@ -116,14 +116,13 @@ jobs:
               for code in sous:
                   nom = 'v-' + vid + ('-' + code if code else '') + '.json'
                   try:
-                      d = json.loads(lire(api + ('?b=' + code if code else '')))
+                      d = json.loads(lire(API + '?v=' + vid + ('&b=' + code if code else '')))
                       assert isinstance(d.get('produits'), list), 'réponse invalide'
                   except Exception as e:
                       print('boutique ignorée :', nom, e)
                       garder(nom)
                       continue
                   d.pop('maj', None)
-                  d['api'] = api
                   gardees |= optimiser(d)
                   json.dump(d, open('boutique/data/' + nom, 'w'), ensure_ascii=False, separators=(',', ':'), sort_keys=True)
                   ecrits.add(nom)

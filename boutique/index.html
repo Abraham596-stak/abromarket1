@@ -21,9 +21,9 @@
    « Application Web » Google Apps Script (elle finit par /exec)
    ===================================================================== */
 var API = "https://script.google.com/macros/s/AKfycbwgdtcXlXB9niD3hactnz4SLIrpY_q74iQQZwkr1vrUBjczfCCVWwamG69uqnUQZsba/exec";
-// Boutique d'un abonné Vendoo : ?v=<id> (son lien Apps Script est lu dans data/v-<id>.json)
+// Boutique d'un abonné Vendoo : ?v=<id> (même serveur, ses données à lui)
 var VID = (new URLSearchParams(location.search).get('v') || '').toLowerCase().replace(/[^a-f0-9]/g, '').slice(0, 16);
-if (VID){ API = ''; document.querySelectorAll('link[rel=icon]').forEach(l => l.remove()); }
+if (VID) document.querySelectorAll('link[rel=icon]').forEach(l => l.remove());
 </script>
 <style>
 :root{--main:#1736A6;--sun:#FFC93C;--ink:#141A2E;--soft:#5A6178;--line:#E3E6EF;--bg:#FFFFFF;--surface:#F3F5FB;--ok:#128C4A;--err:#C62828}
@@ -274,7 +274,7 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
   const params = new URLSearchParams(location.search);
   // Plusieurs boutiques (Vendoo) : ?b=code ; sans code = boutique principale (liens de pub inchangés)
   const BQ = (params.get('b') || '').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 40);
-  const avecB = body => BQ ? String(body).replace(/^\{/, '{"b":"' + BQ + '",') : body;
+  const avecB = body => { let b = String(body); if (BQ) b = b.replace(/^\{/, '{"b":"' + BQ + '",'); if (VID) b = b.replace(/^\{/, '{"v":"' + VID + '",'); return b; };
   const PV = (VID ? 'v=' + VID + '&' : '') + (BQ ? 'b=' + BQ + '&' : '');
   const QS = '?' + PV;
   const ACCUEIL = PV ? './?' + PV.slice(0, -1) : './';
@@ -847,7 +847,7 @@ Heure de la livraison : ${r.livraison}`;
 
   let liveDone = false;
   async function load(){
-    if (!VID && !/^https:\/\/script\.google(usercontent)?\.com\//.test(API)){
+    if (!/^https:\/\/script\.google(usercontent)?\.com\//.test(API)){
       app.innerHTML = '<div class="empty">⚠️ Colle l\'URL de ton Application Web Google Apps Script dans la ligne <b>const API</b> en haut du fichier index.html.</div>';
       return;
     }
@@ -867,7 +867,6 @@ Heure de la livraison : ${r.livraison}`;
     const use = (fresh, save) => {
       if (fresh && fresh.indisponible){ indispo = true; D = null; try { localStorage.removeItem(K_DATA); } catch(e){} app.innerHTML = '<div class="empty">Cette boutique est momentanément indisponible.</div>'; return; }
       if (!fresh || !fresh.produits) return;
-      if (VID && fresh.api && !API) API = fresh.api;
       if (fresh.imgs){ Object.assign(IMG, fresh.imgs); try { localStorage.setItem('imgs', JSON.stringify(IMG)); } catch(e){} }
       if (save) store.set(K_DATA, JSON.stringify(fresh));
       if (D && same(D, fresh)) return;
@@ -881,9 +880,7 @@ Heure de la livraison : ${r.livraison}`;
     let liveOk = false, indispo = false;
     const fichier = VID ? 'data/v-' + VID + (BQ ? '-' + BQ : '') + '.json' : BQ ? 'data/' + BQ + '.json' : 'data.json';
     const snap = fetch(fichier, {cache: 'no-cache'}).then(r => r.ok ? r.json() : null).then(j => { if (!j && VID) indispo = true; if (!liveOk) use(j); }).catch(() => {});
-    // Abonné Vendoo : on attend la copie pour connaître son lien Apps Script
-    if (VID){ await snap; if (!API){ app.innerHTML = '<div class="empty">' + (indispo ? 'Cette boutique est momentanément indisponible.' : 'Impossible de charger la boutique. Vérifiez votre connexion et actualisez la page.') + '</div>'; return; } }
-    const live = fetch(API + (API.includes('?') ? '&' : '?') + (BQ ? 'b=' + BQ + '&' : '') + 't=' + Date.now()).then(r => r.json()).then(j => { liveOk = true; use(j, true); }).catch(() => {})
+    const live = fetch(API + (API.includes('?') ? '&' : '?') + (VID ? 'v=' + VID + '&' : '') + (BQ ? 'b=' + BQ + '&' : '') + 't=' + Date.now()).then(r => r.json()).then(j => { liveOk = true; use(j, true); }).catch(() => {})
       .finally(() => { liveDone = true; if (D && shown && pid && !D.produits.some(x => x.id === pid)) render(); });
     await Promise.race([live, snap.then(() => D ? null : live)]);
     if (!D) await live;
