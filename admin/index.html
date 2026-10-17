@@ -91,6 +91,8 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
 .nav,.toast,.sync,.savebadge,.vueflot{will-change:transform}
 html{-webkit-text-size-adjust:100%}
 body{touch-action:manipulation}
+button,.btn,.chip,.nav button,.order,.prod{transition:transform .08s ease}
+button:active,.btn:active,.chip:active,.order:active,.prod:active{transform:scale(.97)}
 
 .chart{margin-top:10px;height:200px;position:relative}
 .chart svg{width:100%;height:100%;display:block;overflow:visible}
@@ -204,6 +206,12 @@ select.st{width:100%;padding:14px;border-radius:14px;border:2px solid var(--line
 .toast .e{font-size:30px}
 .toast b{display:block;font:800 18px "Bricolage Grotesque",sans-serif}
 .loading{color:var(--onDeepSoft);text-align:center;padding:40px}
+.ptr{position:fixed;top:calc(74px + env(safe-area-inset-top));left:50%;z-index:900;width:42px;height:42px;border-radius:50%;background:#fff;color:var(--main);display:grid;place-items:center;box-shadow:0 4px 16px rgba(0,0,0,.18);transform:translate(-50%,-70px);opacity:0;transition:transform .2s ease,opacity .2s ease;pointer-events:none}
+.ptr.vu{opacity:1;transform:translate(-50%,0)}
+.ptr.tire{transition:none}
+.ptr svg{width:22px;height:22px}
+.ptr.tourne svg{animation:ptr .7s linear infinite}
+@keyframes ptr{to{transform:rotate(360deg)}}
 .sync{position:fixed;top:calc(8px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);background:rgba(255,255,255,.14);color:#fff;font-size:12px;font-weight:600;padding:4px 10px;border-radius:999px;z-index:20}
 .pushban{display:flex;gap:12px;align-items:center;width:100%;text-align:left;margin-top:14px;background:var(--sun);color:var(--deep);border-radius:16px;padding:12px 14px;font-weight:600}
 .pushban b{display:block;font-size:15px}
@@ -589,8 +597,9 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
 </head>
 <body>
 <!-- Écran de démarrage : logo seul au centre, fond blanc (comme Shopify) -->
-<div id="demarrage" style="position:fixed;inset:0;z-index:999;background:#fff;display:flex;align-items:center;justify-content:center;transition:opacity .25s"><img src="logo-v3-192.png" alt="" width="132" height="132" id="demLogo"></div>
+<div id="demarrage" style="position:fixed;inset:0;z-index:999;background:#fff;display:flex;align-items:center;justify-content:center;transition:opacity .15s"><img src="logo-v3-192.png" alt="" width="132" height="132" id="demLogo"></div>
 <script>if (VENDOO) document.getElementById('demLogo').src = '../vendoo/icon-192.png';</script>
+<div class="ptr" id="ptr" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 3a9 9 0 1 1-9 9"/></svg></div>
 <div class="vband hidden" id="vband" role="status"></div>
 <div class="app" id="app"></div>
 <nav class="nav hidden" id="nav" aria-label="Navigation">
@@ -964,7 +973,30 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
     const essai = () => { if (!calme()) return setTimeout(essai, 250); rendreEnAttente = false; render(); };
     setTimeout(essai, 250);
   }
-  function setBusy(on){ const el = document.getElementById('sync'); if (el) el.classList.toggle('hidden', !on); }
+  // Petit cercle qui tourne en haut (comme Shopify) : seulement si la mise à jour prend plus de 0,3 s
+  let tBusy;
+  function setBusy(on){
+    const el = document.getElementById('ptr'); if (!el) return;
+    clearTimeout(tBusy);
+    if (on){ if (!el.classList.contains('tire')) tBusy = setTimeout(() => el.classList.add('vu', 'tourne'), 300); }
+    else { el.classList.remove('vu', 'tourne', 'tire'); el.style.transform = ''; }
+  }
+  // Tirer vers le bas pour actualiser (comme Shopify)
+  (() => {
+    const el = document.getElementById('ptr'); let y0 = null, d = 0;
+    addEventListener('touchstart', e => { y0 = (scrollY <= 0 && !document.querySelector('.overlay, .editor, .iapan, .cfov, .gv') && key) ? e.touches[0].clientY : null; d = 0; }, {passive: true});
+    addEventListener('touchmove', e => {
+      if (y0 === null) return; d = e.touches[0].clientY - y0;
+      if (d <= 0){ el.classList.remove('tire', 'vu'); el.style.transform = ''; return; }
+      const t = Math.min(90, d * 0.5);
+      el.classList.add('tire', 'vu'); el.style.transform = `translate(-50%, ${t}px) rotate(${d * 2}deg)`; el.style.opacity = Math.min(1, d / 80);
+    }, {passive: true});
+    addEventListener('touchend', () => {
+      if (y0 === null) return; y0 = null; el.style.opacity = '';
+      if (d > 120){ el.classList.remove('tire'); el.style.transform = ''; el.classList.add('vu', 'tourne'); busy = false; refresh().finally(() => setBusy(false)); if (view === 'tiktok') loadTT(); }
+      else { el.classList.remove('tire', 'vu'); el.style.transform = ''; }
+    }, {passive: true});
+  })();
   function fromCache(p){ try { const c = S.get('adm_dash_' + p); return c ? JSON.parse(c) : null; } catch(e){ return null; } }
   let opened = false;
   function openFromLink(){
@@ -976,7 +1008,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
     clearTimeout(timer);
     timer = setTimeout(async () => { if (view === 'tiktok') loadTT(); await refresh(true); schedule(); }, document.visibilityState === 'visible' ? 15000 : 60000);
   }
-  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && key){ refresh(true); schedule(); } });
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && key){ setBusy(true); refresh(true); schedule(); } });
 
   /* ---------- Connexion ---------- */
   function login(msg){
@@ -1007,7 +1039,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
     if (demarre) return; demarre = true;
     const d = document.getElementById('demarrage'), t0 = performance.now();
     setTimeout(() => { const m = document.getElementById('couleurBarre'); if (m) m.content = '#12308F';
-      if (d){ d.style.opacity = '0'; setTimeout(() => d.remove(), 260); } }, Math.max(0, 700 - t0));
+      if (d){ d.style.opacity = '0'; setTimeout(() => d.remove(), 160); } }, Math.max(0, 250 - t0));
   }
   function render(){
     if (D || view === 'products' || view === 'tiktok' || view === 'apercu') finDemarrage();
@@ -1091,7 +1123,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
           <button class="store" id="bqBtn" aria-label="Changer de boutique"><img class="brandlogo" src="icon-192.png" alt="" aria-hidden="true"><span class="stn">${esc(D.boutique || 'Ma boutique')}</span><span class="stv">▾</span></button>
           <button class="iconbtn ${sound ? '' : 'off'}" id="snd" aria-label="${sound ? 'Couper le son' : 'Activer le son'}">${sound ? '🔔' : '🔕'}</button>
         </div>
-        <div class="sync hidden" id="sync">Mise à jour…</div>
+
         ${pushBanner()}
         <div class="kpis" role="tablist">
           <button class="kpi dvgo" data-go="direct"><small>En direct</small><b><span class="pulse"></span>${D.live}</b></button>
@@ -1385,10 +1417,10 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
   // Ordre des commandes affichées : sert à passer de l'une à l'autre en glissant (comme Shopify)
   let listeDetail = [];
   function bindOrders(){
-    const bs = [...app.querySelectorAll('[data-num]')];
-    listeDetail = bs.map(b => b.dataset.num);
-    bs.forEach(b => b.onclick = () => detail(b.dataset.num));
+    listeDetail = [...app.querySelectorAll('[data-num]')].map(b => b.dataset.num);
   }
+  // Un seul écouteur pour toutes les commandes (plus rapide qu'un par ligne)
+  app.addEventListener('click', e => { const b = e.target.closest('[data-num]'); if (b && app.contains(b)) detail(b.dataset.num); });
   // Numéro au format international avec espaces (+225 07 09 58 09 24) : WhatsApp le rend cliquable
   function telJoli(t){
     const d = String(t || '').replace(/\D/g, ''); if (!d) return '';
@@ -1396,19 +1428,33 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
     const reste = d.slice(cc);
     return '+' + d.slice(0, cc) + ' ' + (reste.match(/.{1,2}/g) || []).join(' ');
   }
+  function listeCommandes(){
+    const qq = q.toLowerCase();
+    return D.commandes.filter(o => (filtre === 'Toutes' || o.statut === filtre) &&
+      (!qq || (o.numero + ' ' + o.nom + ' ' + o.tel + ' ' + o.produit + ' ' + o.pays).toLowerCase().includes(qq)));
+  }
+  let rendCmd = 0;
+  // Affiche tout de suite les 30 premières commandes, le reste juste après (l'écran ne bloque jamais)
+  function remplirCommandes(){
+    const box = document.getElementById('olist'); if (!box) return;
+    const list = listeCommandes(), id = ++rendCmd;
+    let last = '';
+    const bloc = (a, b) => { let h = ''; for (let k = a; k < b && k < list.length; k++){ const o = list[k]; if (o.date !== last){ last = o.date; h += `<div class="daysep">${esc(dayName(o.date))}</div>`; } h += orderRow(o); } return h; };
+    box.innerHTML = list.length ? bloc(0, 30) : `<div class="empty">Aucune commande ici.</div>`;
+    listeDetail = list.map(o => o.numero);
+    let n = 30;
+    const suite = () => { if (id !== rendCmd || n >= list.length || !box.isConnected) return; box.insertAdjacentHTML('beforeend', bloc(n, n + 60)); n += 60; (window.requestIdleCallback || setTimeout)(suite); };
+    (window.requestIdleCallback || setTimeout)(suite);
+  }
   function orders(){
-    const list = D.commandes.filter(o => (filtre === 'Toutes' || o.statut === filtre) &&
-      (!q || (o.numero + ' ' + o.nom + ' ' + o.tel + ' ' + o.produit + ' ' + o.pays).toLowerCase().includes(q.toLowerCase())));
-    let html = '', last = '';
-    list.forEach(o => { if (o.date !== last){ last = o.date; html += `<div class="daysep">${esc(dayName(o.date))}</div>`; } html += orderRow(o); });
     app.innerHTML = `<div class="page"><h1>Commandes</h1>
       <input class="search" id="q" type="search" placeholder="Rechercher un nom, un numéro…" value="${esc(q)}" aria-label="Rechercher">
       <div class="filters">${['Toutes','Nouvelle','À rappeler','Confirmée','En livraison','Livrée','Annulée','Injoignable'].map(f => `<button class="${f===filtre?'on':''}" data-f="${f}">${f === 'Nouvelle' ? 'À traiter' : f}</button>`).join('')}</div>
-      ${html || `<div class="empty">Aucune commande ici.</div>`}</div>`;
+      <div id="olist"></div></div>`;
+    remplirCommandes();
     const qi = document.getElementById('q');
-    qi.oninput = () => { q = qi.value; const pos = qi.selectionStart; orders(); const n = document.getElementById('q'); n.focus(); n.setSelectionRange(pos, pos); };
-    app.querySelectorAll('[data-f]').forEach(b => b.onclick = () => { filtre = b.dataset.f; orders(); });
-    bindOrders();
+    let tq; qi.oninput = () => { clearTimeout(tq); tq = setTimeout(() => { q = qi.value; remplirCommandes(); }, 120); };
+    app.querySelectorAll('[data-f]').forEach(b => b.onclick = () => { filtre = b.dataset.f; app.querySelectorAll('[data-f]').forEach(x => x.classList.toggle('on', x === b)); remplirCommandes(); });
   }
   function dayName(s){
     const [d, m, y] = s.split('/').map(Number); const dt = new Date(y, m-1, d), t = new Date(); t.setHours(0,0,0,0);
