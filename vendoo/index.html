@@ -116,6 +116,24 @@ footer{text-align:center;color:var(--soft);font-size:13px;padding:30px 0 40px}
   function occupe(btn, oui){ if (!btn) return; btn.disabled = oui; if (oui){ btn.dataset.t = btn.innerHTML; btn.innerHTML = '<span class="spin"></span>'; } else if (btn.dataset.t) btn.innerHTML = btn.dataset.t; }
   function message(el, txt, type){ el.innerHTML = txt ? `<div class="msg ${type || 'err'}">${txt}</div>` : ''; }
 
+  /* ------------ Téléphone : un seul essai gratuit par appareil ------------ */
+  // Identifiant gardé à 3 endroits (stockage, cookie, base locale) + empreinte de l'appareil
+  const idb = (op, v) => new Promise(ok => { try { const q = indexedDB.open('vendoo', 1); q.onupgradeneeded = () => q.result.createObjectStore('k');
+    q.onsuccess = () => { try { const t = q.result.transaction('k', op ? 'readwrite' : 'readonly').objectStore('k'); const g = op ? t.put(v, 'id') : t.get('id'); g.onsuccess = () => ok(g.result || ''); g.onerror = () => ok(''); } catch(e){ ok(''); } }; q.onerror = () => ok(''); } catch(e){ ok(''); } });
+  async function sha(t){ const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t)); return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join(''); }
+  async function appareil(){
+    let id = S.get('vendoo_app') || (document.cookie.match(/(?:^|; )vapp=([\w-]+)/) || [])[1] || await idb(0);
+    if (!id) id = (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2));
+    S.set('vendoo_app', id); document.cookie = 'vapp=' + id + '; max-age=315360000; path=/; SameSite=Lax'; idb(1, id);
+    const p = [screen.width + 'x' + screen.height, devicePixelRatio, navigator.hardwareConcurrency, navigator.deviceMemory, navigator.platform, navigator.maxTouchPoints,
+      Intl.DateTimeFormat().resolvedOptions().timeZone, (navigator.languages || []).join(',')];
+    try { const h = navigator.userAgentData && await navigator.userAgentData.getHighEntropyValues(['model', 'platformVersion']); if (h) p.push(h.model, h.platformVersion); } catch(e){}
+    try { const c = document.createElement('canvas'); c.width = 240; c.height = 60; const x = c.getContext('2d'); x.textBaseline = 'top'; x.font = '16px Arial'; x.fillStyle = '#f60'; x.fillRect(10, 10, 100, 30); x.fillStyle = '#069'; x.fillText('Vendoo ✓ 3 jours', 4, 18); x.strokeStyle = 'rgba(120,40,200,.7)'; x.arc(160, 30, 22, 0, 6); x.stroke(); p.push(c.toDataURL()); } catch(e){}
+    try { const g = document.createElement('canvas').getContext('webgl'); const d = g.getExtension('WEBGL_debug_renderer_info'); p.push(g.getParameter(d.UNMASKED_RENDERER_WEBGL), g.getParameter(d.UNMASKED_VENDOR_WEBGL)); } catch(e){}
+    let empreinte = ''; try { empreinte = await sha(p.join('|')); } catch(e){}
+    return {id, empreinte};
+  }
+
   /* ------------ Accueil ------------ */
   function accueil(){
     hBtn.textContent = jeton ? 'Mon compte' : 'Se connecter';
@@ -126,7 +144,7 @@ footer{text-align:center;color:var(--soft);font-size:13px;padding:30px 0 40px}
       <section class="hero">
         <h1>Ta boutique en ligne,<br><em>paiement à la livraison</em></h1>
         <p>Crée ton site, reçois tes commandes sur WhatsApp et gère tout depuis ton téléphone. Jusqu’à 30 boutiques sur un seul compte.</p>
-        <a class="btn" href="#inscription">Essayer gratuitement 7 jours</a>
+        <a class="btn" href="#inscription">Essayer gratuitement 3 jours</a>
         <p class="soft" style="margin-top:12px">Sans payer pour commencer · Tes données restent dans ton Google</p>
       </section>
       <div class="feat">
@@ -138,13 +156,13 @@ footer{text-align:center;color:var(--soft);font-size:13px;padding:30px 0 40px}
         <div><i>⭐</i><p style="margin:0"><b>Avis clients riches</b><span>Texte, captures WhatsApp, notes vocales et vidéos de tes clients.</span></p></div>
       </div>
       <h2>Tarifs</h2>
-      <p class="soft" style="margin-top:-4px">🎁 7 jours d’essai gratuit pour découvrir Vendoo. Ensuite, tu choisis ta formule.</p>
+      <p class="soft" style="margin-top:-4px">🎁 3 jours d’essai gratuit pour découvrir Vendoo. Ensuite, tu choisis ta formule.</p>
       <div class="prix">
         <div class="plan"><div class="soft">Mensuel</div><div class="p">${F(P.mois)} <small>/ mois</small></div><ul><li>Toutes les fonctions</li><li>30 boutiques</li><li>Prix réduit avec un code promo</li></ul></div>
         <div class="plan top">${eco > 0 ? `<span class="tag">${F(eco)} économisés</span>` : ''}<div class="soft">Annuel</div><div class="p">${F(P.an)} <small>/ an</small></div><ul><li>Toutes les fonctions</li><li>30 boutiques</li><li>Un seul paiement pour l’année</li></ul></div>
       </div>
       <div class="card"><h3>Comment ça marche ?</h3><ol class="etapes">
-        <li><b>Crée ton compte</b><span class="soft">Avec ton e-mail ou ton compte Google : 7 jours d’essai gratuit.</span></li>
+        <li><b>Crée ton compte</b><span class="soft">Avec ton e-mail ou ton compte Google : 3 jours d’essai gratuit.</span></li>
         <li><b>Installe ta boutique</b><span class="soft">Un Google Sheets à toi, partagé avec Vendoo : tes commandes restent chez toi.</span></li>
         <li><b>Vends</b><span class="soft">Ajoute tes produits depuis l’application et partage le lien de ta boutique.</span></li>
         <li><b>Abonne-toi</b><span class="soft">Par Mobile Money, quand tu es convaincu.</span></li>
@@ -161,7 +179,7 @@ footer{text-align:center;color:var(--soft);font-size:13px;padding:30px 0 40px}
         <div id="gzone" class="hidden"><div id="gbtn"></div><div class="ou">ou avec ton e-mail</div></div>
         <form id="f" autocomplete="on">
           ${mode === 'inscription' ? `<label for="nom">Ton nom</label><input class="field" id="nom" autocomplete="name" required>
-          <label for="tel">Ton numéro WhatsApp</label><input class="field" id="tel" type="tel" autocomplete="tel" inputmode="tel">` : ''}
+          <label for="tel">Ton numéro WhatsApp</label><input class="field" id="tel" type="tel" autocomplete="tel" inputmode="tel" required>` : ''}
           <label for="email">E-mail</label><input class="field" id="email" type="email" autocomplete="email" required>
           <label for="mdp">Mot de passe</label><input class="field" id="mdp" type="password" autocomplete="${mode === 'inscription' ? 'new-password' : 'current-password'}" minlength="6" required>
           <div id="m"></div>
@@ -174,7 +192,7 @@ footer{text-align:center;color:var(--soft);font-size:13px;padding:30px 0 40px}
     document.getElementById('f').onsubmit = async e => {
       e.preventDefault(); const btn = e.target.querySelector('.btn'); occupe(btn, true); message(m, '');
       const v = id => (document.getElementById(id) || {}).value || '';
-      try { connecte(await call({action: mode, email: v('email'), mdp: v('mdp'), nom: v('nom'), tel: v('tel')})); }
+      try { connecte(await call({action: mode, email: v('email'), mdp: v('mdp'), nom: v('nom'), tel: v('tel'), appareil: mode === 'inscription' ? await appareil() : undefined})); }
       catch(err){ message(m, esc(err.message)); occupe(btn, false); }
     };
     const ob = document.getElementById('oubli'); if (ob) ob.onclick = oubli;
@@ -185,7 +203,7 @@ footer{text-align:center;color:var(--soft);font-size:13px;padding:30px 0 40px}
       try {
         window.google.accounts.id.initialize({ client_id: clientId, callback: async r => {
           const m = document.getElementById('m'); message(m, 'Connexion…', 'ok');
-          try { connecte(await call({action: 'google', credential: r.credential})); } catch(err){ message(m, esc(err.message)); }
+          try { connecte(await call({action: 'google', credential: r.credential, appareil: await appareil()})); } catch(err){ message(m, esc(err.message)); }
         }});
         const z = document.getElementById('gbtn'); if (!z) return;
         window.google.accounts.id.renderButton(z, {theme: 'outline', size: 'large', text: 'continue_with', shape: 'pill', width: Math.min(360, z.offsetWidth || 320), locale: 'fr'});
@@ -226,7 +244,8 @@ footer{text-align:center;color:var(--soft);font-size:13px;padding:30px 0 40px}
     const c = compte; if (!c){ app.innerHTML = '<div class="card" style="margin-top:20px">Chargement…</div>'; return; }
     const P = CFG ? CFG.prix : null, enAttente = (c.paiements || []).find(p => /valider/i.test(p.statut));
     let alerte = '';
-    if (c.statut === 'attente') alerte = enAttente ? `<div class="msg ok">⏳ Paiement reçu, en cours de vérification. Ton abonnement sera activé très vite.</div>` : `<div class="msg warn">Paie ton abonnement pour activer tes boutiques.</div>`;
+    if (c.statut === 'attente' && c.essaiRefuse && !enAttente) alerte = `<div class="msg warn">Tu as déjà utilisé ton essai gratuit sur ce téléphone. Abonne-toi pour ouvrir tes boutiques.</div>`;
+    else if (c.statut === 'attente') alerte = enAttente ? `<div class="msg ok">⏳ Paiement reçu, en cours de vérification. Ton abonnement sera activé très vite.</div>` : `<div class="msg warn">Paie ton abonnement pour activer tes boutiques.</div>`;
     if (c.statut === 'actif' && c.alerte) alerte = `<div class="msg warn">⚠️ Ton abonnement se termine dans ${c.jours} jour${c.jours > 1 ? 's' : ''}. Renouvelle-le pour ne pas être coupé.</div>`;
     if (c.statut === 'grace') alerte = `<div class="msg warn">⚠️ Ton abonnement est terminé. Tes boutiques seront coupées dans ${c.grace} jour${c.grace > 1 ? 's' : ''}.</div>`;
     if (c.statut === 'essai') alerte = `<div class="msg ok">🎁 Ton essai gratuit se termine le ${esc(c.expire)}. Abonne-toi quand tu veux pour continuer ensuite${c.alerte ? ' : il ne reste que ' + c.jours + ' jour' + (c.jours > 1 ? 's' : '') : ''}.</div>`;
