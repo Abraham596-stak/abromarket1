@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Vendoo – Ta boutique en ligne, paiement à la livraison</title>
+<meta name="description" content="Crée jusqu’à 30 boutiques en ligne avec paiement à la livraison, commandes sur WhatsApp et application de gestion.">
+<meta name="theme-color" content="#5B2EE6">
+<link rel="icon" href="favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{--main:#5B2EE6;--main2:#4318C9;--ink:#14112B;--soft:#5E5A78;--line:#E6E2F5;--bg:#F6F4FF;--card:#fff;--ok:#12805C;--warn:#B45309;--bad:#B42318;--gold:#FFC53D}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--bg)}
+a{color:var(--main)}
+button,input,select{font:inherit}
+.wrap{max-width:560px;margin:0 auto;padding:0 16px}
+header{position:sticky;top:0;z-index:5;background:rgba(246,244,255,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+header .wrap{display:flex;align-items:center;justify-content:space-between;height:60px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:21px;letter-spacing:-.02em;text-decoration:none;color:var(--ink)}
+.brand img{width:34px;height:34px}
+.lnk{background:none;border:0;color:var(--main);font-weight:700;padding:8px;cursor:pointer}
+.hero{padding:40px 0 18px;text-align:center}
+.hero h1{font-size:34px;line-height:1.12;letter-spacing:-.03em;margin:0 0 12px}
+.hero h1 em{font-style:normal;color:var(--main)}
+.hero p{color:var(--soft);font-size:17px;margin:0 auto 22px;max-width:440px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:52px;border:0;border-radius:14px;background:var(--main);color:#fff;font-weight:800;font-size:17px;cursor:pointer;text-decoration:none;padding:0 18px}
+.btn:active{transform:scale(.99)}
+.btn.sec{background:#EEEAFE;color:var(--main2)}
+.btn.ghost{background:#fff;color:var(--ink);border:1.5px solid var(--line)}
+.btn[disabled]{opacity:.6}
+.feat{display:grid;gap:10px;margin:26px 0}
+.feat div{display:flex;gap:12px;align-items:flex-start;background:var(--card);border-radius:16px;padding:14px 16px;border:1px solid var(--line)}
+.feat b{display:block}
+.feat span{color:var(--soft);font-size:14px}
+.feat i{font-style:normal;font-size:22px;line-height:1.2}
+h2{font-size:24px;letter-spacing:-.02em;margin:34px 0 12px}
+.prix{display:grid;gap:12px}
+.plan{background:var(--card);border:1.5px solid var(--line);border-radius:18px;padding:18px;position:relative}
+.plan.top{border-color:var(--main);box-shadow:0 8px 28px rgba(91,46,230,.14)}
+.plan .tag{position:absolute;top:-11px;right:16px;background:var(--gold);color:#3A2A00;font-size:12px;font-weight:800;padding:3px 10px;border-radius:99px}
+.plan .p{font-size:30px;font-weight:800;letter-spacing:-.02em}
+.plan .p small{font-size:15px;color:var(--soft);font-weight:600}
+.plan ul{margin:8px 0 0;padding-left:18px;color:var(--soft);font-size:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;margin:14px 0}
+.card h3{margin:0 0 10px;font-size:18px}
+label{display:block;font-weight:700;font-size:14px;margin:12px 0 6px}
+.field{width:100%;min-height:50px;border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;background:#fff;color:var(--ink);outline:none}
+.field:focus{border-color:var(--main)}
+.tabs{display:grid;grid-template-columns:1fr 1fr;background:#EEEAFE;border-radius:14px;padding:4px;margin:20px 0 6px}
+.tabs button{border:0;background:none;border-radius:10px;min-height:44px;font-weight:800;color:var(--soft);cursor:pointer}
+.tabs button.on{background:#fff;color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.msg{border-radius:12px;padding:12px 14px;margin:12px 0;font-size:15px}
+.msg.err{background:#FEECEB;color:var(--bad)}
+.msg.ok{background:#E7F6EF;color:var(--ok)}
+.msg.warn{background:#FFF4E5;color:var(--warn)}
+.ou{display:flex;align-items:center;gap:10px;color:var(--soft);font-size:13px;margin:16px 0}
+.ou:before,.ou:after{content:"";flex:1;height:1px;background:var(--line)}
+#gbtn{display:flex;justify-content:center;min-height:44px}
+.statut{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.badge{font-size:13px;font-weight:800;padding:4px 10px;border-radius:99px;white-space:nowrap}
+.b-actif{background:#E7F6EF;color:var(--ok)}.b-grace,.b-attente{background:#FFF4E5;color:var(--warn)}.b-expire,.b-bloque{background:#FEECEB;color:var(--bad)}
+.gros{font-size:28px;font-weight:800;letter-spacing:-.02em;margin:6px 0 0}
+.soft{color:var(--soft);font-size:14px}
+.choix{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.choix label{margin:0;border:1.5px solid var(--line);border-radius:14px;padding:12px;cursor:pointer;font-weight:600}
+.choix input{accent-color:var(--main)}
+.choix label:has(input:checked){border-color:var(--main);background:#F3EFFF}
+.choix b{display:block;font-size:18px}
+.momo{background:#FFF8E1;border:1px dashed #E0B200;border-radius:14px;padding:14px;margin:12px 0}
+.momo .num{font-size:22px;font-weight:800;letter-spacing:.02em}
+.etapes{counter-reset:e;list-style:none;padding:0;margin:0}
+.etapes li{counter-increment:e;position:relative;padding:0 0 16px 42px}
+.etapes li:before{content:counter(e);position:absolute;left:0;top:0;width:28px;height:28px;border-radius:50%;background:var(--main);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:14px}
+.etapes>li>b{display:block}
+.etapes code{background:#F3EFFF;border-radius:6px;padding:1px 6px;font-size:14px}
+.row{display:flex;gap:10px}
+.row>*{flex:1}
+.hist{width:100%;border-collapse:collapse;font-size:14px}
+.hist td{padding:8px 0;border-top:1px solid var(--line)}
+.hist td:last-child{text-align:right}
+.copie{display:flex;gap:8px;align-items:center;background:#F3EFFF;border-radius:12px;padding:10px 12px;font-size:14px;word-break:break-all}
+.copie button{flex:0 0 auto}
+footer{text-align:center;color:var(--soft);font-size:13px;padding:30px 0 40px}
+.hidden{display:none!important}
+.spin{width:18px;height:18px;border:2.5px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:t .7s linear infinite}
+@keyframes t{to{transform:rotate(360deg)}}
+@media (min-width:700px){.hero h1{font-size:44px}.prix{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<header><div class="wrap"><a class="brand" href="#"><img src="icon-192.png" alt="">Vendoo</a><button class="lnk" id="hBtn">Se connecter</button></div></header>
+<main class="wrap" id="app"></main>
+<footer>© <span id="an"></span> Vendoo · Paiement par Mobile Money</footer>
+<script>
+(() => {
+  const API = 'https://script.google.com/macros/s/AKfycbwgdtcXlXB9niD3hactnz4SLIrpY_q74iQQZwkr1vrUBjczfCCVWwamG69uqnUQZsba/exec';
+  const app = document.getElementById('app'), hBtn = document.getElementById('hBtn');
+  document.getElementById('an').textContent = new Date().getFullYear();
+  const S = { get: k => { try { return localStorage.getItem(k); } catch(e){ return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch(e){} }, del: k => { try { localStorage.removeItem(k); } catch(e){} } };
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const F = n => Number(n || 0).toLocaleString('fr-FR').replace(/ /g, ' ') + ' F';
+  let CFG = null, jeton = S.get('vendoo_jeton') || '', compte = null;
+  try { compte = JSON.parse(S.get('vendoo_compte') || 'null'); } catch(e){}
+
+  async function call(body){
+    const r = await fetch(API, {method: 'POST', body: JSON.stringify(Object.assign({type: 'vendoo'}, body))});
+    const j = await r.json();
+    if (!j.ok){ if (j.erreur === 'SESSION'){ deconnexion(); throw new Error('Ta session a expiré. Reconnecte-toi.'); } throw new Error(j.erreur || 'Erreur, réessaie.'); }
+    return j;
+  }
+  const config = () => CFG ? Promise.resolve(CFG) : call({action: 'config'}).then(j => (CFG = j));
+  function connecte(j){ jeton = j.jeton || jeton; compte = j.compte; S.set('vendoo_jeton', jeton); S.set('vendoo_compte', JSON.stringify(compte)); location.hash = '#compte'; route(); }
+  function deconnexion(){ jeton = ''; compte = null; S.del('vendoo_jeton'); S.del('vendoo_compte'); }
+  function occupe(btn, oui){ if (!btn) return; btn.disabled = oui; if (oui){ btn.dataset.t = btn.innerHTML; btn.innerHTML = '<span class="spin"></span>'; } else if (btn.dataset.t) btn.innerHTML = btn.dataset.t; }
+  function message(el, txt, type){ el.innerHTML = txt ? `<div class="msg ${type || 'err'}">${txt}</div>` : ''; }
+
+  /* ------------ Accueil ------------ */
+  function accueil(){
+    hBtn.textContent = jeton ? 'Mon compte' : 'Se connecter';
+    hBtn.onclick = () => { location.hash = jeton ? '#compte' : '#connexion'; };
+    const P = CFG ? CFG.prix : {mois: 14000, an: 100000};
+    const eco = P.mois * 12 - P.an;
+    app.innerHTML = `
+      <section class="hero">
+        <h1>Ta boutique en ligne,<br><em>paiement à la livraison</em></h1>
+        <p>Crée ton site, reçois tes commandes sur WhatsApp et gère tout depuis ton téléphone. Jusqu’à 30 boutiques sur un seul compte.</p>
+        <a class="btn" href="#inscription">Créer mon compte</a>
+        <p class="soft" style="margin-top:12px">Paiement par Mobile Money · Tes données restent dans ton Google</p>
+      </section>
+      <div class="feat">
+        <div><i>🏪</i><p style="margin:0"><b>30 boutiques par compte</b><span>Une boutique par agence ou par pays : les commandes ne se mélangent jamais.</span></p></div>
+        <div><i>📲</i><p style="margin:0"><b>Commandes sur WhatsApp et en notification</b><span>Chaque commande arrive tout de suite, même application fermée.</span></p></div>
+        <div><i>📊</i><p style="margin:0"><b>Application de gestion</b><span>Statuts des commandes, relance des paniers abandonnés, chiffre d’affaires, visiteurs en direct.</span></p></div>
+        <div><i>🎯</i><p style="margin:0"><b>Pixels Facebook et TikTok</b><span>Suivi des ventes par publicité pour savoir laquelle rapporte.</span></p></div>
+        <div><i>🚚</i><p style="margin:0"><b>Agences de livraison reliées</b><span>Chaque agence a son fichier, les statuts reviennent tout seuls dans ton application.</span></p></div>
+        <div><i>⭐</i><p style="margin:0"><b>Avis clients riches</b><span>Texte, captures WhatsApp, notes vocales et vidéos de tes clients.</span></p></div>
+      </div>
+      <h2>Tarifs</h2>
+      <div class="prix">
+        <div class="plan"><div class="soft">Mensuel</div><div class="p">${F(P.mois)} <small>/ mois</small></div><ul><li>Toutes les fonctions</li><li>30 boutiques</li><li>Prix réduit avec un code promo</li></ul></div>
+        <div class="plan top">${eco > 0 ? `<span class="tag">${F(eco)} économisés</span>` : ''}<div class="soft">Annuel</div><div class="p">${F(P.an)} <small>/ an</small></div><ul><li>Toutes les fonctions</li><li>30 boutiques</li><li>Un seul paiement pour l’année</li></ul></div>
+      </div>
+      <div class="card"><h3>Comment ça marche ?</h3><ol class="etapes">
+        <li><b>Crée ton compte</b><span class="soft">Avec ton e-mail ou ton compte Google.</span></li>
+        <li><b>Paie par Mobile Money</b><span class="soft">Tu envoies l’ID de la transaction, ton abonnement est activé dès la vérification.</span></li>
+        <li><b>Installe ta boutique</b><span class="soft">Une copie de Vendoo dans ton propre Google Sheets : tes commandes restent chez toi.</span></li>
+        <li><b>Vends</b><span class="soft">Ajoute tes produits depuis l’application et partage le lien de ta boutique.</span></li>
+      </ol></div>
+      <a class="btn" href="#inscription" style="margin:8px 0 10px">Commencer maintenant</a>`;
+  }
+
+  /* ------------ Connexion / inscription ------------ */
+  function auth(mode){
+    hBtn.textContent = 'Accueil'; hBtn.onclick = () => { location.hash = ''; };
+    app.innerHTML = `
+      <div class="tabs"><button data-m="inscription" class="${mode === 'inscription' ? 'on' : ''}">Créer un compte</button><button data-m="connexion" class="${mode === 'connexion' ? 'on' : ''}">Se connecter</button></div>
+      <div class="card">
+        <div id="gzone" class="hidden"><div id="gbtn"></div><div class="ou">ou avec ton e-mail</div></div>
+        <form id="f" autocomplete="on">
+          ${mode === 'inscription' ? `<label for="nom">Ton nom</label><input class="field" id="nom" autocomplete="name" required>
+          <label for="tel">Ton numéro WhatsApp</label><input class="field" id="tel" type="tel" autocomplete="tel" inputmode="tel">` : ''}
+          <label for="email">E-mail</label><input class="field" id="email" type="email" autocomplete="email" required>
+          <label for="mdp">Mot de passe</label><input class="field" id="mdp" type="password" autocomplete="${mode === 'inscription' ? 'new-password' : 'current-password'}" minlength="6" required>
+          <div id="m"></div>
+          <button class="btn" style="margin-top:16px">${mode === 'inscription' ? 'Créer mon compte' : 'Se connecter'}</button>
+        </form>
+        ${mode === 'connexion' ? '<p style="text-align:center;margin:14px 0 0"><button class="lnk" id="oubli">Mot de passe oublié ?</button></p>' : ''}
+      </div>`;
+    app.querySelectorAll('[data-m]').forEach(b => b.onclick = () => { location.hash = '#' + b.dataset.m; });
+    const m = document.getElementById('m');
+    document.getElementById('f').onsubmit = async e => {
+      e.preventDefault(); const btn = e.target.querySelector('.btn'); occupe(btn, true); message(m, '');
+      const v = id => (document.getElementById(id) || {}).value || '';
+      try { connecte(await call({action: mode, email: v('email'), mdp: v('mdp'), nom: v('nom'), tel: v('tel')})); }
+      catch(err){ message(m, esc(err.message)); occupe(btn, false); }
+    };
+    const ob = document.getElementById('oubli'); if (ob) ob.onclick = oubli;
+    config().then(c => { if (c.google) google(c.google); }).catch(() => {});
+  }
+  function google(clientId){
+    const go = () => {
+      try {
+        window.google.accounts.id.initialize({ client_id: clientId, callback: async r => {
+          const m = document.getElementById('m'); message(m, 'Connexion…', 'ok');
+          try { connecte(await call({action: 'google', credential: r.credential})); } catch(err){ message(m, esc(err.message)); }
+        }});
+        const z = document.getElementById('gbtn'); if (!z) return;
+        window.google.accounts.id.renderButton(z, {theme: 'outline', size: 'large', text: 'continue_with', shape: 'pill', width: Math.min(360, z.offsetWidth || 320), locale: 'fr'});
+        document.getElementById('gzone').classList.remove('hidden');
+      } catch(e){}
+    };
+    if (window.google && window.google.accounts) return go();
+    const s = document.createElement('script'); s.src = 'https://accounts.google.com/gsi/client'; s.async = true; s.onload = go; document.head.appendChild(s);
+  }
+  function oubli(){
+    app.innerHTML = `<div class="card" style="margin-top:20px"><h3>Mot de passe oublié</h3>
+      <p class="soft">On t’envoie un code à 6 chiffres par e-mail.</p>
+      <label for="email">E-mail</label><input class="field" id="email" type="email" autocomplete="email">
+      <div id="etape2" class="hidden"><label for="code">Code reçu</label><input class="field" id="code" inputmode="numeric" autocomplete="one-time-code">
+      <label for="mdp">Nouveau mot de passe</label><input class="field" id="mdp" type="password" autocomplete="new-password" minlength="6"></div>
+      <div id="m"></div><button class="btn" id="go" style="margin-top:16px">Recevoir le code</button>
+      <p style="text-align:center;margin:14px 0 0"><a href="#connexion">Retour</a></p></div>`;
+    const m = document.getElementById('m'), go = document.getElementById('go'); let etape = 1;
+    go.onclick = async () => {
+      const email = document.getElementById('email').value; occupe(go, true); message(m, '');
+      try {
+        if (etape === 1){ await call({action: 'oubli', email}); etape = 2; document.getElementById('etape2').classList.remove('hidden'); occupe(go, false); go.textContent = 'Changer le mot de passe'; message(m, 'Si ce compte existe, un code vient d’être envoyé. Regarde aussi dans les spams.', 'ok'); }
+        else connecte(await call({action: 'reinit', email, code: document.getElementById('code').value, mdp: document.getElementById('mdp').value}));
+      } catch(err){ message(m, esc(err.message)); occupe(go, false); }
+    };
+  }
+
+  /* ------------ Mon compte ------------ */
+  const LIB = {actif: 'Actif', grace: 'Délai de grâce', attente: 'En attente de paiement', expire: 'Coupé', bloque: 'Suspendu'};
+  function compteVue(){
+    if (!jeton){ location.hash = '#connexion'; return; }
+    hBtn.textContent = 'Se déconnecter'; hBtn.onclick = () => { deconnexion(); location.hash = ''; };
+    dessinerCompte();
+    call({action: 'moi', jeton}).then(j => { compte = j.compte; S.set('vendoo_compte', JSON.stringify(compte)); dessinerCompte(); }).catch(e => { if (!jeton) route(); });
+    config().then(() => dessinerCompte()).catch(() => {});
+  }
+  function dessinerCompte(){
+    const c = compte; if (!c){ app.innerHTML = '<div class="card" style="margin-top:20px">Chargement…</div>'; return; }
+    const P = CFG ? CFG.prix : null, enAttente = (c.paiements || []).find(p => /valider/i.test(p.statut));
+    let alerte = '';
+    if (c.statut === 'attente') alerte = enAttente ? `<div class="msg ok">⏳ Paiement reçu, en cours de vérification. Ton abonnement sera activé très vite.</div>` : `<div class="msg warn">Paie ton abonnement pour activer tes boutiques.</div>`;
+    if (c.statut === 'actif' && c.alerte) alerte = `<div class="msg warn">⚠️ Ton abonnement se termine dans ${c.jours} jour${c.jours > 1 ? 's' : ''}. Renouvelle-le pour ne pas être coupé.</div>`;
+    if (c.statut === 'grace') alerte = `<div class="msg warn">⚠️ Ton abonnement est terminé. Tes boutiques seront coupées dans ${c.grace} jour${c.grace > 1 ? 's' : ''}.</div>`;
+    if (c.statut === 'expire') alerte = `<div class="msg err">⛔ Tes boutiques sont coupées. Rien n’est perdu : tout revient dès que ton paiement est validé.</div>`;
+    if (c.statut === 'bloque') alerte = `<div class="msg err">Ton compte est suspendu. Contacte Vendoo.</div>`;
+    const paye = c.statut === 'actif' || c.statut === 'grace';
+    app.innerHTML = `
+      <div class="card" style="margin-top:20px">
+        <div class="statut"><div><div class="soft">Bonjour</div><div style="font-weight:800;font-size:20px">${esc(c.nom)}</div></div><span class="badge b-${c.statut}">${LIB[c.statut] || c.statut}</span></div>
+        ${paye ? `<div class="gros">${c.jours ? c.jours + ' jour' + (c.jours > 1 ? 's' : '') + ' restant' + (c.jours > 1 ? 's' : '') : 'Délai de grâce'}</div><div class="soft">${c.formule ? 'Abonnement ' + esc(c.formule.toLowerCase()) + ' · ' : ''}jusqu’au ${esc(c.expire)}</div>` : ''}
+        ${alerte}
+      </div>
+      ${paye ? installation(c) : ''}
+      <div class="card" id="payer"><h3>${paye ? 'Renouveler mon abonnement' : 'Payer mon abonnement'}</h3>
+        ${enAttente ? `<p class="soft">Paiement de ${F(enAttente.montant)} envoyé le ${esc(enAttente.date)}, en cours de vérification.</p>` : ''}
+        <div class="choix">
+          <label><input type="radio" name="fo" value="mois" checked> Mensuel<b id="pMois">${P ? F(P.mois) : '…'}</b><span class="soft">30 jours</span></label>
+          <label><input type="radio" name="fo" value="an"> Annuel<b>${P ? F(P.an) : '…'}</b><span class="soft">365 jours</span></label>
+        </div>
+        <div id="zCode"><label for="code">Code promo (optionnel)</label><div class="row"><input class="field" id="code" autocapitalize="characters"><button class="btn sec" id="okCode" style="flex:0 0 auto;width:auto">Appliquer</button></div></div>
+        <div class="momo">
+          <div class="soft">1. Envoie <b id="montant">${P ? F(P.mois) : ''}</b> par Mobile Money au :</div>
+          <div class="num">${esc(CFG ? CFG.momo : '…')}</div>
+          ${CFG && CFG.nomMomo ? `<div class="soft">Nom : <b>${esc(CFG.nomMomo)}</b></div>` : ''}
+          <div class="soft" style="margin-top:6px">2. Tu reçois un SMS de confirmation avec l’<b>ID de la transaction</b>.</div>
+        </div>
+        <label for="num">Numéro qui a payé</label><input class="field" id="num" type="tel" inputmode="tel" value="${esc(c.tel)}">
+        <label for="tx">ID de la transaction (dans le SMS)</label><input class="field" id="tx" autocomplete="off">
+        <div id="mp"></div>
+        <button class="btn" id="envoyer" style="margin-top:16px">J’ai payé, envoyer</button>
+      </div>
+      ${(c.paiements || []).length ? `<div class="card"><h3>Mes paiements</h3><table class="hist">${c.paiements.map(p => `<tr><td>${esc(p.date)}<br><span class="soft">${p.formule === 'an' ? '1 an' : '1 mois'}</span></td><td>${F(p.montant)}<br><span class="soft">${/valider/i.test(p.statut) ? '⏳ en vérification' : /refus/i.test(p.statut) ? '❌ refusé' + (p.raison ? ' : ' + esc(p.raison) : '') : '✅ validé'}</span></td></tr>`).join('')}</table></div>` : ''}
+      <div class="card"><h3>Mon profil</h3><div class="soft">${esc(c.email)}${c.google ? ' · Google' : ''}</div>
+        <label for="pNom">Nom</label><input class="field" id="pNom" value="${esc(c.nom)}">
+        <label for="pTel">Numéro WhatsApp</label><input class="field" id="pTel" type="tel" value="${esc(c.tel)}">
+        <div id="mprof"></div><button class="btn ghost" id="sProf" style="margin-top:14px">Enregistrer</button></div>`;
+    lierEvenements(c);
+  }
+  function installation(c){
+    if (c.lie) return `<div class="card"><h3>Ma boutique</h3>
+      <a class="btn" href="${esc(c.appli)}">Ouvrir mon application</a>
+      <p class="soft" style="margin:14px 0 6px">Lien de ta boutique (à mettre dans tes publicités) :</p>
+      <div class="copie"><span style="flex:1">${esc(c.site)}</span><button class="lnk" data-copie="${esc(c.site)}">Copier</button></div>
+      <p class="soft" style="margin-top:10px">Tes 30 boutiques se créent depuis l’application : Réglages → Mes boutiques.</p>
+      <details style="margin-top:8px"><summary class="soft">Changer de Google Sheets</summary>${formLier()}</details></div>`;
+    const modele = CFG && CFG.modele;
+    return `<div class="card"><h3>Installer ma boutique (10 minutes, une seule fois)</h3>
+      <ol class="etapes">
+        <li><b>Copie Vendoo dans ton Google</b><span class="soft">Connecte-toi avec ton compte Google, puis appuie sur « Créer une copie ».</span>
+          ${modele ? `<a class="btn sec" href="${esc(modele)}" target="_blank" rel="noopener" style="margin-top:8px">Copier Vendoo dans mon Google</a>` : '<div class="msg warn">Le modèle arrive bientôt. Reviens dans quelques minutes.</div>'}</li>
+        <li><b>Lance l’installation</b><span class="soft">Dans la copie : <code>Extensions</code> → <code>Apps Script</code>. En haut, choisis <code>installer</code> puis <code>Exécuter</code>. Accepte les autorisations (Paramètres avancés → Accéder au projet).</span></li>
+        <li><b>Publie ton application</b><span class="soft"><code>Déployer</code> → <code>Nouveau déploiement</code> → type <code>Application Web</code>. Exécuter en tant que : <b>moi</b>. Qui a accès : <b>Tout le monde</b>. Appuie sur <code>Déployer</code> et copie l’URL de l’application Web.</span></li>
+        <li><b>Colle l’URL ici</b>${formLier()}</li>
+      </ol></div>`;
+  }
+  const formLier = () => `<input class="field" id="api" placeholder="https://script.google.com/macros/s/…/exec" style="margin-top:8px" autocomplete="off"><div id="ml"></div><button class="btn" id="lier" style="margin-top:10px">Relier ma boutique</button>`;
+  function lierEvenements(c){
+    const P = CFG ? CFG.prix : null; let prixMois = P ? P.mois : 0, codeOk = '';
+    const fo = () => (app.querySelector('[name=fo]:checked') || {}).value || 'mois';
+    const majMontant = () => { if (!P) return; document.getElementById('montant').textContent = F(fo() === 'an' ? P.an : prixMois); document.getElementById('zCode').classList.toggle('hidden', fo() === 'an'); };
+    app.querySelectorAll('[name=fo]').forEach(r => r.onchange = majMontant);
+    const mp = document.getElementById('mp');
+    document.getElementById('okCode').onclick = async e => {
+      const b = e.currentTarget, code = document.getElementById('code').value.trim(); if (!code) return;
+      occupe(b, true);
+      try { const j = await call({action: 'code', code}); prixMois = j.prix; codeOk = code; document.getElementById('pMois').innerHTML = `<s class="soft" style="font-weight:600">${F(P.mois)}</s> ${F(j.prix)}`; majMontant(); message(mp, '✅ Code appliqué : ' + F(j.prix) + ' par mois', 'ok'); }
+      catch(err){ message(mp, esc(err.message)); }
+      occupe(b, false);
+    };
+    document.getElementById('envoyer').onclick = async e => {
+      const b = e.currentTarget; occupe(b, true); message(mp, '');
+      try {
+        const j = await call({action: 'payer', jeton, formule: fo(), code: fo() === 'mois' ? (document.getElementById('code').value.trim() || codeOk) : '', numero: document.getElementById('num').value, transaction: document.getElementById('tx').value});
+        compte = j.compte; await call({action: 'moi', jeton}).then(x => { compte = x.compte; }).catch(() => {});
+        S.set('vendoo_compte', JSON.stringify(compte)); dessinerCompte();
+        message(document.getElementById('mp'), '✅ Paiement envoyé. Tu reçois un e-mail dès qu’il est validé.', 'ok');
+      } catch(err){ message(mp, esc(err.message)); occupe(b, false); }
+    };
+    const lb = document.getElementById('lier');
+    if (lb) lb.onclick = async () => {
+      const ml = document.getElementById('ml'); occupe(lb, true); message(ml, '');
+      try { const j = await call({action: 'lier', jeton, api: document.getElementById('api').value}); compte = j.compte; S.set('vendoo_compte', JSON.stringify(compte)); dessinerCompte(); }
+      catch(err){ message(ml, esc(err.message)); occupe(lb, false); }
+    };
+    document.getElementById('sProf').onclick = async e => {
+      const b = e.currentTarget; occupe(b, true);
+      try { const j = await call({action: 'profil', jeton, nom: document.getElementById('pNom').value, tel: document.getElementById('pTel').value}); compte = j.compte; S.set('vendoo_compte', JSON.stringify(compte)); message(document.getElementById('mprof'), '✅ Enregistré', 'ok'); }
+      catch(err){ message(document.getElementById('mprof'), esc(err.message)); }
+      occupe(b, false);
+    };
+    app.querySelectorAll('[data-copie]').forEach(b => b.onclick = () => { navigator.clipboard && navigator.clipboard.writeText(b.dataset.copie).then(() => { b.textContent = 'Copié ✓'; }); });
+  }
+
+  function route(){
+    const h = location.hash.replace('#', '');
+    if (h === 'compte' || h === 'payer') return compteVue();
+    if (h === 'connexion' || h === 'inscription') return jeton ? (location.hash = '#compte') : auth(h);
+    accueil();
+  }
+  addEventListener('hashchange', () => { route(); scrollTo(0, 0); });
+  route();
+  config().then(() => { if (!location.hash || location.hash === '#') accueil(); }).catch(() => {});
+})();
+</script>
+</body>
+</html>

@@ -84,6 +84,56 @@ jobs:
               cible = 'boutique/data/' + code + '.json' if code else 'boutique/data.json'
               json.dump(d, open(cible, 'w'), ensure_ascii=False, separators=(',', ':'), sort_keys=True)
               print('copiée :', code or 'principale', len(d['produits']), 'produits')
+          # Boutiques des abonnés Vendoo (chacun dans son propre Google) : data/v-<id>[-<code>].json
+          import time
+          debut, ecrits, liste_ok = time.time(), set(), False
+          def garder(prefixe):
+              global gardees
+              for f in os.listdir('boutique/data'):
+                  if f.startswith(prefixe):
+                      ecrits.add(f)
+                      try: gardees |= set(json.load(open('boutique/data/' + f)).get('imgs', {}).values())
+                      except Exception: pass
+          try:
+              abonnes = json.loads(lire(API + '?vendoo=liste')).get('abonnes', [])
+              liste_ok = True
+          except Exception as e:
+              abonnes = []
+              print('liste Vendoo indisponible :', e)
+          for ab in abonnes:
+              vid, api = re.sub(r'[^a-f0-9]', '', ab.get('id', ''))[:16], ab.get('api', '')
+              if not vid or not re.match(r'^https://script\.google\.com/macros/s/[\w-]+/exec$', api): continue
+              if time.time() - debut > 300:
+                  print('temps écoulé, abonnés restants au prochain passage')
+                  garder('v-' + vid + '.json'); garder('v-' + vid + '-')
+                  continue
+              try:
+                  sous = [''] + json.loads(lire(api + '?liste=1')).get('boutiques', [])
+              except Exception as e:
+                  print('abonné ignoré :', vid, e)
+                  garder('v-' + vid + '.json'); garder('v-' + vid + '-')
+                  continue
+              for code in sous:
+                  nom = 'v-' + vid + ('-' + code if code else '') + '.json'
+                  try:
+                      d = json.loads(lire(api + ('?b=' + code if code else '')))
+                      assert isinstance(d.get('produits'), list), 'réponse invalide'
+                  except Exception as e:
+                      print('boutique ignorée :', nom, e)
+                      garder(nom)
+                      continue
+                  d.pop('maj', None)
+                  d['api'] = api
+                  gardees |= optimiser(d)
+                  json.dump(d, open('boutique/data/' + nom, 'w'), ensure_ascii=False, separators=(',', ':'), sort_keys=True)
+                  ecrits.add(nom)
+                  print('copiée :', nom, len(d['produits']), 'produits')
+          # Abonnés coupés ou partis : leur copie est retirée
+          if liste_ok:
+              for f in os.listdir('boutique/data'):
+                  if f.startswith('v-') and f not in ecrits:
+                      os.remove('boutique/data/' + f)
+                      print('retirée :', f)
           # Retire les anciennes images qui ne servent plus à aucune boutique
           for f in os.listdir('boutique/img'):
               if 'img/' + f not in gardees and f.endswith('.webp'):

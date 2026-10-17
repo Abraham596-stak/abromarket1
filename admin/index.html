@@ -20,8 +20,20 @@
 <script>window.OneSignalDeferred = window.OneSignalDeferred || [];</script>
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 <script>
-const API = "https://script.google.com/macros/s/AKfycbwgdtcXlXB9niD3hactnz4SLIrpY_q74iQQZwkr1vrUBjczfCCVWwamG69uqnUQZsba/exec";
+const API_ABRO = "https://script.google.com/macros/s/AKfycbwgdtcXlXB9niD3hactnz4SLIrpY_q74iQQZwkr1vrUBjczfCCVWwamG69uqnUQZsba/exec";
+// Vendoo : chaque abonné ouvre l'application avec ?api=<son lien Apps Script> (gardé sur le téléphone)
+const API = (() => { let a = ''; try { const u = new URLSearchParams(location.search).get('api');
+  if (u === 'abro') localStorage.removeItem('vendoo_api');
+  else if (u && /^https:\/\/script\.google\.com\/macros\/s\/[\w-]{20,}\/exec$/.test(u)) localStorage.setItem('vendoo_api', u);
+  a = localStorage.getItem('vendoo_api') || ''; } catch(e){} return a || API_ABRO; })();
+const VENDOO = API !== API_ABRO;
 const SITE = "https://abraham596-stak.github.io/abromarket1/boutique/";
+if (VENDOO){
+  document.title = 'Vendoo';
+  document.querySelector('link[rel=manifest]').href = '../vendoo/manifest.webmanifest';
+  const ic = document.querySelector('link[rel=apple-touch-icon]'); if (ic) ic.href = '../vendoo/icon-192.png';
+  document.documentElement.classList.add('vendoo');
+}
 </script>
 <style>
 :root{
@@ -365,6 +377,28 @@ html.ordi .dvgrid{grid-template-columns:repeat(4,minmax(0,1fr))}
 .rrow button.on{background:#fff;color:#111}
 .rrow button:disabled{opacity:.5}
 .rinfo{font-size:13px;color:rgba(255,255,255,.7);text-align:center}
+/* Vendoo */
+.vband{position:sticky;top:0;z-index:60;display:flex;align-items:center;gap:10px;padding:10px 14px;background:#FFF4E5;color:#7A3E00;font-size:14px;font-weight:600}
+.vband span{flex:1}
+.vband a{flex:0 0 auto;background:#7A3E00;color:#fff;border-radius:10px;padding:7px 12px;font-weight:800;text-decoration:none}
+.vbloc{position:fixed;inset:0;z-index:1000;background:#fff;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center}
+.vbloc>div{max-width:380px}
+.vbloc img{border-radius:18px}
+.vbloc h1{font-size:24px;margin:16px 0 8px}
+.vbloc p{color:var(--soft);margin:0 0 20px}
+.vbloc .btn{display:flex;align-items:center;justify-content:center;text-decoration:none}
+.vstat{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
+.vstat div{background:var(--surface);border-radius:14px;padding:10px;text-align:center}
+.vstat b{display:block;font-size:20px}
+.vstat small{color:var(--soft);font-size:12px}
+.vpay{border:1.5px solid var(--line);border-radius:16px;padding:12px;margin-top:10px}
+.vpay.av{border-color:#E0B200;background:#FFFBEB}
+.vpay .l{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.vpay .tx{font-family:ui-monospace,monospace;background:var(--surface);border-radius:8px;padding:2px 6px}
+.vpay .act{display:flex;gap:8px;margin-top:10px}
+.vpay .act button{flex:1;padding:10px;border-radius:12px;font-weight:800}
+.vbadge{font-size:12px;font-weight:800;padding:3px 9px;border-radius:99px;white-space:nowrap}
+.vb-actif{background:var(--okbg);color:var(--ok)}.vb-grace,.vb-attente{background:#FFF4E5;color:#B45309}.vb-expire,.vb-bloque{background:var(--errbg);color:var(--err)}
 /* Mes boutiques */
 .store{color:inherit;text-align:left}
 .store .stn{max-width:52vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -508,7 +542,9 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
 </head>
 <body>
 <!-- Écran de démarrage : logo seul au centre, fond blanc (comme Shopify) -->
-<div id="demarrage" style="position:fixed;inset:0;z-index:999;background:#fff;display:flex;align-items:center;justify-content:center;transition:opacity .25s"><img src="logo-v3-192.png" alt="ABROMARKET" width="132" height="132"></div>
+<div id="demarrage" style="position:fixed;inset:0;z-index:999;background:#fff;display:flex;align-items:center;justify-content:center;transition:opacity .25s"><img src="logo-v3-192.png" alt="" width="132" height="132" id="demLogo"></div>
+<script>if (VENDOO) document.getElementById('demLogo').src = '../vendoo/icon-192.png';</script>
+<div class="vband hidden" id="vband" role="status"></div>
 <div class="app" id="app"></div>
 <nav class="nav hidden" id="nav" aria-label="Navigation">
   <button data-v="home" aria-label="Accueil" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span class="nl">Accueil</span></button>
@@ -534,7 +570,11 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
   })();
   const cleS = k => BQ && !/^adm_(key|affichage|sound|b|apvue)$/.test(k) ? k.replace(/^adm_/, 'adm_' + BQ + '_') : k;
   const S = { get(k){ try{return localStorage.getItem(cleS(k))}catch(e){return null} }, set(k,v){ try{localStorage.setItem(cleS(k),v)}catch(e){} }, del(k){ try{localStorage.removeItem(cleS(k))}catch(e){} } };
-  const lienSite = qs => SITE + (BQ ? '?b=' + BQ + (qs ? '&' + qs : '') : (qs ? '?' + qs : ''));
+  // Abonné Vendoo : ses sites sont à ?v=<son id>
+  const vId = () => { if (!VENDOO) return ''; const v = D && D.vendoo && D.vendoo.id; if (v){ try { localStorage.setItem('vendoo_id', v); } catch(e){} return v; } try { return localStorage.getItem('vendoo_id') || ''; } catch(e){ return ''; } };
+  const siteDe = (code, qs) => { const p = []; if (vId()) p.push('v=' + vId()); if (code) p.push('b=' + code); if (qs) p.push(qs); return SITE + (p.length ? '?' + p.join('&') : ''); };
+  const lienSite = qs => siteDe(BQ, qs);
+  const fichierData = () => VENDOO ? 'data/v-' + vId() + (BQ ? '-' + BQ : '') + '.json' : (BQ ? 'data/' + BQ + '.json' : 'data.json');
   const lienProduit = id => lienSite('p=' + encodeURIComponent(id));
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const fmt = (n, d) => (Number(n)||0).toLocaleString('fr-FR', {maximumFractionDigits: 2}).replace(/[  ]/g, ' ') + (d ? ' ' + d : '');
@@ -650,7 +690,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
         ${!BQS ? '<div class="empty">Chargement…</div>' : l.map(b => `<div class="bqrow ${(b.code || '') === BQ ? 'on' : ''}">
           <div class="bqi"><b>${esc(b.nom)}</b><small>${b.principale ? 'Boutique principale' : esc(b.pays || '')}${b.agence ? ' · agence : ' + esc(b.agence) : ''}${!b.active ? ' · <span style="color:var(--err)">désactivée</span>' : ''}</small></div>
           ${(b.code || '') === BQ ? '<span class="bqcur">Ouverte</span>' : `<button class="chip" style="background:var(--main);border-color:var(--main)" data-bo="${esc(b.code || '')}">Ouvrir</button>`}
-          <div class="bqa"><a href="${esc(b.sheetUrl)}" target="_blank" rel="noopener">📄 Sheets</a><button data-bl="${esc(SITE + (b.code ? '?b=' + b.code : ''))}">🔗 Lien du site</button>${b.principale ? '' : `<button class="bqdel" data-bd="${esc(b.code)}" data-bn="${esc(b.nom)}">🗑 Supprimer</button>`}</div></div>`).join('')}
+          <div class="bqa"><a href="${esc(b.sheetUrl)}" target="_blank" rel="noopener">📄 Sheets</a><button data-bl="${esc(siteDe(b.code || ''))}">🔗 Lien du site</button>${b.principale ? '' : `<button class="bqdel" data-bd="${esc(b.code)}" data-bn="${esc(b.nom)}">🗑 Supprimer</button>`}</div></div>`).join('')}
         ${BQS && n < max ? '<button class="btn blue" id="bqNew" style="margin-top:14px">＋ Créer une nouvelle boutique</button>' : ''}
         <button class="btn ghost" id="bqX" style="margin-top:10px">Fermer</button></div>`;
       ov.querySelector('#bqX').onclick = () => ov.remove();
@@ -675,6 +715,54 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
     try { const r = await fetch(API, {method: 'POST', body: JSON.stringify({type: 'boutiques', key})}); const j = await r.json(); if (!j.ok) throw new Error(j.erreur);
       BQS = j; try { localStorage.setItem('adm_bqs', JSON.stringify(j)); } catch(e){} if (ov.isConnected) dessiner(); }
     catch(e){ if (ov.isConnected && !BQS) dessiner('Impossible de charger tes boutiques : ' + esc(/introuvable|inconnu/i.test(e.message) ? 'mets à jour le code Apps Script (Code.gs).' : e.message)); }
+  }
+  /* ---------- Vendoo : panneau du propriétaire (paiements MoMo, abonnés, codes promo) ---------- */
+  async function vendooAdmin(){
+    const ov = document.createElement('div'); ov.className = 'overlay';
+    let V = null, onglet = 'payer';
+    const LIB = {actif: 'Actif', grace: 'Grâce', attente: 'Pas payé', expire: 'Coupé', bloque: 'Suspendu'};
+    const appel = async (o) => { const r = await fetch(API, {method: 'POST', body: JSON.stringify(Object.assign({type: 'vendoo', action: 'admin', key}, o))}); const j = await r.json(); if (!j.ok) throw new Error(j.erreur || 'Erreur'); V = j; return j; };
+    const dessiner = msg => {
+      const av = V ? V.paiements.filter(p => /valider/i.test(p.statut)) : [];
+      ov.innerHTML = `<div class="detail bqsheet" role="dialog" aria-modal="true" aria-label="Vendoo"><div class="grab"></div>
+        <h2>Vendoo</h2>
+        ${msg ? `<div class="okmsg">${msg}</div>` : ''}
+        ${!V ? '<div class="empty">Chargement…</div>' : `
+        <div class="vstat"><div><b>${V.stats.actifs}</b><small>abonnés actifs</small></div><div><b>${V.stats.aValider}</b><small>à valider</small></div><div><b>${short(V.stats.encaisse30)}</b><small>F sur 30 j</small></div></div>
+        <div class="seg" style="display:flex;margin:6px 0 4px">${[['payer', 'Paiements' + (av.length ? ' (' + av.length + ')' : '')], ['abos', 'Abonnés (' + V.comptes.length + ')'], ['codes', 'Codes promo']].map(([k, l]) => `<button data-vo="${k}" class="${onglet === k ? 'on' : ''}" style="flex:1">${l}</button>`).join('')}</div>
+        ${onglet === 'payer' ? (V.paiements.length ? V.paiements.map(p => `<div class="vpay ${/valider/i.test(p.statut) ? 'av' : ''}">
+            <div class="l"><b>${esc(p.nom || p.email)}</b><b>${fmt(p.montant)} F</b></div>
+            <div class="sub" style="margin:2px 0">${esc(p.email)} · ${p.formule === 'an' ? '1 an' : '1 mois'}${p.code ? ' · code ' + esc(p.code) : ''} · ${esc(p.date)}</div>
+            <div class="sub">MoMo : <b>${esc(p.numero)}</b> · ID <span class="tx">${esc(p.transaction)}</span></div>
+            ${/valider/i.test(p.statut) ? `<div class="act"><button style="background:var(--okbg);color:var(--ok)" data-vv="${p.ligne}">✓ Valider</button><button style="background:var(--errbg);color:var(--err)" data-vr="${p.ligne}">✕ Refuser</button></div>`
+              : `<div class="sub" style="margin-top:4px">${/refus/i.test(p.statut) ? '❌ Refusé' : '✅ Validé'}</div>`}</div>`).join('') : '<div class="empty">Aucun paiement pour le moment.</div>') : ''}
+        ${onglet === 'abos' ? (V.comptes.length ? V.comptes.map(c => `<div class="vpay">
+            <div class="l"><b>${esc(c.nom)}</b><span class="vbadge vb-${c.statut}">${LIB[c.statut] || c.statut}</span></div>
+            <div class="sub">${esc(c.email)}${c.tel ? ' · ' + esc(c.tel) : ''}</div>
+            <div class="sub">${c.expire ? 'Jusqu’au ' + esc(c.expire) + (c.formule ? ' · ' + esc(c.formule) : '') : 'Jamais payé'} · ${c.lie ? 'boutique reliée ✓' : 'boutique pas encore reliée'}</div>
+            <div class="act"><button style="background:var(--surface)" data-vp="${esc(c.email)}">＋ Jours</button>${c.statut === 'bloque' ? `<button style="background:var(--okbg);color:var(--ok)" data-vd="${esc(c.email)}">Réactiver</button>` : `<button style="background:var(--errbg);color:var(--err)" data-vb="${esc(c.email)}" data-vn="${esc(c.nom)}">Suspendre</button>`}${c.lie ? `<a style="flex:1;text-align:center;padding:10px;border-radius:12px;font-weight:800;background:var(--surface)" href="${esc(c.site)}" target="_blank" rel="noopener">Site</a>` : ''}</div></div>`).join('') : '<div class="empty">Aucun abonné pour le moment.</div>') : ''}
+        ${onglet === 'codes' ? `<p class="sub">Prix normal : ${fmt(V.prix.mois)} F / mois · ${fmt(V.prix.an)} F / an (à changer dans l’onglet « ⚙️ Vendoo – Réglages » du Google Sheets).</p>
+          ${V.codes.map(c => `<div class="vpay"><div class="l"><b class="tx">${esc(c.code)}</b><b>${fmt(c.prix)} F / mois</b></div><div class="sub">${c.utilisations} utilisation${c.utilisations > 1 ? 's' : ''} · ${c.actif ? 'actif' : 'désactivé'}</div>
+            <div class="act"><button style="background:var(--surface)" data-vc="${esc(c.code)}" data-va="${c.actif ? '0' : '1'}">${c.actif ? 'Désactiver' : 'Activer'}</button></div></div>`).join('')}
+          <button class="btn blue" id="vNewCode" style="margin-top:12px">＋ Nouveau code promo</button>` : ''}
+        <a class="btn ghost" href="../vendoo/" target="_blank" rel="noopener" style="margin-top:14px;display:flex;align-items:center;justify-content:center;text-decoration:none">Voir le site Vendoo</a>`}
+        <button class="btn ghost" id="vX" style="margin-top:10px">Fermer</button></div>`;
+      ov.querySelector('#vX').onclick = () => ov.remove();
+      ov.querySelectorAll('[data-vo]').forEach(b => b.onclick = () => { onglet = b.dataset.vo; dessiner(); });
+      const act = async (b, o, ok) => { b.disabled = true; const t = b.textContent; b.textContent = '…'; try { await appel(o); dessiner(ok); } catch(e){ b.disabled = false; b.textContent = t; alert(e.message); } };
+      ov.querySelectorAll('[data-vv]').forEach(b => b.onclick = async () => {
+        if (!(await confirmer({titre: 'Valider ce paiement ?', texte: 'Vérifie d’abord dans tes SMS MoMo que tu as bien reçu l’argent avec cet ID de transaction.', ok: 'Oui, valider', danger: false, icone: '💳'}))) return;
+        act(b, {op: 'valider', ligne: b.dataset.vv}, '✅ Paiement validé : abonnement activé et e-mail envoyé.'); });
+      ov.querySelectorAll('[data-vr]').forEach(b => b.onclick = () => { const raison = prompt('Raison du refus (envoyée par e-mail) :', 'Paiement introuvable avec cet ID de transaction'); if (raison === null) return; act(b, {op: 'refuser', ligne: b.dataset.vr, raison}, 'Paiement refusé.'); });
+      ov.querySelectorAll('[data-vp]').forEach(b => b.onclick = () => { const j = prompt('Combien de jours ajouter ? (ex : 30, ou -5 pour retirer)', '30'); if (!j) return; act(b, {op: 'prolonger', email: b.dataset.vp, jours: j}, 'Abonnement prolongé.'); });
+      ov.querySelectorAll('[data-vb]').forEach(b => b.onclick = async () => { if (!(await confirmer({titre: 'Suspendre ' + b.dataset.vn + ' ?', texte: 'Ses boutiques et son application seront coupées jusqu’à ce que tu le réactives.', ok: 'Suspendre'}))) return; act(b, {op: 'bloquer', email: b.dataset.vb}, 'Compte suspendu.'); });
+      ov.querySelectorAll('[data-vd]').forEach(b => b.onclick = () => act(b, {op: 'debloquer', email: b.dataset.vd}, 'Compte réactivé.'));
+      ov.querySelectorAll('[data-vc]').forEach(b => b.onclick = () => act(b, {op: 'code', code: b.dataset.vc, actif: b.dataset.va === '1'}, 'Code mis à jour.'));
+      const nc = ov.querySelector('#vNewCode'); if (nc) nc.onclick = () => { const code = prompt('Nouveau code promo (ex : VENDOO12) :'); if (!code) return; const prix = prompt('Prix par mois avec ce code (F) :', '12000'); if (!prix) return; act(nc, {op: 'code', code, prix}, 'Code créé.'); };
+    };
+    ov.onclick = e => { if (e.target === ov) ov.remove(); };
+    document.body.appendChild(ov); dessiner();
+    try { await appel({}); if (ov.isConnected) dessiner(); } catch(e){ if (ov.isConnected) dessiner('Impossible de charger Vendoo : ' + esc(/inconnu/i.test(e.message) ? 'mets à jour le code Apps Script (Code.gs).' : e.message)); }
   }
   function nouvelleBoutique(ov, retour){
     const pays = (BQS && BQS.paysListe) || [];
@@ -704,11 +792,11 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
         BQS = null; try { localStorage.removeItem('adm_bqs'); } catch(x){}
         ov.innerHTML = `<div class="detail bqsheet"><div class="grab"></div><h2>✅ Boutique créée</h2>
           <p class="sub"><b>${esc(j.nom)}</b> est prête. Son site sera en ligne dans 10 minutes environ.</p>
-          <div class="linkbox">${esc(SITE + '?b=' + j.code)}</div>
+          <div class="linkbox">${esc(siteDe(j.code))}</div>
           <div class="addrow"><button id="nbCp">🔗 Copier le lien du site</button><a href="${esc(j.sheetUrl)}" target="_blank" rel="noopener">📄 Ouvrir son Google Sheets</a></div>
           <button class="btn blue" id="nbGo" style="margin-top:14px">Ouvrir cette boutique dans l'application</button>
           <button class="btn ghost" id="nbF" style="margin-top:10px">Fermer</button></div>`;
-        ov.querySelector('#nbCp').onclick = async ev => { try { await navigator.clipboard.writeText(SITE + '?b=' + j.code); ev.target.textContent = '✓ Copié'; } catch(x){ prompt('Lien du site :', SITE + '?b=' + j.code); } };
+        ov.querySelector('#nbCp').onclick = async ev => { try { await navigator.clipboard.writeText(siteDe(j.code)); ev.target.textContent = '✓ Copié'; } catch(x){ prompt('Lien du site :', siteDe(j.code)); } };
         ov.querySelector('#nbGo').onclick = () => ouvrirBoutique(j.code);
         ov.querySelector('#nbF').onclick = () => ov.remove();
       } catch(err){ b.disabled = false; b.textContent = 'Créer la boutique'; alert('Création impossible : ' + err.message); }
@@ -719,8 +807,33 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
   async function call(body){
     const r = await fetch(API, {method:'POST', body: JSON.stringify(Object.assign({key, b: BQ}, body))});
     const j = await r.json();
+    if (!j.ok && j.erreur === 'VENDOO_BLOQUE'){ vendooBloque(j.vendoo || {}); throw new Error('VENDOO_BLOQUE'); }
     if (!j.ok) throw new Error(j.erreur || 'Erreur');
+    if (j.vendoo) vendooBandeau(j.vendoo);
     return j;
+  }
+  /* ---------- Abonnement Vendoo : alerte avant la fin, écran de coupure ---------- */
+  const PAYER = 'https://abraham596-stak.github.io/abromarket1/vendoo/#compte';
+  function vendooBandeau(L){
+    const el = document.getElementById('vband'); if (!el) return;
+    const t = L.statut === 'grace' ? `⚠️ Abonnement Vendoo terminé : tes boutiques seront coupées dans ${L.grace} jour${L.grace > 1 ? 's' : ''}.`
+      : L.statut === 'actif' && L.alerte ? `⏳ Ton abonnement Vendoo se termine dans ${L.jours} jour${L.jours > 1 ? 's' : ''}.` : '';
+    el.innerHTML = t ? `<span>${t}</span><a href="${PAYER}" target="_blank" rel="noopener">Renouveler</a>` : '';
+    el.classList.toggle('hidden', !t);
+  }
+  function vendooBloque(L){
+    if (document.getElementById('vbloc')) return;
+    const titre = L.statut === 'inconnu' ? 'Relie ta boutique à ton compte Vendoo' : L.statut === 'attente' ? 'Active ton abonnement Vendoo' : L.statut === 'bloque' ? 'Compte Vendoo suspendu' : 'Tes boutiques sont coupées';
+    const texte = L.statut === 'inconnu' ? 'Sur le site Vendoo, connecte-toi puis colle le lien de ton application Apps Script dans « Installer ma boutique ».'
+      : L.statut === 'attente' ? 'Paie ton abonnement par Mobile Money depuis ton compte Vendoo. Tout s’ouvre dès que ton paiement est validé.'
+      : L.statut === 'bloque' ? 'Contacte Vendoo pour réactiver ton compte.'
+      : 'Ton abonnement Vendoo est terminé' + (L.expire ? ' depuis le ' + esc(L.expire) : '') + '. Rien n’est perdu : tes produits et commandes reviennent dès que ton paiement est validé.';
+    const ov = document.createElement('div'); ov.id = 'vbloc'; ov.className = 'vbloc';
+    ov.innerHTML = `<div><img src="../vendoo/icon-192.png" alt="" width="72" height="72"><h1>${titre}</h1><p>${texte}</p>
+      <a class="btn blue" href="${PAYER}">${L.statut === 'inconnu' ? 'Ouvrir mon compte Vendoo' : 'Payer mon abonnement'}</a>
+      <button class="btn ghost" id="vRe" style="margin-top:10px">J’ai payé, réessayer</button></div>`;
+    document.body.appendChild(ov); finDemarrage();
+    ov.querySelector('#vRe').onclick = () => location.reload();
   }
   async function refresh(silent){
     if (busy) return; busy = true;
@@ -745,9 +858,11 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
       const da = document.getElementById('dotAb'); da.textContent = ar > 99 ? '99+' : ar; da.classList.toggle('hidden', !ar);
       if (!pareil && !document.querySelector('.overlay') && !(view === 'orders' && document.activeElement && document.activeElement.id === 'q')) rendreQuandCalme();
       openFromLink();
+      if (vueDemandee === 'vendoo' && j.vendoo && j.vendoo.statut === 'proprietaire' && !window.__vAdm){ window.__vAdm = 1; vendooAdmin(); }
       if (!precharge){ precharge = true; setTimeout(() => { traiterFile(); loadPub(); loadPR(); loadTT(); }, 400); }
     } catch(e){
-      if (/mot de passe/i.test(e.message)){ logout('Mot de passe incorrect.'); }
+      if (e.message === 'VENDOO_BLOQUE'){ /* écran de coupure déjà affiché */ }
+      else if (/mot de passe/i.test(e.message)){ logout('Mot de passe incorrect.'); }
       else if (!silent && !D){ app.innerHTML = `<div class="login"><h1>Connexion impossible</h1><p>Vérifie ta connexion internet, puis réessaie.</p><button class="btn" id="retry">Réessayer</button></div>`; document.getElementById('retry').onclick = () => refresh(); }
     } finally { busy = false; setBusy(false); }
   }
@@ -783,7 +898,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
   function login(msg){
     nav.classList.add('hidden');
     app.innerHTML = `<form class="login" id="lf">
-      <div class="logo"><img src="icon-192.png" alt="ABROMARKET"></div>
+      <div class="logo"><img src="${VENDOO ? '../vendoo/icon-192.png' : 'icon-192.png'}" alt=""></div>
       <h1>Ta boutique, en direct.</h1>
       <p>Entre le mot de passe de l'application. Tu le trouves dans ton Google Sheets, onglet « Réglages ».</p>
       <input id="pw" type="password" inputmode="numeric" autocomplete="current-password" placeholder="Mot de passe" aria-label="Mot de passe">
@@ -794,7 +909,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
       key = document.getElementById('pw').value.trim();
       const b = e.target.querySelector('.btn'); b.textContent = 'Connexion…';
       try { const j = await call(dashBody()); S.set('adm_key', key); D = j; try { S.set('adm_dash_' + periode, JSON.stringify(j)); } catch(x){} initPush(); lastNum = j.dernier ? j.dernier.numero : ''; S.set('adm_last', lastNum); start(); }
-      catch(err){ b.textContent = 'Ouvrir mon tableau de bord'; document.getElementById('lerr').textContent = /mot de passe/i.test(err.message) ? 'Mot de passe incorrect.' : 'Connexion impossible. Vérifie ta connexion internet.'; }
+      catch(err){ if (err.message === 'VENDOO_BLOQUE') return; b.textContent = 'Ouvrir mon tableau de bord'; document.getElementById('lerr').textContent = /mot de passe/i.test(err.message) ? 'Mot de passe incorrect.' : 'Connexion impossible. Vérifie ta connexion internet.'; }
     };
   }
   function logout(msg){ key = ''; S.del('adm_key'); appliquerVue(); clearTimeout(timer); login(msg); }
@@ -1371,7 +1486,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
   try { pubData = JSON.parse(S.get('adm_pub') || 'null'); } catch(e){}
   let pubP = null;
   function loadPub(){
-    return pubP = pubP || fetch(SITE + (BQ ? 'data/' + BQ + '.json' : 'data.json') + '?t=' + Date.now()).then(r => r.json()).then(j => {
+    return pubP = pubP || fetch(SITE + fichierData() + '?t=' + Date.now()).then(r => r.json()).then(j => {
       pubData = j;
       try { S.set('adm_pub', JSON.stringify({ pays: j.pays, imgs: j.imgs || {}, produits: j.produits.map(p => ({ id: p.id, nom: p.nom, photos: p.photos.slice(0, 1), prix: p.prix })) })); } catch(e){}
       return j;
@@ -2173,7 +2288,9 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
   function settings(){
     const perm = 'Notification' in window ? Notification.permission : 'unsupported';
     app.innerHTML = `<div class="page"><h1>Réglages</h1>
-      <div class="set"><div><b>Mes boutiques (Vendoo)</b><p>Jusqu'à 30 boutiques : une par agence ou par pays. Chacune a ses produits, ses commandes et son lien.</p></div><button class="chip" style="background:var(--main);border-color:var(--main)" id="bqSet">Ouvrir</button></div>
+      ${D.vendoo && D.vendoo.statut === 'proprietaire' ? `<div class="set"><div><b>Vendoo – abonnés et paiements</b><p>Valider les paiements MoMo, voir les abonnés, codes promo.</p></div><button class="chip" style="background:#5B2EE6;border-color:#5B2EE6" id="vAdm">Ouvrir</button></div>` : ''}
+      ${VENDOO && D.vendoo && D.vendoo.statut !== 'proprietaire' ? `<div class="set"><div><b>Mon abonnement Vendoo</b><p>${D.vendoo.statut === 'actif' ? 'Actif jusqu’au ' + esc(D.vendoo.expire || '') + ' (' + D.vendoo.jours + ' j)' : D.vendoo.statut === 'grace' ? 'Terminé : coupure dans ' + D.vendoo.grace + ' j' : esc(D.vendoo.statut || '')}</p></div><a class="chip" style="background:#5B2EE6;border-color:#5B2EE6" href="${PAYER}" target="_blank" rel="noopener">Gérer</a></div>` : ''}
+      <div class="set"><div><b>Mes boutiques${VENDOO ? '' : ' (Vendoo)'}</b><p>Jusqu'à 30 boutiques : une par agence ou par pays. Chacune a ses produits, ses commandes et son lien.</p></div><button class="chip" style="background:var(--main);border-color:var(--main)" id="bqSet">Ouvrir</button></div>
       <div class="set"><div><b>Son des nouvelles commandes</b><p>Un « ding » à chaque commande, quand l'application est ouverte.</p></div><button class="switch ${sound?'on':''}" id="sw" role="switch" aria-checked="${sound}" aria-label="Son des nouvelles commandes"></button></div>
       <div class="set"><div><b>Tester le son</b><p>Vérifie que le volume de ton téléphone est assez fort.</p></div><button class="chip" style="background:var(--surface);color:var(--ink);border-color:var(--line)" id="test">Écouter</button></div>
       <div class="set"><div><b>Notifications (même application fermée)</b><p>${!D.onesignal ? 'À configurer : ajoute l’App ID OneSignal dans ton Google Sheets.' : pushOn ? 'Activées sur ce téléphone ✓' : perm === 'denied' ? 'Bloquées : autorise les notifications pour ce site dans les réglages de Chrome.' : 'Reçois chaque commande même téléphone verrouillé.'}</p></div>${D.onesignal && !pushOn && perm !== 'denied' ? '<button class="chip" style="background:var(--main);border-color:var(--main)" id="notifOS">Activer</button>' : ''}</div>
@@ -2191,6 +2308,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
     document.getElementById('testRel').onclick = () => { const s = sound; sound = true; chime('relance'); sound = s; };
     document.getElementById('out').onclick = () => logout();
     document.getElementById('bqSet').onclick = () => mesBoutiques();
+    const va = document.getElementById('vAdm'); if (va) va.onclick = () => vendooAdmin();
     app.querySelectorAll('[data-go2]').forEach(b => b.onclick = () => go(b.dataset.go2));
     document.getElementById('testPush').onclick = async e => {
       const b = e.target, dg = document.getElementById('diag'); b.textContent = '…';
