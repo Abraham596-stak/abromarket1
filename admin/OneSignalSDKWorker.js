@@ -1,13 +1,23 @@
 // Notifications (OneSignal) + ouverture rapide de l'application
 importScripts('https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js');
-const CACHE = 'abro-admin-v31';
+const CACHE = 'abro-admin-v32';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './kaching.mp3', './relance.mp3', './icon-relance.png', './icon-commande.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k.startsWith('abro-') && k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
 self.addEventListener('fetch', e => {
   const u = new URL(e.request.url);
   if (e.request.method !== 'GET' || u.origin !== location.origin) return;
-  // Affiche tout de suite la version gardée, puis met à jour en arrière-plan
+  // L'application elle-même (la page) : toujours la dernière version si internet répond en moins de 3 s, sinon la version gardée
+  if (e.request.mode === 'navigate' || u.pathname.endsWith('/') || u.pathname.endsWith('index.html')) {
+    e.respondWith(caches.open(CACHE).then(async c => {
+      const hit = () => c.match(e.request, {ignoreSearch: true}).then(h => h || c.match('./index.html'));
+      const net = fetch(e.request, {cache: 'no-cache'}).then(r => { if (r.ok) c.put(e.request, r.clone()); return r; });
+      try { return await Promise.race([net, new Promise((_, ko) => setTimeout(() => ko(new Error('lent')), 3000))]); }
+      catch (x) { const h = await hit(); return h || net; }
+    }));
+    return;
+  }
+  // Le reste (icônes, sons) : tout de suite depuis le téléphone, puis mise à jour en arrière-plan
   e.respondWith(caches.open(CACHE).then(async c => {
     const hit = await c.match(e.request, {ignoreSearch: u.pathname.endsWith('/') || u.pathname.endsWith('index.html')});
     const net = fetch(e.request).then(r => { if (r.ok) c.put(e.request, r.clone()); return r; }).catch(() => hit);

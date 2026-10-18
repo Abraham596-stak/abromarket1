@@ -656,6 +656,8 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
 .pdic .cal{width:22px;height:22px}
 .ptmod{font-style:normal;font-size:12px;font-weight:700;color:var(--main);margin-left:4px}
 .ptedit{display:block;margin-top:6px;font-weight:700;color:var(--main);padding:4px 0}
+.refbtn svg{width:20px;height:20px}
+@media (hover: none) and (pointer: coarse){.refbtn{display:none}}
 </style>
 </head>
 <body>
@@ -1196,6 +1198,24 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
       else { el.classList.remove('tire', 'vu'); el.style.transform = ''; }
     }, {passive: true});
   })();
+  // Bouton ↻ (ordinateur) et touche F5 : même chose que tirer vers le bas sur téléphone
+  function actualiser(){
+    const el = document.getElementById('ptr'); if (el) el.classList.add('vu', 'tourne');
+    verifierMaj(); busy = false; refresh().finally(() => setBusy(false)); if (view === 'tiktok') loadTT();
+  }
+  addEventListener('keydown', e => { if ((e.key === 'F5' || ((e.ctrlKey || e.metaKey) && /^r$/i.test(e.key))) && key && !e.shiftKey){ e.preventDefault(); actualiser(); } });
+  // Nouvelle version de l'application : on la charge toute seule (ordinateur comme téléphone)
+  let majEnAttente = false;
+  const occupeEcran = () => document.querySelector('.overlay, .editor, .iapan, .cfov, .gv') || /input|textarea|select/i.test((document.activeElement || {}).tagName || '');
+  function appliquerMaj(){ if (occupeEcran()) { majEnAttente = true; return; } majEnAttente = false; location.reload(); }
+  function verifierMaj(){ try { navigator.serviceWorker && navigator.serviceWorker.getRegistration().then(r => r && r.update()).catch(() => {}); } catch(e){} }
+  if ('serviceWorker' in navigator){
+    let avait = !!navigator.serviceWorker.controller; // 1re installation : pas besoin de recharger
+    navigator.serviceWorker.addEventListener('controllerchange', () => { if (avait) appliquerMaj(); avait = true; });
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible'){ verifierMaj(); if (majEnAttente) appliquerMaj(); } });
+    setInterval(() => { verifierMaj(); if (majEnAttente) appliquerMaj(); }, 15 * 60 * 1000);
+    setTimeout(verifierMaj, 5000);
+  }
   function fromCache(p){ try { const c = S.get('adm_dash_' + p); return c ? JSON.parse(c) : null; } catch(e){ return null; } }
   let opened = false;
   function openFromLink(){
@@ -1323,6 +1343,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
         <div class="bar">
           <div class="avatar" aria-hidden="true">${esc((D.boutique || 'AB').slice(0,2).toUpperCase())}</div>
           <button class="store" id="bqBtn" aria-label="Changer de boutique"><img class="brandlogo" src="icon-192.png" alt="" aria-hidden="true"><span class="stn">${esc(D.boutique || 'Ma boutique')}</span><span class="stv">▾</span></button>
+          <button class="iconbtn refbtn" id="refBtn" aria-label="Actualiser" title="Actualiser (F5)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button>
           <button class="iconbtn ${sound ? '' : 'off'}" id="snd" aria-label="${sound ? 'Couper le son' : 'Activer le son'}">${sound ? '🔔' : '🔕'}</button>
         </div>
 
@@ -1370,6 +1391,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
     const pto = document.getElementById('ptOpen'); if (pto) pto.onclick = () => pointHebdo();
     bindOrders();
     document.getElementById('bqBtn').onclick = () => mesBoutiques();
+    document.getElementById('refBtn').onclick = actualiser;
     document.getElementById('snd').onclick = () => { sound = !sound; S.set('adm_sound', sound ? '1' : '0'); if (sound) chime(); home(); };
   }
 
