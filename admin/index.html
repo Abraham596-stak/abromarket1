@@ -551,7 +551,7 @@ html.ordi .iapan{inset:auto 24px 24px auto;width:420px;height:min(680px,calc(100
 .selbar b{flex:1}
 .selbar button{font-weight:700;padding:6px 8px;border-radius:10px;color:var(--main)}
 .selbar #selX{color:var(--ink);font-size:18px}
-.selact{position:sticky;bottom:calc(96px + env(safe-area-inset-bottom));display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:14px;background:#fff;padding:8px 0}
+.selact{position:sticky;bottom:calc(96px + env(safe-area-inset-bottom));display:grid;grid-template-columns:1fr;gap:8px;margin-top:14px;background:#fff;padding:8px 0}
 .selact button{padding:12px 6px;border-radius:12px;background:var(--surface);font-weight:800;font-size:14px}
 .selact button.danger{background:var(--errbg);color:#9B1C1C}
 .selact button:disabled{opacity:.45}
@@ -685,6 +685,12 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
 .rggar{margin-top:10px;padding:10px 12px;border-radius:14px;background:var(--surface)}
 .rggar .field{background:#fff}
 .spin{display:inline-block;width:22px;height:22px;border:3px solid var(--line);border-top-color:var(--main);border-radius:50%;animation:ptr .7s linear infinite}
+.selact #selOpt{background:var(--main);color:#fff;padding:14px;font-size:15px}
+.selact #selOpt:disabled{background:var(--surface);color:var(--soft);opacity:1}
+.prod{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.ppban{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;background:#FFF6E0;color:#7A4A00;font-size:14px;font-weight:600;margin:0 0 10px}
+.ppban span{flex:1}
+.ppban button{background:var(--main);color:#fff;border-radius:10px;padding:8px 12px;font-weight:800;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -2170,7 +2176,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
     if (!l.length) return 'Aucun prix';
     return l.slice(0, 2).map(x => { const pp = PR.pays.find(q => q.nom.toLowerCase() === String(x.pays).toLowerCase()); return `${x.pays} : ${fmt(String(x.p1).replace(/[^\d.,]/g, ''), pp ? pp.devise : '')}`; }).join(' · ') + (l.length > 2 ? ` +${l.length - 2}` : '');
   }
-  let prSel = null;   // sélection de plusieurs produits
+  let prSel = null, appuiLong = false, lpFin = 0;   // sélection de plusieurs produits (bouton « Sélectionner » ou appui long)
   function products(){ drawProducts(); loadPR(); loadPub().then(() => { if (view === 'products' && !document.querySelector('.overlay, .editor')) drawProducts(); }); }
   function drawProducts(){
     if (view !== 'products') return;
@@ -2179,19 +2185,31 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
     else if (pubData) liste = pubData.produits.map(p => ({ id: p.id, nom: p.nom, photos: p.photos, enLigne: true, prix: [] }));
     const nbB = liste ? liste.filter(p => !p.enLigne).length : 0;
     const vis = liste ? liste.filter(p => prFiltre === 'tous' || (prFiltre === 'ligne' ? p.enLigne : !p.enLigne)) : [];
-    const sel = prSel;
+    const sel = prSel, pp = pressePapier();
     app.innerHTML = `<div class="page"><div class="prhead"><h1>Produits</h1>${sel ? '' : `<span style="display:flex;gap:8px">${liste && liste.length ? '<button class="btn ghost small" id="prSel">Sélectionner</button>' : ''}<button class="btn blue small" id="prNew">+ Ajouter</button></span>`}</div>
       ${sel ? `<div class="selbar"><button id="selX" aria-label="Annuler la sélection">✕</button><b>${sel.size} sélectionné${sel.size > 1 ? 's' : ''}</b><button id="selAll">${vis.length && vis.every(p => sel.has(p.id)) ? 'Tout désélectionner' : 'Tout sélectionner'}</button></div>` : ''}
+      ${!sel && pp && pp.ids && pp.ids.length && (pp.source || '') !== (BQ || '') ? `<div class="ppban"><span>📋 ${pp.ids.length} produit${pp.ids.length > 1 ? 's' : ''} copié${pp.ids.length > 1 ? 's' : ''} de « ${esc(pp.nom)} »</span><button id="ppCol">📥 Coller ici</button></div>` : ''}
       <div class="filters">${[['tous', 'Tous'], ['ligne', 'En ligne'], ['brouillon', 'Brouillons' + (nbB ? ' (' + nbB + ')' : '')]].map(([k, l]) => `<button class="${k === prFiltre ? 'on' : ''}" data-pf="${k}">${l}</button>`).join('')}</div>
       <div id="pl">${!liste ? '<div class="empty">Chargement…</div>' : vis.length ? vis.map(p => `<div class="prod ${sel && sel.has(p.id) ? 'sel' : ''}" data-row="${esc(p.id)}">
           ${sel ? `<span class="pck" aria-hidden="true">${sel.has(p.id) ? '✓' : ''}</span>` : ''}
           <img src="${esc(vignette(p.photos[0]))}" alt="" loading="lazy">
           <div class="info"><b>${esc(p.nom)}</b><small>${p.enLigne ? '<span class="pst on">● En ligne</span>' : '<span class="pst">● Brouillon</span>'} ${esc(prixResume(p))}</small></div>
           ${sel ? '' : `<button class="pmenu" data-pm="${esc(p.id)}" aria-label="Options de ${esc(p.nom)}">⋮</button>`}</div>`).join('') : `<div class="empty">${prFiltre === 'brouillon' ? 'Aucun brouillon.' : 'Aucun produit. Appuie sur « + Ajouter ».'}</div>`}</div>
-      ${sel ? `<div class="selact"><button data-sa="ligne" ${sel.size ? '' : 'disabled'}>● En ligne</button><button data-sa="brouillon" ${sel.size ? '' : 'disabled'}>Brouillon</button><button data-sa="suppr" class="danger" ${sel.size ? '' : 'disabled'}>🗑 Supprimer</button></div>` : `<a class="btn ghost" style="margin-top:18px" href="${esc(D ? D.sheetUrl : '#')}" target="_blank" rel="noopener">Ouvrir le Google Sheets</a>`}</div>`;
+      ${sel ? `<div class="selact"><button id="selOpt" ${sel.size ? '' : 'disabled'}>${sel.size ? `Options pour ${sel.size} produit${sel.size > 1 ? 's' : ''} ▴` : 'Touche les produits à sélectionner'}</button></div>` : `<a class="btn ghost" style="margin-top:18px" href="${esc(D ? D.sheetUrl : '#')}" target="_blank" rel="noopener">Ouvrir le Google Sheets</a>`}</div>`;
     const pret = () => { if (!PR){ alert('Encore une seconde, les détails des produits arrivent…'); return false; } return true; };
     app.querySelectorAll('[data-pf]').forEach(b => b.onclick = () => { prFiltre = b.dataset.pf; drawProducts(); });
+    // Appui long sur un produit : le sélectionner (puis toucher les autres pour en ajouter)
+    app.querySelectorAll('[data-row]').forEach(r => {
+      let t = null, x0 = 0, y0 = 0;
+      const stop = () => { clearTimeout(t); t = null; };
+      r.addEventListener('pointerdown', e => { if (prSel || e.target.closest('.pmenu')) return; x0 = e.clientX; y0 = e.clientY;
+        t = setTimeout(() => { t = null; if (!pret()) return; appuiLong = true; addEventListener('pointerup', () => { appuiLong = false; lpFin = Date.now(); }, {once: true, capture: true}); prSel = new Set([r.dataset.row]); try { navigator.vibrate && navigator.vibrate(30); } catch(x){} drawProducts(); }, 480); });
+      r.addEventListener('pointermove', e => { if (t && (Math.abs(e.clientX - x0) > 10 || Math.abs(e.clientY - y0) > 10)) stop(); });
+      ['pointerup', 'pointercancel', 'pointerleave'].forEach(k => r.addEventListener(k, stop));
+      r.addEventListener('contextmenu', e => { if (appuiLong || t) e.preventDefault(); });
+    });
     app.querySelectorAll('[data-row]').forEach(r => r.onclick = e => {
+      if (Date.now() - lpFin < 250) return;
       if (e.target.closest('.pmenu')) return;
       const id = r.dataset.row;
       if (prSel){ prSel.has(id) ? prSel.delete(id) : prSel.add(id); drawProducts(); return; }
@@ -2201,18 +2219,51 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
     const ps = document.getElementById('prSel'); if (ps) ps.onclick = () => { if (!pret()) return; prSel = new Set(); drawProducts(); };
     const sx = document.getElementById('selX'); if (sx) sx.onclick = () => { prSel = null; drawProducts(); };
     const sa = document.getElementById('selAll'); if (sa) sa.onclick = () => { const tous = vis.every(p => prSel.has(p.id)); vis.forEach(p => tous ? prSel.delete(p.id) : prSel.add(p.id)); drawProducts(); };
-    app.querySelectorAll('[data-sa]').forEach(b => b.onclick = async () => {
+    const so = document.getElementById('selOpt'); if (so) so.onclick = () => optionsSelection();
+    const pc = document.getElementById('ppCol'); if (pc) pc.onclick = () => collerIci();
+    async function actionSel(sa){
       const ids = [...prSel], ps2 = PR.produits.filter(p => ids.includes(p.id));
-      if (b.dataset.sa === 'suppr'){
+      if (sa === 'copier'){
+        try { localStorage.setItem(K_PP, JSON.stringify({source: BQ || '', nom: (D && D.boutique) || 'cette boutique', ids, quand: Date.now()})); } catch(e){}
+        prSel = null; drawProducts();
+        return toast(`📋 ${ids.length} produit${ids.length > 1 ? 's' : ''} copié${ids.length > 1 ? 's' : ''} : va dans une autre boutique pour coller`);
+      }
+      if (sa === 'suppr'){
         if (!(await confirmer({titre: 'Supprimer ' + ids.length + ' produit' + (ids.length > 1 ? 's' : '') + ' ?', texte: `${ps2.slice(0, 5).map(p => '• ' + esc(p.nom)).join('<br>')}${ps2.length > 5 ? '<br>…' : ''}<br><br><b>Irréversible :</b> ils disparaissent du site et du Google Sheets, avec leurs photos, prix et avis. Leurs liens ne marcheront plus.`, ok: 'Oui, supprimer'}))) return;
         supprimerProduits(ids);
       } else {
-        const enLigne = b.dataset.sa === 'ligne';
+        const enLigne = sa === 'ligne';
         ps2.forEach(p => { if (!!p.enLigne !== enLigne){ p.enLigne = enLigne; enfiler({action: 'sauver', produit: p, ancienId: p.id}); } });
         memoPR(); toast(enLigne ? '● Mis en ligne' : 'Passés en brouillon');
       }
       prSel = null; drawProducts();
-    });
+    }
+    // Options de la sélection : liste de haut en bas
+    function optionsSelection(){
+      const n = prSel.size, ps2 = PR.produits.filter(p => prSel.has(p.id));
+      const m = document.createElement('div'); m.className = 'overlay';
+      m.innerHTML = `<div class="detail pmsheet" role="dialog" aria-modal="true" aria-label="Options de la sélection"><div class="grab"></div>
+        <div class="pmtete"><b>${n} produit${n > 1 ? 's' : ''} sélectionné${n > 1 ? 's' : ''}</b></div>
+        <button data-sa="copier">📋 Copier (pour les coller dans une autre boutique)</button>
+        ${ps2.some(p => !p.enLigne) ? '<button data-sa="ligne">● Mettre en ligne</button>' : ''}
+        ${ps2.some(p => p.enLigne) ? '<button data-sa="brouillon">⏸ Passer en brouillon</button>' : ''}
+        <button data-sa="suppr" class="danger">🗑 Supprimer</button>
+        <button data-sa="x" class="annul">Annuler</button></div>`;
+      m.onclick = e => { if (e.target === m) return m.remove(); const b = e.target.closest('[data-sa]'); if (!b) return; m.remove(); if (b.dataset.sa !== 'x') actionSel(b.dataset.sa); };
+      document.body.appendChild(m);
+    }
+    // Coller ici les produits copiés d'une autre boutique (une seule fois)
+    async function collerIci(){
+      const pp = pressePapier(); if (!pp) return;
+      if (!(await confirmer({titre: 'Coller les produits ici ?', texte: `<b>${pp.ids.length} produit${pp.ids.length > 1 ? 's' : ''}</b> de « ${esc(pp.nom)} » vont être ajoutés à cette boutique, avec leurs prix et leurs avis.<br><br>Après ça, pour coller encore, il faudra recopier.`, ok: 'Coller', danger: false, icone: '📥'}))) return;
+      const b = document.getElementById('ppCol'); if (b){ b.disabled = true; b.textContent = 'Collage…'; }
+      try {
+        const j = await bqAppel({action: 'coller', source: pp.source || '', code: BQ || '', ids: pp.ids});
+        try { localStorage.removeItem(K_PP); } catch(e){}
+        toast(`✅ ${j.colles} produit${j.colles > 1 ? 's' : ''} collé${j.colles > 1 ? 's' : ''}`);
+        await loadPR(); drawProducts();
+      } catch(e){ if (b){ b.disabled = false; b.textContent = '📥 Coller ici'; } alert('Collage impossible : ' + e.message); }
+    }
     const pn = document.getElementById('prNew'); if (pn) pn.onclick = () => { if (!pret()) return; editer(null); };
   }
   function supprimerProduits(ids){
