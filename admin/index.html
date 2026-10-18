@@ -691,6 +691,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
 .ppban{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;background:#FFF6E0;color:#7A4A00;font-size:14px;font-weight:600;margin:0 0 10px}
 .ppban span{flex:1}
 .ppban button{background:var(--main);color:#fff;border-radius:10px;padding:8px 12px;font-weight:800;white-space:nowrap}
+.bqrow{cursor:pointer;transition:transform .12s}.bqrow:active{transform:scale(.98)}.bqrow.ouvre{opacity:.6}
 </style>
 </head>
 <body>
@@ -872,6 +873,8 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
       ov.querySelector('#bqX').onclick = () => ov.remove();
       const nb = ov.querySelector('#bqNew'); if (nb) nb.onclick = () => nouvelleBoutique(ov, dessiner);
       ov.querySelectorAll('[data-bm]').forEach(b => b.onclick = () => menuBoutique(ov, (BQS.boutiques || []).find(x => (x.code || '') === b.dataset.bm), dessiner));
+      // Toucher une boutique l'ouvre dans l'application (le ⋮ garde les options)
+      ov.querySelectorAll('.bqrow').forEach(r => r.onclick = e => { if (e.target.closest('[data-bm]')) return; const c = r.querySelector('[data-bm]').dataset.bm; if (c === (BQ || '')) { ov.remove(); return; } r.classList.add('ouvre'); ouvrirBoutique(c); });
     };
     ov.onclick = e => { if (e.target === ov) ov.remove(); };
     document.body.appendChild(ov); dessiner();
