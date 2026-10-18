@@ -830,12 +830,25 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
         ${!BQS ? '<div class="empty">Chargement…</div>' : l.map(b => `<div class="bqrow ${(b.code || '') === BQ ? 'on' : ''}">
           <div class="bqi"><b>${esc(b.nom)}</b><small>${b.principale ? 'Boutique principale' : esc(b.pays || '')}${b.agence ? ' · agence : ' + esc(b.agence) : ''}${!b.active ? ' · <span style="color:var(--err)">désactivée</span>' : ''}</small></div>
           ${(b.code || '') === BQ ? '<span class="bqcur">Ouverte</span>' : `<button class="chip" style="background:var(--main);border-color:var(--main)" data-bo="${esc(b.code || '')}">Ouvrir</button>`}
-          <div class="bqa"><a href="${esc(b.sheetUrl)}" target="_blank" rel="noopener">📄 Sheets</a><button data-bl="${esc(siteDe(b.code || ''))}">🔗 Lien du site</button><button data-bag="${esc(b.code || '')}" data-bn="${esc(b.nom)}">🚚 Agences</button>${b.principale ? '' : `<button class="bqdel" data-bd="${esc(b.code)}" data-bn="${esc(b.nom)}">🗑 Supprimer</button>`}</div></div>`).join('')}
+          <div class="bqa"><a href="${esc(b.sheetUrl)}" target="_blank" rel="noopener">📄 Sheets</a><button data-bl="${esc(siteDe(b.code || ''))}">🔗 Lien du site</button><button data-bren="${esc(b.code || '')}" data-bn="${esc(b.nom)}">✏️ Renommer</button><button data-bag="${esc(b.code || '')}" data-bn="${esc(b.nom)}">🚚 Agences</button>${b.principale ? '' : `<button class="bqdel" data-bd="${esc(b.code)}" data-bn="${esc(b.nom)}">🗑 Supprimer</button>`}</div></div>`).join('')}
         ${BQS && n < max ? '<button class="btn blue" id="bqNew" style="margin-top:14px">＋ Créer une nouvelle boutique</button>' : ''}
         <button class="btn ghost" id="bqX" style="margin-top:10px">Fermer</button></div>`;
       ov.querySelector('#bqX').onclick = () => ov.remove();
       ov.querySelectorAll('[data-bo]').forEach(b => b.onclick = () => ouvrirBoutique(b.dataset.bo));
       ov.querySelectorAll('[data-bag]').forEach(b => b.onclick = () => agences(ov, b.dataset.bag, b.dataset.bn, dessiner));
+      ov.querySelectorAll('[data-bren]').forEach(b => b.onclick = async () => {
+        const code = b.dataset.bren, nom = (prompt('Nouveau nom de la boutique :', b.dataset.bn) || '').trim();
+        if (!nom || nom === b.dataset.bn) return;
+        if (nom.length < 2) return alert('Écris un nom d’au moins 2 lettres.');
+        b.disabled = true; b.textContent = 'Enregistrement…';
+        try {
+          const r = await fetch(API, {method: 'POST', body: JSON.stringify({type: 'boutiques', action: 'renommer', key, code, nom, v: VID})}); const j = await r.json(); if (!j.ok) throw new Error(frErr(j.erreur));
+          (BQS.boutiques.find(x => (x.code || '') === code) || {}).nom = j.nom || nom;
+          try { localStorage.setItem(K_BQS, JSON.stringify(BQS)); } catch(e){}
+          if (code === BQ && D) { D.boutique = j.nom || nom; try { if (typeof render === 'function' && (view === 'home' || view === 'settings')) render(); } catch(e){} }
+          dessiner('✅ Boutique renommée : « ' + esc(j.nom || nom) + ' ». Le site affiche le nouveau nom d’ici quelques minutes.');
+        } catch(e){ b.disabled = false; b.textContent = '✏️ Renommer'; alert('Impossible de renommer : ' + e.message); }
+      });
       ov.querySelectorAll('[data-bl]').forEach(b => b.onclick = async () => { try { await navigator.clipboard.writeText(b.dataset.bl); b.textContent = '✓ Copié'; } catch(e){ prompt('Lien du site :', b.dataset.bl); } });
       const nb = ov.querySelector('#bqNew'); if (nb) nb.onclick = () => nouvelleBoutique(ov, dessiner);
       ov.querySelectorAll('[data-bd]').forEach(b => b.onclick = async () => {
