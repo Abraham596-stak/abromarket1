@@ -1199,10 +1199,11 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
   const libSem = iso => { const a = isoJ2(iso), b = new Date(a); b.setDate(b.getDate() + 5); /* lundi → samedi */ const M = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
     return a.getMonth() === b.getMonth() ? a.getDate() + '–' + b.getDate() + ' ' + M[a.getMonth()] : a.getDate() + ' ' + M[a.getMonth()] + ' – ' + b.getDate() + ' ' + M[b.getMonth()]; };
   const isoJ2 = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
-  async function pointHebdo(){
+  async function pointHebdo(opts){
     const dev = (D && D.devise) || 'FCFA', nomB = (D && D.boutique) || 'Ma boutique';
     const semaines = []; let l0 = lundi(new Date()); for (let k = 0; k < 12; k++){ const x = new Date(l0); x.setDate(x.getDate() - 7 * k); semaines.push(isoJ(x)); }
     let sem = semaines[new Date().getDay() === 1 ? 1 : 0], P = null, J = null, aide = null, msg = '', err = '', vue = 'dash', per = 4, choix = null, jsel = null, jchoix = null;
+    if (opts && opts.jour && /^\d{4}-\d{2}-\d{2}$/.test(opts.jour)){ vue = 'jour'; jsel = opts.jour; }
     const ov = document.createElement('div'); ov.className = 'overlay';
     const appel = async o => { const j = await call(Object.assign({type: 'point', semaine: sem}, o)); P = j.points; J = j.jours || []; aide = j.aide; err = ''; return j; };
     const charger = async () => { err = ''; try { await appel({}); } catch(e){ err = esc(/inconnu|introuvable/i.test(e.message) ? 'Mets à jour le code Apps Script (Code.gs).' : e.message); } if (ov.isConnected) dess(); };
@@ -1421,6 +1422,8 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
       if (!pareil && !document.querySelector('.overlay') && !(view === 'orders' && document.activeElement && document.activeElement.id === 'q')) rendreQuandCalme();
       openFromLink();
       if (vueDemandee === 'vendoo' && j.vendoo && j.vendoo.statut === 'proprietaire' && !window.__vAdm){ window.__vAdm = 1; vendooAdmin(); }
+      // Notification « point du jour à faire » / « résumé de la semaine » : ouvre directement le point
+      if (vueDemandee === 'point' && !window.__vPt){ window.__vPt = 1; pointHebdo({jour: new URLSearchParams(location.search).get('jour')}); }
       if (!precharge){ precharge = true; setTimeout(() => { traiterFile(); loadPub(); loadPR(); loadTT(); }, 400); }
     } catch(e){
       if (e.message === 'VENDOO_BLOQUE'){ /* écran de coupure déjà affiché */ }
