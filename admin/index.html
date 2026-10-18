@@ -1215,15 +1215,17 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
     const fusion = () => {
       const m = {};
       (J || []).forEach(j => { const w = isoJ(lundi(isoJ2(j.date))); const x = m[w] = m[w] || {semaine: w, ca: 0, pub: 0, achat: 0, abonnements: 0, livres: 0, nbJours: 0, auto: true};
-        x.ca += j.ca; x.pub += j.pub; x.achat += j.achat; x.livres += j.livres; x.nbJours++; });
-      (P || []).forEach(p => { if (m[p.semaine]) m[p.semaine].abonnements = p.abonnements || 0; else m[p.semaine] = Object.assign({livres: null, auto: false}, p); });
+        x.ca += j.ca; x.pub += j.pub; x.achat += j.achat; x.livres += j.livres; x.abonnements += j.abonnements || 0; x.nbJours++; });
+      (P || []).forEach(p => { if (m[p.semaine]) { if (!m[p.semaine].abonnements) m[p.semaine].abonnements = p.abonnements || 0; } else m[p.semaine] = Object.assign({livres: null, auto: false}, p); });
       return Object.values(m).map(x => Object.assign(x, {benefice: x.ca - x.pub - x.achat - (x.abonnements || 0)})).sort((a, b) => a.semaine < b.semaine ? -1 : 1);
     };
 
     // ---------- Point du jour : ce que l'agence t'envoie chaque jour ----------
-    const champsJ = [['ca', 'Chiffre d’affaires du jour', 'Ce que l’agence te verse pour ce jour, tout retiré'], ['livres', 'Produits livrés', 'Nombre de produits livrés ce jour'], ['achat', 'Coût d’achat des produits livrés', 'Ce qu’ont coûté les produits livrés'], ['pub', 'Dépense pub du jour', 'Toutes tes pubs de ce jour']];
+    const champsJ = [['ca', 'Chiffre d’affaires du jour', 'Ce que l’agence te verse pour ce jour, tout retiré'], ['livres', 'Produits livrés', 'Nombre de produits livrés ce jour'], ['achat', 'Coût d’achat des produits livrés', 'Ce qu’ont coûté les produits livrés'], ['pub', 'Dépense pub du jour', 'Toutes tes pubs de ce jour'], ['abonnements', 'Abonnements du jour', 'Vendoo, applis, internet… (gardé d’un jour à l’autre, change-le si besoin)']];
     const dessJour = () => {
-      const pt = (J || []).find(x => x.date === jsel) || {};
+      const pt = Object.assign({}, (J || []).find(x => x.date === jsel) || {});
+      // Abonnements : on reprend le dernier montant saisi (tu le changes quand tes abonnements changent)
+      if (!pt.date && !pt.abonnements){ const der = (J || []).find(x => x.abonnements > 0); if (der) pt.abonnements = der.abonnements; }
       const dim = isoJ2(jsel).getDay() === 0;
       ov.innerHTML = `<div class="detail bqsheet" role="dialog" aria-modal="true" aria-label="Point du jour"><div class="grab"></div>
         <button class="lnk ptback" id="ptDash">← Tableau de bord</button>
@@ -1240,14 +1242,14 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
         ${pt.date ? '<button class="btn ghost" id="pjDel" style="margin-top:8px">Effacer ce jour</button>' : ''}
         <button class="btn ghost" id="ptX" style="margin-top:12px">Fermer</button></div>`;
       const nb = id => Number(String(ov.querySelector('#pj_' + id).value).replace(/[^\d.-]/g, '')) || 0;
-      const calc = () => { const b = nb('ca') - nb('achat') - nb('pub'); ov.querySelector('#pjBen').textContent = fmt(b, dev); ov.querySelector('#pjRes').classList.toggle('neg', b < 0); };
+      const calc = () => { const b = nb('ca') - nb('achat') - nb('pub') - nb('abonnements'); ov.querySelector('#pjBen').textContent = fmt(b, dev); ov.querySelector('#pjRes').classList.toggle('neg', b < 0); };
       ov.querySelectorAll('.ptin input').forEach(i => i.oninput = calc); calc();
       ov.querySelector('#ptX').onclick = () => ov.remove();
       ov.querySelector('#ptDash').onclick = () => { vue = 'dash'; msg = ''; dess(); };
       ov.querySelector('#pj_date').onchange = e => { if (e.target.value) { jsel = e.target.value; dess(); } };
       ov.querySelector('#pjSave').onclick = async e => {
         const b = e.currentTarget, modif = !!(J || []).find(x => x.date === jsel); b.disabled = true; b.textContent = 'Enregistrement…';
-        try { await appel({action: 'jourSauver', date: jsel, ca: nb('ca'), livres: nb('livres'), achat: nb('achat'), pub: nb('pub'), note: ov.querySelector('#pj_note').value});
+        try { await appel({action: 'jourSauver', date: jsel, ca: nb('ca'), livres: nb('livres'), achat: nb('achat'), pub: nb('pub'), abonnements: nb('abonnements'), note: ov.querySelector('#pj_note').value});
           msg = (modif ? '✅ Point du ' + esc(libJour(jsel)) + ' modifié' : '✅ Point du ' + esc(libJour(jsel)) + ' enregistré · ta semaine est calculée toute seule'); vue = 'dash'; jchoix = jsel; dess(); }
         catch(x){ b.disabled = false; b.textContent = modif ? 'Enregistrer les modifications' : 'Enregistrer le point du jour'; alert(/inconnu|introuvable/i.test(x.message) ? 'Mets à jour le code Apps Script (Code.gs).' : x.message); }
       };
@@ -1266,9 +1268,9 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
         ${msg ? `<div class="okmsg">${msg}</div>` : ''}${errBloc()}
         <div class="ptsem">${semaines.map(w => `<button data-sem="${w}" class="${w === sem ? 'on' : ''} ${fait.has(w) ? 'fait' : ''}">${w === semaines[0] ? 'Cette semaine' : w === semaines[1] ? 'Semaine dernière' : libSem(w)}</button>`).join('')}</div>
         <p class="sub" style="margin:-4px 0 8px">Du ${libSem(sem)} (lundi → samedi)</p>
-        ${auto ? `<div class="ptaide">🗓️ Cette semaine est calculée toute seule avec tes <b>${auto.nbJours} point${auto.nbJours > 1 ? 's' : ''} du jour</b> : CA ${esc(fmt(auto.ca, dev))} · ${auto.livres} livré${auto.livres > 1 ? 's' : ''} · pub ${esc(fmt(auto.pub, dev))} · achats ${esc(fmt(auto.achat, dev))}.<br>Ici, ajoute seulement tes <b>abonnements</b> de la semaine.</div>`
+        ${auto ? `<div class="ptaide">🗓️ Cette semaine est calculée toute seule avec tes <b>${auto.nbJours} point${auto.nbJours > 1 ? 's' : ''} du jour</b> : CA ${esc(fmt(auto.ca, dev))} · ${auto.livres} livré${auto.livres > 1 ? 's' : ''} · pub ${esc(fmt(auto.pub, dev))} · achats ${esc(fmt(auto.achat, dev))}.${auto.abonnements ? ` · abonnements ${esc(fmt(auto.abonnements, dev))} (saisis par jour)` : '<br>Tu n’as pas mis d’abonnements dans tes points du jour : ajoute ceux de la semaine ici.'}</div>`
           : aide ? `<div class="ptaide">D’après l’application : <b>${aide.commandes}</b> commande${aide.commandes > 1 ? 's' : ''} (${esc(fmt(aide.commande, dev))}), dont <b>${aide.livrees}</b> livrée${aide.livrees > 1 ? 's' : ''} (${esc(fmt(aide.livre, dev))}).</div>` : !P && !err ? '<div class="ptaide">Chargement…</div>' : ''}
-        ${(auto ? champs.filter(c => c[0] === 'abonnements') : champs).map(([k, l, a]) => `<div class="ptin"><label for="pt_${k}">${l}<small>${a}</small></label><input class="field" id="pt_${k}" inputmode="numeric" placeholder="0" value="${pt[k] ? esc(String(pt[k])) : ''}"></div>`).join('')}
+        ${(auto ? (auto.abonnements ? [] : champs.filter(c => c[0] === 'abonnements')) : champs).map(([k, l, a]) => `<div class="ptin"><label for="pt_${k}">${l}<small>${a}</small></label><input class="field" id="pt_${k}" inputmode="numeric" placeholder="0" value="${pt[k] ? esc(String(pt[k])) : ''}"></div>`).join('')}
         <input class="field" id="pt_note" placeholder="Note (facultatif)" value="${esc(pt.note || '')}" style="margin-top:10px">
         <div class="ptres" id="ptRes"><small>Bénéfice net de la semaine</small><b id="ptBen">0</b></div>
         <button class="btn blue" id="ptSave">${pt.semaine ? 'Enregistrer les modifications' : 'Enregistrer le point'}</button>
@@ -1315,11 +1317,11 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
         <h2>💰 Point hebdomadaire</h2><p class="sub">${esc(nomB)} · en ${esc(dev)} · semaine du lundi au samedi</p>
         ${msg ? `<div class="okmsg">${msg}</div>` : ''}${errBloc()}
         <button class="btn blue" id="pjFaire" style="margin:6px 0 8px">🗓️ Faire le point du jour</button>
-        <button class="btn ghost" id="ptFaire" style="margin:0 0 14px">📝 Point de la semaine (abonnements…)</button>
+        <button class="btn ghost" id="ptFaire" style="margin:0 0 14px">📝 Point de la semaine (saisie à la main)</button>
         ${!P ? (err ? '' : '<div class="empty">Chargement…</div>') : `
         <div class="ptcard" style="margin-top:0"><h3>🗓️ Revenus réels par jour</h3>
           ${JL.length ? `<p class="sub">Cette semaine : <b>${jSem.length}</b> jour${jSem.length > 1 ? 's' : ''} sur 6 · CA ${esc(fmt(som(jSem, 'ca'), dev))} · ${som(jSem, 'livres')} livré${som(jSem, 'livres') > 1 ? 's' : ''} · bénéfice <b class="${som(jSem, 'benefice') < 0 ? 'n' : 'p'}">${esc(fmt(som(jSem, 'benefice'), dev))}</b></p>
-          ${js ? `<div class="pttip"><b>${esc(libJour(js.date))}</b> : <span class="${js.benefice < 0 ? 'n' : 'p'}">${esc(fmt(js.benefice, dev))}</span><small>CA ${esc(fmt(js.ca, dev))} · ${js.livres} livré${js.livres > 1 ? 's' : ''} · achats ${esc(fmt(js.achat, dev))} · pub ${esc(fmt(js.pub, dev))}</small><button class="lnk ptedit" data-oj="${js.date}">✏️ Modifier ce jour</button></div>` : ''}
+          ${js ? `<div class="pttip"><b>${esc(libJour(js.date))}</b> : <span class="${js.benefice < 0 ? 'n' : 'p'}">${esc(fmt(js.benefice, dev))}</span><small>CA ${esc(fmt(js.ca, dev))} · ${js.livres} livré${js.livres > 1 ? 's' : ''} − achats ${esc(fmt(js.achat, dev))} − pub ${esc(fmt(js.pub, dev))} − abonnements ${esc(fmt(js.abonnements || 0, dev))}</small><button class="lnk ptedit" data-oj="${js.date}">✏️ Modifier ce jour</button></div>` : ''}
           ${barres(JL, 'benefice', js && js.date, 'date')}
           <div class="ptax">${JL.map(x => `<span>${isoJ2(x.date).getDate()}/${isoJ2(x.date).getMonth() + 1}</span>`).join('')}</div>
           <p class="sub" style="margin-top:6px">Touche une barre pour voir le détail du jour.</p>
