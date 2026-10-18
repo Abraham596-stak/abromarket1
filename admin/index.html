@@ -789,8 +789,9 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
   }
   document.addEventListener('pointerdown', unlock, {passive:true});
   // Le son des commandes est chargé dès l'ouverture : c'est TOUJOURS ton fichier qui sonne, jamais un son de secours
-  const elCmd = (() => { try { const a = new Audio('commande.mp3'); a.preload = 'auto'; return a; } catch(e){ return null; } })();
-  try { ctx = new (window.AudioContext || window.webkitAudioContext)(); fetch(SONS.cmd.f).then(r => r.arrayBuffer()).then(a => ctx.decodeAudioData(a)).then(x => SONS.cmd.b = x).catch(() => {}); } catch(e){}
+  const audioEl = f => { try { const a = new Audio(f); a.preload = 'auto'; return a; } catch(e){ return null; } };
+  const elCmd = audioEl('commande.mp3'), elRel = audioEl('relance.mp3');
+  try { ctx = new (window.AudioContext || window.webkitAudioContext)(); ['cmd', 'relance'].forEach(k => fetch(SONS[k].f).then(r => r.arrayBuffer()).then(a => ctx.decodeAudioData(a)).then(x => SONS[k].b = x).catch(() => {})); } catch(e){}
   function chime(type){
     if (!sound) return;
     unlock(); if (!ctx) return;
@@ -801,7 +802,10 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
       src.buffer = buf; src.connect(g).connect(ctx.destination); src.start(ctx.currentTime + .14);
       return;
     }
-    if (!relance){ if (elCmd){ try { elCmd.currentTime = 0; elCmd.play().catch(() => {}); } catch(e){} } return; }
+    // Chaque son a SON fichier : commande.mp3 pour les commandes, relance.mp3 pour les relances
+    const el = relance ? elRel : elCmd;
+    if (el){ try { el.currentTime = 0; el.play().catch(() => {}); } catch(e){} return; }
+    if (!relance) return;
     const t0 = ctx.currentTime + .02;
     [[659.25,0],[523.25,.28]].forEach(([f, dt], i) => {
       const o = ctx.createOscillator(), g = ctx.createGain();
