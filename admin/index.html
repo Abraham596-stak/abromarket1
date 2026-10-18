@@ -16,7 +16,7 @@
 <link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&display=swap">
 <link rel="preconnect" href="https://script.google.com">
 <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
-<link rel="preload" href="kaching.mp3" as="audio"><link rel="preload" href="relance.mp3" as="audio">
+<link rel="preload" href="commande.mp3" as="audio"><link rel="preload" href="relance.mp3" as="audio">
 <script>window.OneSignalDeferred = window.OneSignalDeferred || [];</script>
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 <script>
@@ -779,7 +779,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
   /* ---------- Son de nouvelle commande ---------- */
   // Deux sons bien différents : « ka-ching » pour une commande, « ding-dong » pour une relance
   let ctx = null, unlocked = false;
-  const SONS = { cmd: {f: 'kaching.mp3', b: null}, relance: {f: 'relance.mp3', b: null} };
+  const SONS = { cmd: {f: 'commande.mp3', b: null}, relance: {f: 'relance.mp3', b: null} };
   function unlock(){
     try {
       ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
@@ -2995,7 +2995,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
       <div class="set"><div><b>Tester les notifications</b><p>Envoie une notification à l'application et un message WhatsApp de test. Verrouille ton téléphone juste après avoir appuyé.</p></div><button class="chip" style="background:var(--main);border-color:var(--main)" id="testPush">Tester</button></div>
       <div class="help" id="diag" style="margin-top:6px;font-size:13px;word-break:break-word">Diagnostic : appuie sur « Tester ».</div>
       <div class="set"><div><b>Tester le son des relances</b><p>Un « ding-dong » différent, 5 minutes après chaque abandon.</p></div><button class="chip" style="background:var(--surface);color:var(--ink);border-color:var(--line)" id="testRel">Écouter</button></div>
-      <div class="set"><div><b>Sons pour les notifications</b><p>Télécharge-les, puis choisis-les comme sons de notification dans les réglages Android.</p></div><span style="display:flex;gap:6px"><a class="chip" style="background:var(--surface);color:var(--ink);border-color:var(--line)" href="kaching.mp3" download="ABROMARKET-commande.mp3">Commande</a><a class="chip" style="background:var(--surface);color:var(--ink);border-color:var(--line)" href="relance.mp3" download="ABROMARKET-relance.mp3">Relance</a></span></div>
+      <div class="set"><div><b>Sons pour les notifications</b><p>Télécharge-les, puis choisis-les comme sons de notification dans les réglages Android.</p></div><span style="display:flex;gap:6px"><a class="chip" style="background:var(--surface);color:var(--ink);border-color:var(--line)" href="commande.mp3" download="ABROMARKET-commande.mp3">Commande</a><a class="chip" style="background:var(--surface);color:var(--ink);border-color:var(--line)" href="relance.mp3" download="ABROMARKET-relance.mp3">Relance</a></span></div>
       <div class="set"><div><b>Google Sheets</b><p>Produits, prix, pays, agences et commandes.</p></div><a class="chip" style="background:var(--surface);color:var(--ink);border-color:var(--line)" href="${esc(D.sheetUrl)}" target="_blank" rel="noopener">Ouvrir</a></div>
       <div class="set"><div><b>Aperçu du site</b><p>Voir ta boutique comme sur ordinateur ou sur mobile.</p></div><button class="chip" style="background:var(--surface);color:var(--ink);border-color:var(--line)" data-go2="apercu">Voir</button></div>
       <div class="set"><div><b>Ma boutique</b><p>La page que voient tes clients.</p></div><a class="chip" style="background:var(--surface);color:var(--ink);border-color:var(--line)" href="${esc(lienSite(''))}" target="_blank" rel="noopener">Ouvrir</a></div>
