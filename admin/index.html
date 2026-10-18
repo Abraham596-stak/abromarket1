@@ -726,6 +726,10 @@ html.ordi .pmsheet{max-width:420px}
 @keyframes pop{from{transform:scale(.97);opacity:0}to{transform:none;opacity:1}}
 .ptpedit{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px;align-items:end}.ptpedit label{font-size:12.5px;font-weight:700}.ptpedit .field{margin-top:4px;padding:10px}.ptpedit .btn{grid-column:1/-1}
 .ptpart .ptleg{grid-template-columns:1fr auto 44px}.ptpart .ptleg>span{align-items:flex-start}.ptpart .ptleg>span>i{margin-top:5px}.ptpart .pplib{display:block}.ptpart .pplib small{display:block;color:var(--soft);font-size:12px;font-weight:500;margin-top:1px}
+.agrow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;border-radius:12px;background:var(--surface);font-size:14px;font-weight:600;word-break:break-all}
+.agrow .bqdel{background:var(--errbg);color:#9B1C1C;flex:0 0 auto;font-size:13px;font-weight:700;padding:6px 10px;border-radius:10px}
+.agadd{display:flex;gap:8px}.agadd .field{flex:1;padding:11px 12px}.agadd button{background:var(--main);color:#fff;border-radius:12px;padding:0 14px;font-weight:800;white-space:nowrap}
+.agbloc{gap:8px}
 </style>
 </head>
 <body>
@@ -1201,23 +1205,27 @@ html.ordi .pmsheet{max-width:420px}
     const appel = async o => { const r = await fetch(API, {method: 'POST', body: JSON.stringify(Object.assign({type: 'boutiques', key, v: VID, code}, o))}); const j = await r.json(); if (!j.ok) throw new Error(frErr(j.erreur) || 'Erreur'); L = j.pays; return j; };
     const dess = msg => {
       ov.innerHTML = `<div class="detail bqsheet" role="dialog" aria-modal="true" aria-label="Agences"><div class="grab"></div>
-        <h2>🚚 Agences – ${esc(nom)}</h2><p class="sub">Une agence par pays (facultatif). Elle reçoit les commandes de ce pays dans son propre fichier. Si tu la retires ou la changes, elle perd l'accès à toutes les commandes de cette boutique.</p>
+        <h2>🚚 Agences – ${esc(nom)}</h2><p class="sub">Facultatif. Tu peux mettre <b>une ou plusieurs agences par pays</b> (ex. l’agence et son collaborateur) : elles reçoivent toutes les commandes de ce pays dans le même fichier. Une agence retirée perd l’accès à toutes les commandes.</p>
         ${msg ? `<div class="okmsg">${msg}</div>` : ''}
-        ${!L ? '<div class="empty">Chargement…</div>' : !L.length ? '<div class="empty">Aucun pays actif dans cette boutique.</div>' : L.map(p => `<div class="bqrow" style="grid-template-columns:1fr">
-          <div class="bqi"><b>${esc(p.nom)}</b><small>${p.agence ? 'Agence : ' + esc(p.agence) : 'Pas d’agence (tu livres toi-même)'}</small></div>
-          <input class="field" data-agm="${esc(p.code)}" type="email" value="${esc(p.agence)}" placeholder="E-mail Google de l'agence (facultatif)">
-          <div class="bqa"><button data-ags="${esc(p.code)}" style="background:var(--main);color:#fff">Enregistrer</button>${p.agence ? `<button class="bqdel" data-agx="${esc(p.code)}" data-agn="${esc(p.agence)}">Retirer l'agence</button>` : ''}${p.fichier ? `<a href="${esc(p.fichier)}" target="_blank" rel="noopener">📄 Son fichier</a>` : ''}</div></div>`).join('')}
+        ${!L ? '<div class="empty">Chargement…</div>' : !L.length ? '<div class="empty">Aucun pays actif dans cette boutique.</div>' : L.map(p => { const A = p.agences || (p.agence ? p.agence.split(/\s*,\s*/) : []); return `<div class="bqrow agbloc" style="grid-template-columns:1fr">
+          <div class="bqi"><b>${esc(p.nom)}</b><small>${A.length ? A.length + ' agence' + (A.length > 1 ? 's' : '') + ' reçoi' + (A.length > 1 ? 'vent' : 't') + ' les commandes' : 'Pas d’agence (tu livres toi-même)'}${p.fichier ? ` · <a href="${esc(p.fichier)}" target="_blank" rel="noopener">📄 Fichier des commandes</a>` : ''}</small></div>
+          ${A.map(e => `<div class="agrow"><span>📧 ${esc(e)}</span><button class="bqdel" data-agx="${esc(p.code)}" data-agn="${esc(e)}">Retirer</button></div>`).join('')}
+          <div class="agadd"><input class="field" data-agm="${esc(p.code)}" type="email" placeholder="E-mail Google de l’agence à ajouter"><button data-ags="${esc(p.code)}">➕ Ajouter</button></div></div>`; }).join('')}
         <button class="btn ghost" id="agR" style="margin-top:12px">← Retour</button></div>`;
       ov.querySelector('#agR').onclick = () => retour();
-      const go = async (b, pays, email, ok) => { b.disabled = true; b.textContent = '…'; try { await appel({action: 'agence', pays, email}); BQS = null; try { localStorage.removeItem(K_BQS); } catch(x){} dess(ok); } catch(e){ alert(e.message); dess(); } };
-      ov.querySelectorAll('[data-ags]').forEach(b => b.onclick = async () => {
-        const p = L.find(x => x.code === b.dataset.ags), email = ov.querySelector(`[data-agm="${b.dataset.ags}"]`).value.trim();
-        if (p.agence && email.toLowerCase() !== p.agence.toLowerCase() && !(await confirmer({titre: 'Changer d’agence ?', texte: `<b>${esc(p.agence)}</b> va perdre l'accès à toutes les commandes de cette boutique. ${email ? `<b>${esc(email)}</b> recevra un nouveau fichier avec les prochaines commandes.` : ''}`, ok: 'Oui, changer'}))) return;
-        go(b, b.dataset.ags, email, email ? '✅ Agence enregistrée : elle a reçu l’accès à son fichier.' : 'Agence retirée.');
+      const liste = code => { const p = L.find(x => x.code === code); return p.agences || (p.agence ? p.agence.split(/\s*,\s*/).filter(Boolean) : []); };
+      const go = async (b, pays, emails, ok) => { b.disabled = true; b.textContent = '…'; try { await appel({action: 'agence', pays, email: emails.join(', ')}); BQS = null; try { localStorage.removeItem(K_BQS); } catch(x){} dess(ok); } catch(e){ alert(e.message); dess(); } };
+      ov.querySelectorAll('[data-ags]').forEach(b => b.onclick = () => {
+        const code = b.dataset.ags, email = ov.querySelector(`[data-agm="${code}"]`).value.trim(), A = liste(code);
+        if (!/^[^\s@,;]+@[^\s@,;]+\.[^\s@,;]+$/.test(email)) return alert('Écris une adresse e-mail valide (ex. agence@gmail.com).');
+        if (A.some(e => e.toLowerCase() === email.toLowerCase())) return alert('Cette agence est déjà ajoutée.');
+        go(b, code, A.concat([email]), '✅ Agence ajoutée : ' + esc(email) + ' a reçu l’accès au fichier des commandes.');
       });
+      ov.querySelectorAll('[data-agm]').forEach(i => i.onkeydown = e => { if (e.key === 'Enter') ov.querySelector(`[data-ags="${i.dataset.agm}"]`).click(); });
       ov.querySelectorAll('[data-agx]').forEach(b => b.onclick = async () => {
-        if (!(await confirmer({titre: 'Retirer cette agence ?', texte: `<b>${esc(b.dataset.agn)}</b> va perdre l'accès à toutes les commandes de cette boutique (son fichier part à la corbeille). Tes commandes restent dans ton Google Sheets.`, ok: 'Retirer'}))) return;
-        go(b, b.dataset.agx, '', '🗑 Agence retirée : elle n’a plus accès aux commandes.');
+        const code = b.dataset.agx, em = b.dataset.agn, reste = liste(code).filter(e => e.toLowerCase() !== em.toLowerCase());
+        if (!(await confirmer({titre: 'Retirer cette agence ?', texte: `<b>${esc(em)}</b> va perdre l'accès à toutes les commandes de cette boutique.${reste.length ? ' Les autres agences de ce pays gardent leur accès.' : ' C’était la dernière agence de ce pays : son fichier part à la corbeille.'} Tes commandes restent dans ton Google Sheets.`, ok: 'Retirer'}))) return;
+        go(b, code, reste, '🗑 ' + esc(em) + ' n’a plus accès aux commandes.');
       });
     };
     dess();
