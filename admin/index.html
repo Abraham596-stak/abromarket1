@@ -693,6 +693,9 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
 .ppban button{background:var(--main);color:#fff;border-radius:10px;padding:8px 12px;font-weight:800;white-space:nowrap}
 .bqrow{cursor:pointer;transition:transform .12s}.bqrow:active{transform:scale(.98)}.bqrow.ouvre{opacity:.6}
 .dsuppr{display:block;width:100%;text-align:center;margin-top:14px;padding:10px;color:#B42318;font-weight:700;font-size:14px}
+.utmbox{display:flex;flex-direction:column;gap:8px;padding:10px;border-radius:12px;background:var(--surface)}
+.utmbox code{font:600 12.5px ui-monospace,Menlo,monospace;word-break:break-all;color:var(--ink)}
+.utmbox button{align-self:flex-start;background:var(--main);color:#fff;border-radius:10px;padding:8px 12px;font-weight:800}
 </style>
 </head>
 <body>
@@ -1054,12 +1057,17 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
         <select class="field rgautre hidden" data-pxa="${k}"><option value="">Chargement des boutiques…</option></select>
         <label><input type="radio" name="px_${k}" value="nouveau" ${mode === 'nouveau' ? 'checked' : ''}> <span>Un nouveau pixel</span></label>
         <input class="field rgnouv ${mode === 'nouveau' ? '' : 'hidden'}" data-pxn="${k}" ${k === 'fb' ? 'inputmode="numeric"' : ''} placeholder="ID du pixel" value="${esc(v)}"></div></div>`; };
+    const UTM_META = 'utm_source=facebook&utm_campaign={{campaign.name}}&utm_term={{adset.name}}&utm_content={{ad.name}}';
+    const UTM_TT = 'utm_source=tiktok&utm_campaign=__CAMPAIGN_NAME__&utm_term=__AID_NAME__&utm_content=__CID_NAME__';
+    const utmBloc = (nom, aide, v) => `<div class="rgc"><label>Paramètres de l’URL (${nom})<small>${aide}. Chaque commande affichera alors sa campagne, son ensemble de pub et sa pub.</small></label><div class="utmbox"><code>${esc(v)}</code><button type="button" data-utm="${esc(v)}">📋 Copier</button></div></div>`;
     o.querySelector('#rgB').innerHTML = `
       <h3 class="rgt">📣 Publicité : Meta (Facebook, Instagram)</h3>
+      ${utmBloc('Meta', 'À coller dans ta pub Meta, case « Paramètres de l’URL » (pas dans le lien du site)', UTM_META)}
       ${pixelBloc('fb', 'Pixel Meta')}
       ${champ('fbj', 'Jeton API Conversions', 'Facultatif, recommandé : les achats arrivent même si le navigateur bloque le pixel', 'password')}
       ${champ('fbt', 'Code test des événements', 'Facultatif : seulement pendant un test dans le Gestionnaire d’événements')}
       <h3 class="rgt">🎵 Publicité : TikTok</h3>
+      ${utmBloc('TikTok', 'À coller dans ta pub TikTok, case « Paramètres d’URL » (ou à la fin du lien après un ?)', UTM_TT)}
       ${pixelBloc('tt', 'Pixel TikTok')}
       ${champ('ttj', 'Jeton Events API TikTok', 'Facultatif', 'password')}
       <h3 class="rgt">🛒 Commandes</h3>
@@ -1084,6 +1092,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
       <button class="btn ghost" id="rgX" style="margin-top:8px">Fermer</button>`;
     const B = o.querySelector('#rgB');
     B.querySelector('#rgX').onclick = () => o.remove();
+    B.querySelectorAll('[data-utm]').forEach(x => x.onclick = async () => { try { await navigator.clipboard.writeText(x.dataset.utm); x.textContent = '✓ Copié'; setTimeout(() => x.textContent = '📋 Copier', 1500); } catch(e){ prompt('Copie ce texte :', x.dataset.utm); } });
     const chargerPixels = async () => { if (PX) return PX; try { PX = (await bqAppel({action: 'pixels'})).pixels; } catch(e){ PX = []; } return PX; };
     B.querySelectorAll('.rgpx').forEach(bl => {
       const k = bl.dataset.px, sa = bl.querySelector('[data-pxa]'), ni = bl.querySelector('[data-pxn]');
