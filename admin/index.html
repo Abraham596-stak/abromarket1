@@ -724,6 +724,8 @@ html.ordi .rggar>b{grid-column:1/-1}
 html.ordi .cplist{max-height:55vh}
 html.ordi .pmsheet{max-width:420px}
 @keyframes pop{from{transform:scale(.97);opacity:0}to{transform:none;opacity:1}}
+.ptpedit{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px;align-items:end}.ptpedit label{font-size:12.5px;font-weight:700}.ptpedit .field{margin-top:4px;padding:10px}.ptpedit .btn{grid-column:1/-1}
+.ptpart .ptleg{grid-template-columns:1fr auto 44px}.ptpart .ptleg>span{align-items:flex-start}.ptpart .ptleg>span>i{margin-top:5px}.ptpart .pplib{display:block}.ptpart .pplib small{display:block;color:var(--soft);font-size:12px;font-weight:500;margin-top:1px}
 </style>
 </head>
 <body>
@@ -1329,6 +1331,23 @@ html.ordi .pmsheet{max-width:420px}
         const d = neg ? `M${cx - bw / 2},${y0} h${bw} v${h - r} q0,${r} ${-r},${r} h${-(bw - 2 * r)} q${-r},0 ${-r},${-r} z` : `M${cx - bw / 2},${y0} v${-(h - r)} q0,${-r} ${r},${-r} h${bw - 2 * r} q${r},0 ${r},${r} v${h - r} z`;
         return `<g class="ptbar ${sel === x[attr] ? 'on' : ''}" ${attr === 'date' ? 'data-j' : 'data-b'}="${x[attr]}"><rect x="${cx - pas / 2}" y="0" width="${pas}" height="${H}" fill="transparent"/><path d="${d}" fill="${neg ? '#e34948' : '#2a78d6'}"/></g>`; }).join('')}</svg>`;
     };
+    // Partage du bénéfice net des 4 dernières semaines : réinvestir / vivre / économiser (pourcentages modifiables)
+    let PART = {r: 50, v: 30, e: 20}; try { PART = Object.assign(PART, JSON.parse(localStorage.getItem('adm_partage') || '{}')); } catch(e){}
+    let partEdit = false;
+    const partageBloc = tous => {
+      const L4 = tous.slice(-4), som = (l, k) => l.reduce((t, x) => t + (x[k] || 0), 0);
+      const ben = som(L4, 'benefice'), depSem = L4.length ? (som(L4, 'pub') + som(L4, 'achat')) / L4.length : 0, reserve = Math.round(depSem * 2 / 1000) * 1000;
+      const m = k => Math.round(Math.max(0, ben) * PART[k] / 100 / 100) * 100;
+      const lignes = [['r', '📈 Réinvestir', 'Nouveaux produits, plus de pub sur ce qui marche, stock', '#2a78d6'], ['v', '🏠 Te verser (vivre)', 'Ton salaire du mois : un montant fixe', '#1baf7a'], ['e', '🔒 Économiser', 'Épargne que tu ne touches pas', '#eda100']];
+      return `<div class="ptcard ptpart"><h3>💸 Partage de ton bénéfice</h3>
+        <p class="sub">Bénéfice net des ${L4.length} dernière${L4.length > 1 ? 's' : ''} semaine${L4.length > 1 ? 's' : ''} : <b class="${ben < 0 ? 'n' : 'p'}">${esc(fmt(ben, dev))}</b></p>
+        ${reserve ? `<div class="ptaide">🛟 Garde toujours une <b>réserve d’environ ${esc(fmt(reserve, dev))}</b> pour le business (2 semaines de pub + achats), avant de partager.</div>` : ''}
+        ${ben <= 0 ? `<div class="pterr">Pas de partage pour l’instant : ces semaines sont en perte. Tu vis sur ton épargne, et le business se refait avec sa réserve.</div>` : `
+        <div class="ptstack">${lignes.map(l => `<i style="width:${PART[l[0]]}%;background:${l[3]}"></i>`).join('')}</div>
+        ${lignes.map(l => `<div class="ptleg"><span><i style="background:${l[3]}"></i><span class="pplib">${l[1]}<small>${l[2]}</small></span></span><b>${esc(fmt(m(l[0]), dev))}</b><em>${PART[l[0]]} %</em></div>`).join('')}`}
+        ${partEdit ? `<div class="ptpedit">${lignes.map(l => `<label>${l[1]}<input class="field" type="number" min="0" max="100" data-pp="${l[0]}" value="${PART[l[0]]}"></label>`).join('')}<button class="btn blue" id="ppOk">Enregistrer</button></div>` : `<button class="lnk ptedit" id="ppEd">⚙️ Changer les pourcentages</button>`}
+        <p class="sub" style="margin-top:8px">Conseil : partage une fois par mois. Si un produit est rentable plusieurs semaines de suite, monte « Réinvestir » à 60–70 % pour accélérer.</p></div>`;
+    };
     const dessDash = () => {
       const tous = fusion(), L = per ? tous.slice(-per) : tous, av = per ? tous.slice(-2 * per, -per) : [];
       const som = (l, k) => l.reduce((t, x) => t + (x[k] || 0), 0);
@@ -1371,6 +1390,7 @@ html.ordi .pmsheet{max-width:420px}
           <div class="ptstack">${parts.filter(p => p[2] > 0).map(p => `<i style="width:${p[2] / totParts * 100}%;background:${COUL[p[0]]}" title="${esc(p[1])}"></i>`).join('')}</div>
           ${parts.map(p => `<div class="ptleg"><span><i style="background:${COUL[p[0]]}"></i>${esc(p[1])}</span><b>${esc(fmt(p[0] === 'benefice' ? ben : p[2], dev))}</b><em>${PCT(p[0] === 'benefice' ? ben : p[2], ca)} %</em></div>`).join('')}
           <p class="sub" style="margin-top:8px">${(() => { const c = parts.slice(1).sort((a, b) => b[2] - a[2])[0]; return c && c[2] ? `👉 Ta plus grosse dépense : <b>${esc(c[1].toLowerCase())}</b> (${PCT(c[2], ca)} % de ton chiffre d’affaires).` : ''; })()}</p></div>
+        ${partageBloc(tous)}
         <div class="pthist"><h3>Toutes mes semaines</h3>${tous.slice().reverse().map(x => `<button class="pth" data-ouv="${x.semaine}"><span>${libSem(x.semaine)} <em class="ptmod">${x.auto ? '🗓️ auto' : '✏️ Modifier'}</em><small>CA ${esc(fmt(x.ca, dev))}${x.livres != null ? ' · ' + x.livres + ' livrés' : ''} · marge ${PCT(x.benefice, x.ca)} %</small></span><b class="${x.benefice < 0 ? 'n' : 'p'}">${esc(fmt(x.benefice, dev))}</b></button>`).join('')}</div>`}</div></div>`}
         <button class="btn ghost" id="ptX" style="margin-top:12px">Fermer</button></div>`;
       ov.querySelector('#ptX').onclick = () => ov.remove();
@@ -1381,6 +1401,10 @@ html.ordi .pmsheet{max-width:420px}
       ov.querySelectorAll('[data-b]').forEach(b => b.onclick = () => { choix = b.dataset.b; dess(); });
       ov.querySelectorAll('[data-j]').forEach(b => b.onclick = () => { jchoix = b.dataset.j; dess(); });
       ov.querySelectorAll('[data-oj]').forEach(b => b.onclick = () => ouvrirJour(b.dataset.oj));
+      const pe = ov.querySelector('#ppEd'); if (pe) pe.onclick = () => { partEdit = true; dess(); };
+      const po = ov.querySelector('#ppOk'); if (po) po.onclick = () => { const n = {}; ov.querySelectorAll('[data-pp]').forEach(i => n[i.dataset.pp] = Math.max(0, Math.min(100, Math.round(+i.value || 0))));
+        if (n.r + n.v + n.e !== 100) return alert('Le total doit faire 100 % (actuellement ' + (n.r + n.v + n.e) + ' %).');
+        PART = n; try { localStorage.setItem('adm_partage', JSON.stringify(n)); } catch(e){} partEdit = false; dess(); };
       ov.querySelectorAll('.pthist [data-ouv], .ptedit[data-ouv]').forEach(b => b.onclick = () => ouvrirForm(b.dataset.ouv)); brancherRe();
     };
     const dess = () => vue === 'dash' ? dessDash() : vue === 'jour' ? dessJour() : dessForm();
