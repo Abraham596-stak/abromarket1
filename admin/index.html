@@ -1975,8 +1975,9 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
       if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.3) aller(dx < 0 ? suiv : prec, dx < 0 ? 'g' : 'd'); }, {passive: true});
     ov.querySelector('#close').onclick = close;
     ov.querySelector('#dsup').onclick = async e => {
+      const b = e.currentTarget;   // à lire AVANT l'attente (après, le navigateur l'efface)
       if (!(await confirmer({titre: 'Supprimer la commande n°' + esc(o.numero) + ' ?', texte: 'Elle disparaît de l’application, du Google Sheets et du fichier de l’agence. <b>Irréversible.</b><br><br>Si c’est la dernière commande, son numéro sera réutilisé par la prochaine commande.', ok: 'Oui, supprimer'}))) return;
-      const b = e.currentTarget; b.disabled = true; b.textContent = 'Suppression…';
+      b.disabled = true; b.textContent = 'Suppression…';
       try {
         const j = await call({type: 'statut', action: 'supprimer', numero: o.numero});
         D.commandes = D.commandes.filter(x => x.numero !== o.numero);
