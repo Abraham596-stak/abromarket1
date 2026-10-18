@@ -697,6 +697,33 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
 .utmbox code{font:600 12.5px ui-monospace,Menlo,monospace;word-break:break-all;color:var(--ink)}
 .utmbox button{align-self:flex-start;background:var(--main);color:#fff;border-radius:10px;padding:8px 12px;font-weight:800}
 .ptres.neg{background:var(--errbg)}.ptres.neg b{color:var(--err)}
+
+/* Point : boutons + colonnes */
+.ptacts{display:flex;flex-direction:column;gap:8px;margin:6px 0 14px}
+.ptcolB>.ptper:first-child{margin-top:16px}
+/* ===== Ordinateur : fenêtres centrées, larges et aérées ===== */
+html.ordi .overlay{align-items:center;padding:32px;background:rgba(10,22,70,.55);backdrop-filter:blur(2px)}
+html.ordi .detail{max-width:720px;border-radius:22px;padding:28px 34px 30px;max-height:calc(100vh - 64px);box-shadow:0 30px 80px rgba(0,0,0,.28);animation:pop .18s ease-out}
+html.ordi .detail .grab{display:none}
+html.ordi .detail h2{font-size:30px}
+html.ordi .ptwide{max-width:1180px;width:100%}
+html.ordi .ptacts{flex-direction:row;gap:12px}
+html.ordi .ptacts .btn{flex:1;width:auto}
+html.ordi .ptcols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:24px;align-items:start}
+html.ordi .ptcolB>.ptper:first-child{margin-top:0}
+html.ordi .ptchart{max-height:230px}
+html.ordi .ptk{gap:12px}
+html.ordi .ptk div{padding:14px}
+html.ordi .ptk b{font-size:18px}
+html.ordi .pthero b{font-size:38px}
+html.ordi .ptcard{padding:18px 20px}
+html.ordi .pthist{max-height:420px;overflow:auto}
+html.ordi .ptin{grid-template-columns:1fr 260px}
+html.ordi .rggar{display:grid;grid-template-columns:110px 1fr 2fr;gap:0 12px;align-items:end}
+html.ordi .rggar>b{grid-column:1/-1}
+html.ordi .cplist{max-height:55vh}
+html.ordi .pmsheet{max-width:420px}
+@keyframes pop{from{transform:scale(.97);opacity:0}to{transform:none;opacity:1}}
 </style>
 </head>
 <body>
@@ -1314,12 +1341,12 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
       // Jours : les 12 derniers jours saisis (du plus ancien au plus récent)
       const JL = (J || []).slice(0, 12).reverse(), js = (jchoix && JL.find(x => x.date === jchoix)) || JL[JL.length - 1];
       const semC = isoJ(lundi(new Date())), jSem = (J || []).filter(x => isoJ(lundi(isoJ2(x.date))) === semC);
-      ov.innerHTML = `<div class="detail bqsheet" role="dialog" aria-modal="true" aria-label="Point hebdomadaire"><div class="grab"></div>
+      ov.innerHTML = `<div class="detail bqsheet ptwide" role="dialog" aria-modal="true" aria-label="Point hebdomadaire"><div class="grab"></div>
         <h2>💰 Point hebdomadaire</h2><p class="sub">${esc(nomB)} · en ${esc(dev)} · semaine du lundi au samedi</p>
         ${msg ? `<div class="okmsg">${msg}</div>` : ''}${errBloc()}
-        <button class="btn blue" id="pjFaire" style="margin:6px 0 8px">🗓️ Faire le point du jour</button>
-        <button class="btn ghost" id="ptFaire" style="margin:0 0 14px">📝 Point de la semaine (saisie à la main)</button>
-        ${!P ? (err ? '' : '<div class="empty">Chargement…</div>') : `
+        <div class="ptacts"><button class="btn blue" id="pjFaire">🗓️ Faire le point du jour</button>
+        <button class="btn ghost" id="ptFaire">📝 Point de la semaine (saisie à la main)</button></div>
+        ${!P ? (err ? '' : '<div class="empty">Chargement…</div>') : `<div class="ptcols"><div class="ptcolA">
         <div class="ptcard" style="margin-top:0"><h3>🗓️ Revenus réels par jour</h3>
           ${JL.length ? `<p class="sub">Cette semaine : <b>${jSem.length}</b> jour${jSem.length > 1 ? 's' : ''} sur 6 · CA ${esc(fmt(som(jSem, 'ca'), dev))} · ${som(jSem, 'livres')} livré${som(jSem, 'livres') > 1 ? 's' : ''} · bénéfice <b class="${som(jSem, 'benefice') < 0 ? 'n' : 'p'}">${esc(fmt(som(jSem, 'benefice'), dev))}</b></p>
           ${js ? `<div class="pttip"><b>${esc(libJour(js.date))}</b> : <span class="${js.benefice < 0 ? 'n' : 'p'}">${esc(fmt(js.benefice, dev))}</span><small>CA ${esc(fmt(js.ca, dev))} · ${js.livres} livré${js.livres > 1 ? 's' : ''} − achats ${esc(fmt(js.achat, dev))} − pub ${esc(fmt(js.pub, dev))} − abonnements ${esc(fmt(js.abonnements || 0, dev))}</small><button class="lnk ptedit" data-oj="${js.date}">✏️ Modifier ce jour</button></div>` : ''}
@@ -1328,7 +1355,8 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
           <p class="sub" style="margin-top:6px">Touche une barre pour voir le détail du jour.</p>
           <div class="pthist" style="margin-top:10px"><h3>Mes journées</h3>${(J || []).slice(0, 30).map(x => `<button class="pth" data-oj="${x.date}"><span>${esc(libJour(x.date))} <em class="ptmod">✏️ Modifier</em><small>CA ${esc(fmt(x.ca, dev))} · ${x.livres} livré${x.livres > 1 ? 's' : ''} · pub ${esc(fmt(x.pub, dev))}</small></span><b class="${x.benefice < 0 ? 'n' : 'p'}">${esc(fmt(x.benefice, dev))}</b></button>`).join('')}</div>`
           : '<div class="empty">Aucun point du jour pour le moment.<br>Dès que ton agence t’envoie son point, appuie sur « 🗓️ Faire le point du jour ».</div>'}</div>
-        ${!tous.length ? '' : `
+        </div><div class="ptcolB">
+        ${!tous.length ? '<div class="empty">Tes semaines apparaîtront ici.</div>' : `
         <div class="ptper" style="margin-top:16px">${[[4, '4 semaines'], [12, '12 semaines'], [0, 'Tout']].map(([k, l]) => `<button data-per="${k}" class="${per === k ? 'on' : ''}">${l}</button>`).join('')}</div>
         <div class="pthero ${ben < 0 ? 'neg' : ''}"><small>Bénéfice net · ${per ? per + ' dernières semaines' : 'depuis le début'}</small><b>${esc(fmt(ben, dev))}</b>
           <span>${evo === null ? '' : `<em class="${evo < 0 ? 'bas' : 'haut'}">${evo < 0 ? '▼' : '▲'} ${Math.abs(evo)} %</em> vs les ${per} semaines d’avant · `}moyenne ${esc(fmt(moy, dev))} / semaine</span></div>
@@ -1343,7 +1371,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
           <div class="ptstack">${parts.filter(p => p[2] > 0).map(p => `<i style="width:${p[2] / totParts * 100}%;background:${COUL[p[0]]}" title="${esc(p[1])}"></i>`).join('')}</div>
           ${parts.map(p => `<div class="ptleg"><span><i style="background:${COUL[p[0]]}"></i>${esc(p[1])}</span><b>${esc(fmt(p[0] === 'benefice' ? ben : p[2], dev))}</b><em>${PCT(p[0] === 'benefice' ? ben : p[2], ca)} %</em></div>`).join('')}
           <p class="sub" style="margin-top:8px">${(() => { const c = parts.slice(1).sort((a, b) => b[2] - a[2])[0]; return c && c[2] ? `👉 Ta plus grosse dépense : <b>${esc(c[1].toLowerCase())}</b> (${PCT(c[2], ca)} % de ton chiffre d’affaires).` : ''; })()}</p></div>
-        <div class="pthist"><h3>Toutes mes semaines</h3>${tous.slice().reverse().map(x => `<button class="pth" data-ouv="${x.semaine}"><span>${libSem(x.semaine)} <em class="ptmod">${x.auto ? '🗓️ auto' : '✏️ Modifier'}</em><small>CA ${esc(fmt(x.ca, dev))}${x.livres != null ? ' · ' + x.livres + ' livrés' : ''} · marge ${PCT(x.benefice, x.ca)} %</small></span><b class="${x.benefice < 0 ? 'n' : 'p'}">${esc(fmt(x.benefice, dev))}</b></button>`).join('')}</div>`}`}
+        <div class="pthist"><h3>Toutes mes semaines</h3>${tous.slice().reverse().map(x => `<button class="pth" data-ouv="${x.semaine}"><span>${libSem(x.semaine)} <em class="ptmod">${x.auto ? '🗓️ auto' : '✏️ Modifier'}</em><small>CA ${esc(fmt(x.ca, dev))}${x.livres != null ? ' · ' + x.livres + ' livrés' : ''} · marge ${PCT(x.benefice, x.ca)} %</small></span><b class="${x.benefice < 0 ? 'n' : 'p'}">${esc(fmt(x.benefice, dev))}</b></button>`).join('')}</div>`}</div></div>`}
         <button class="btn ghost" id="ptX" style="margin-top:12px">Fermer</button></div>`;
       ov.querySelector('#ptX').onclick = () => ov.remove();
       const ouvrirForm = w => { vue = 'form'; msg = ''; sem = w; aide = null; dess(); charger(); };
