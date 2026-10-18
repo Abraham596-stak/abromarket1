@@ -658,6 +658,33 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
 .ptedit{display:block;margin-top:6px;font-weight:700;color:var(--main);padding:4px 0}
 .refbtn svg{width:20px;height:20px}
 @media (hover: none) and (pointer: coarse){.refbtn{display:none}}
+/* Mes boutiques : ⋮, cadran des pays, copier/coller, réglages */
+.bqdots{width:40px;height:40px;border-radius:12px;font-size:22px;font-weight:900;line-height:1;color:var(--ink);background:var(--surface);display:grid;place-items:center}
+.bqdots:active{background:var(--line)}
+.bqav{width:40px;height:40px;border-radius:12px;background:var(--main);color:#fff;display:grid;place-items:center;font-weight:800;font-size:14px;flex:0 0 40px}
+.bqclip{margin-top:10px;padding:10px 12px;border-radius:12px;background:#FFF6E0;color:#7A4A00;font-size:14px;font-weight:600}
+.cadran{width:100%;text-align:left;padding:14px;border-radius:14px;border:2px solid var(--line);background:#fff;font:600 16px "Figtree",sans-serif;color:var(--soft)}
+.cadran.plein{color:var(--ink)}
+.cplist{max-height:52vh;overflow:auto;border:1.5px solid var(--line);border-radius:14px}
+.cpi{display:flex;align-items:center;gap:10px;padding:13px 14px;border-bottom:1px solid var(--line);font-size:16px;font-weight:600;cursor:pointer}
+.cpi:last-child{border-bottom:0}
+.cpi span{flex:1;min-width:0}
+.cpi input{width:22px;height:22px;accent-color:var(--main);flex:0 0 22px}
+.cpprod img{width:42px;height:42px;border-radius:10px;object-fit:cover;background:var(--surface);flex:0 0 42px}
+.cpprod small{display:block;color:var(--soft);font-size:12px;font-weight:600}
+.rgt{font-size:16px;margin:18px 0 6px;padding-top:12px;border-top:1px solid var(--line)}
+.rgt:first-child{border-top:0;padding-top:0;margin-top:8px}
+.rgc{margin-top:10px}
+.rgc>label{display:block;font-weight:700;font-size:14px;margin-bottom:5px}
+.rgc>label small{display:block;font-weight:500;color:var(--soft);font-size:12.5px}
+.rgch{display:flex;flex-direction:column;gap:2px}
+.rgch>label{display:flex;align-items:center;gap:10px;padding:10px 4px;font-size:15px;font-weight:600}
+.rgch>label small{color:var(--soft);font-weight:500}
+.rgch input[type=radio]{width:20px;height:20px;accent-color:var(--main);flex:0 0 20px}
+.rgch .field{margin:2px 0 6px}
+.rggar{margin-top:10px;padding:10px 12px;border-radius:14px;background:var(--surface)}
+.rggar .field{background:#fff}
+.spin{display:inline-block;width:22px;height:22px;border:3px solid var(--line);border-top-color:var(--main);border-radius:50%;animation:ptr .7s linear infinite}
 </style>
 </head>
 <body>
@@ -825,52 +852,243 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
   async function mesBoutiques(){
     const ov = document.createElement('div'); ov.className = 'overlay';
     const dessiner = msg => {
+      const presse = pressePapier();
       const l = (BQS && BQS.boutiques) || [], max = (BQS && BQS.max) || 30, n = l.filter(b => !b.principale).length;
       ov.innerHTML = `<div class="detail bqsheet" role="dialog" aria-modal="true" aria-label="Mes boutiques"><div class="grab"></div>
         <h2>Mes boutiques</h2><p class="sub">${n} / ${max} boutiques créées · Une boutique = une agence (ses commandes ne se mélangent pas).</p>
         ${msg ? `<div class="okmsg">${msg}</div>` : ''}
+        ${presse ? `<div class="bqclip">📋 ${presse.ids.length} produit${presse.ids.length > 1 ? 's' : ''} copié${presse.ids.length > 1 ? 's' : ''} de « ${esc(presse.nom)} » · ouvre le ⋮ d’une autre boutique puis « Coller les produits ».</div>` : ''}
         ${!BQS ? '<div class="empty">Chargement…</div>' : l.map(b => `<div class="bqrow ${(b.code || '') === BQ ? 'on' : ''}">
-          <div class="bqi"><b>${esc(b.nom)}</b><small>${b.principale ? 'Boutique principale' : esc(b.pays || '')}${b.agence ? ' · agence : ' + esc(b.agence) : ''}${!b.active ? ' · <span style="color:var(--err)">désactivée</span>' : ''}</small></div>
-          ${(b.code || '') === BQ ? '<span class="bqcur">Ouverte</span>' : `<button class="chip" style="background:var(--main);border-color:var(--main)" data-bo="${esc(b.code || '')}">Ouvrir</button>`}
-          <div class="bqa"><a href="${esc(b.sheetUrl)}" target="_blank" rel="noopener">📄 Sheets</a><button data-bl="${esc(siteDe(b.code || ''))}">🔗 Lien du site</button><button data-bren="${esc(b.code || '')}" data-bn="${esc(b.nom)}">✏️ Renommer</button><button data-bag="${esc(b.code || '')}" data-bn="${esc(b.nom)}">🚚 Agences</button>${b.principale ? '' : `<button class="bqdel" data-bd="${esc(b.code)}" data-bn="${esc(b.nom)}">🗑 Supprimer</button>`}</div></div>`).join('')}
+          <div class="bqi"><b>${esc(b.nom)}</b><small>${b.principale ? 'Boutique principale' : esc(nomsPaysBq(b.pays))}${b.agence ? ' · agence : ' + esc(b.agence) : ''}${!b.active ? ' · <span style="color:var(--err)">désactivée</span>' : ''}${(b.code || '') === BQ ? ' · <span class="bqcur">Ouverte</span>' : ''}</small></div>
+          <button class="bqdots" data-bm="${esc(b.code || '')}" aria-label="Options de ${esc(b.nom)}">⋮</button></div>`).join('')}
         ${BQS && n < max ? '<button class="btn blue" id="bqNew" style="margin-top:14px">＋ Créer une nouvelle boutique</button>' : ''}
         <button class="btn ghost" id="bqX" style="margin-top:10px">Fermer</button></div>`;
       ov.querySelector('#bqX').onclick = () => ov.remove();
-      ov.querySelectorAll('[data-bo]').forEach(b => b.onclick = () => ouvrirBoutique(b.dataset.bo));
-      ov.querySelectorAll('[data-bag]').forEach(b => b.onclick = () => agences(ov, b.dataset.bag, b.dataset.bn, dessiner));
-      ov.querySelectorAll('[data-bren]').forEach(b => b.onclick = async () => {
-        const code = b.dataset.bren, nom = (prompt('Nouveau nom de la boutique :', b.dataset.bn) || '').trim();
-        if (!nom || nom === b.dataset.bn) return;
-        if (nom.length < 2) return alert('Écris un nom d’au moins 2 lettres.');
-        b.disabled = true; b.textContent = 'Enregistrement…';
-        try {
-          const r = await fetch(API, {method: 'POST', body: JSON.stringify({type: 'boutiques', action: 'renommer', key, code, nom, v: VID})}); const j = await r.json(); if (!j.ok) throw new Error(frErr(j.erreur));
-          (BQS.boutiques.find(x => (x.code || '') === code) || {}).nom = j.nom || nom;
-          try { localStorage.setItem(K_BQS, JSON.stringify(BQS)); } catch(e){}
-          if (code === BQ && D) { D.boutique = j.nom || nom; try { if (typeof render === 'function' && (view === 'home' || view === 'settings')) render(); } catch(e){} }
-          dessiner('✅ Boutique renommée : « ' + esc(j.nom || nom) + ' ». Le site affiche le nouveau nom d’ici quelques minutes.');
-        } catch(e){ b.disabled = false; b.textContent = '✏️ Renommer'; alert('Impossible de renommer : ' + e.message); }
-      });
-      ov.querySelectorAll('[data-bl]').forEach(b => b.onclick = async () => { try { await navigator.clipboard.writeText(b.dataset.bl); b.textContent = '✓ Copié'; } catch(e){ prompt('Lien du site :', b.dataset.bl); } });
       const nb = ov.querySelector('#bqNew'); if (nb) nb.onclick = () => nouvelleBoutique(ov, dessiner);
-      ov.querySelectorAll('[data-bd]').forEach(b => b.onclick = async () => {
-        const code = b.dataset.bd;
-        if (!(await confirmer({titre: 'Supprimer cette boutique ?', texte: `Tu vas supprimer <b>« ${esc(b.dataset.bn)} »</b> : son site, ses produits, ses commandes et le fichier de son agence.<br><br>Son Google Sheets part dans la <b>corbeille de ton Google Drive</b> (récupérable pendant 30 jours). Le lien de son site ne marchera plus.`, ok: 'Oui, supprimer la boutique'}))) return;
-        b.disabled = true; b.textContent = 'Suppression…';
-        try {
-          const r = await fetch(API, {method: 'POST', body: JSON.stringify({type: 'boutiques', action: 'supprimer', key, code, v: VID})}); const j = await r.json(); if (!j.ok) throw new Error(frErr(j.erreur));
-          if (BQS) BQS.boutiques = BQS.boutiques.filter(x => x.code !== code);
-          try { localStorage.setItem(K_BQS, JSON.stringify(BQS)); Object.keys(localStorage).filter(k => k.indexOf('adm_' + code + '_') === 0).forEach(k => localStorage.removeItem(k)); } catch(e){}
-          if (code === BQ) { ouvrirBoutique(''); return; }
-          dessiner('🗑 Boutique supprimée.');
-        } catch(e){ b.disabled = false; b.textContent = '🗑 Supprimer'; alert('Suppression impossible : ' + e.message); }
-      });
+      ov.querySelectorAll('[data-bm]').forEach(b => b.onclick = () => menuBoutique(ov, (BQS.boutiques || []).find(x => (x.code || '') === b.dataset.bm), dessiner));
     };
     ov.onclick = e => { if (e.target === ov) ov.remove(); };
     document.body.appendChild(ov); dessiner();
     try { const r = await fetch(API, {method: 'POST', body: JSON.stringify({type: 'boutiques', key, v: VID})}); const j = await r.json(); if (!j.ok) throw new Error(frErr(j.erreur));
       BQS = j; try { localStorage.setItem(K_BQS, JSON.stringify(j)); } catch(e){} if (ov.isConnected) dessiner(); }
     catch(e){ if (ov.isConnected && !BQS) dessiner('Impossible de charger tes boutiques : ' + esc(/introuvable|inconnu/i.test(e.message) ? 'mets à jour le code Apps Script (Code.gs).' : e.message)); }
+  }
+  /* ---------- Mes boutiques : menu ⋮ de chaque boutique (options de haut en bas) ---------- */
+  const K_PP = 'adm_' + (VID ? 'v' + VID + '_' : '') + 'presse';
+  const pressePapier = () => { try { return JSON.parse(localStorage.getItem(K_PP) || 'null'); } catch(e){ return null; } };
+  const nomsPaysBq = codes => { const L = (BQS && BQS.paysListe) || []; return String(codes || '').split(/[^A-Za-z]+/).filter(Boolean).map(c => (L.find(p => p.code === c.toUpperCase()) || {nom: c}).nom).join(', '); };
+  const bqAppel = async o => { const r = await fetch(API, {method: 'POST', body: JSON.stringify(Object.assign({type: 'boutiques', key, v: VID}, o))}); const j = await r.json(); if (!j.ok) throw new Error(/inconnu|introuvable/i.test(j.erreur || '') && !/boutique|produit|pays|onglet/i.test(j.erreur || '') ? 'Mets à jour le code Apps Script (Code.gs).' : frErr(j.erreur)); return j; };
+  // Feuille par-dessus (sans fermer la liste des boutiques)
+  function feuille(html){ const o = document.createElement('div'); o.className = 'overlay'; o.innerHTML = `<div class="detail bqsheet" role="dialog" aria-modal="true"><div class="grab"></div>${html}</div>`; o.onclick = e => { if (e.target === o) o.remove(); }; document.body.appendChild(o); return o; }
+
+  // Cadran des pays : liste de haut en bas, cases à cocher, recherche
+  function choisirPays(liste, choisis){
+    return new Promise(ok => {
+      const sel = new Set(choisis.map(c => String(c).toUpperCase()));
+      liste = liste.filter(p => sel.has(p.code)).concat(liste.filter(p => !sel.has(p.code))); // pays déjà choisis en haut
+      const o = feuille(`<h2>Pays de vente</h2><p class="sub">Coche le ou les pays où cette boutique vend.</p>
+        <input class="field" id="cpQ" placeholder="Rechercher un pays" style="margin:6px 0 8px">
+        <div class="cplist" id="cpL"></div>
+        <button class="btn blue" id="cpOk" style="margin-top:12px"></button>
+        <button class="btn ghost" id="cpAn" style="margin-top:8px">Annuler</button>`);
+      const L = o.querySelector('#cpL'), bo = o.querySelector('#cpOk');
+      const maj = () => { bo.textContent = sel.size ? `Valider (${sel.size} pays)` : 'Valider'; };
+      const dess = () => { const q = o.querySelector('#cpQ').value.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+        L.innerHTML = liste.filter(p => !q || p.nom.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').includes(q)).map(p => `<label class="cpi"><span>${esc(p.nom)}</span><input type="checkbox" value="${esc(p.code)}" ${sel.has(p.code) ? 'checked' : ''}></label>`).join('') || '<div class="empty">Aucun pays</div>';
+        L.querySelectorAll('input').forEach(i => i.onchange = () => { i.checked ? sel.add(i.value) : sel.delete(i.value); maj(); }); };
+      o.querySelector('#cpQ').oninput = dess; dess(); maj();
+      o.querySelector('#cpAn').onclick = () => { o.remove(); ok(null); };
+      bo.onclick = () => { if (!sel.size) return alert('Choisis au moins un pays.'); o.remove(); ok(liste.map(p => p.code).filter(c => sel.has(c))); };
+    });
+  }
+
+  function menuBoutique(ov, b, retour){
+    if (!b) return;
+    const code = b.code || '', presse = pressePapier(), ici = code === BQ;
+    const peutColler = presse && presse.ids && presse.ids.length && (presse.source || '') !== code;
+    const m = document.createElement('div'); m.className = 'overlay';
+    m.innerHTML = `<div class="detail pmsheet" role="dialog" aria-modal="true" aria-label="Options de la boutique"><div class="grab"></div>
+      <div class="pmtete"><span class="bqav">${esc((b.nom || 'B').slice(0, 2).toUpperCase())}</span><b>${esc(b.nom)}</b></div>
+      ${ici ? '' : '<button data-o="ouvrir">↗️ Ouvrir cette boutique</button>'}
+      <button data-o="renommer">✏️ Renommer</button>
+      <button data-o="pays">🌍 Pays de vente</button>
+      <button data-o="reglages">⚙️ Réglages de la boutique (pixels, WhatsApp…)</button>
+      <button data-o="agences">🚚 Agences de livraison</button>
+      <button data-o="copier">📋 Copier les produits</button>
+      ${peutColler ? `<button data-o="coller">📥 Coller les produits (${presse.ids.length} de « ${esc(presse.nom)} »)</button>` : ''}
+      <button data-o="lien">🔗 Copier le lien du site</button>
+      <a href="${esc(b.sheetUrl)}" target="_blank" rel="noopener">📄 Ouvrir le Google Sheets</a>
+      ${b.principale ? '' : '<button data-o="suppr" class="danger">🗑 Supprimer la boutique</button>'}
+      <button data-o="x" class="annul">Annuler</button></div>`;
+    m.onclick = async e => {
+      if (e.target === m) return m.remove();
+      const t = e.target.closest('[data-o]'); if (!t) { if (e.target.closest('a')) m.remove(); return; }
+      const o = t.dataset.o; m.remove();
+      if (o === 'ouvrir') return ouvrirBoutique(code);
+      if (o === 'agences') return agences(ov, code, b.nom, retour);
+      if (o === 'lien'){ const u = siteDe(code); try { await navigator.clipboard.writeText(u); toast('🔗 Lien du site copié'); } catch(x){ prompt('Lien du site :', u); } return; }
+      if (o === 'renommer') return renommerBq(b, retour);
+      if (o === 'pays') return paysBq(b, retour);
+      if (o === 'reglages') return reglagesBq(b);
+      if (o === 'copier') return copierBq(b, retour);
+      if (o === 'coller') return collerBq(b, retour);
+      if (o === 'suppr') return supprimerBq(b, retour);
+    };
+    document.body.appendChild(m);
+  }
+
+  async function renommerBq(b, retour){
+    const code = b.code || '', nom = (prompt('Nouveau nom de la boutique :', b.nom) || '').trim();
+    if (!nom || nom === b.nom) return;
+    if (nom.length < 2) return alert('Écris un nom d’au moins 2 lettres.');
+    try {
+      const j = await bqAppel({action: 'renommer', code, nom});
+      b.nom = j.nom || nom; try { localStorage.setItem(K_BQS, JSON.stringify(BQS)); } catch(e){}
+      if (code === BQ && D) { D.boutique = b.nom; try { if (view === 'home' || view === 'settings') render(); } catch(e){} }
+      retour('✅ Boutique renommée : « ' + esc(b.nom) + ' ». Le site affiche le nouveau nom d’ici quelques minutes.');
+    } catch(e){ alert('Impossible de renommer : ' + e.message); }
+  }
+
+  async function supprimerBq(b, retour){
+    const code = b.code;
+    if (!(await confirmer({titre: 'Supprimer cette boutique ?', texte: `Tu vas supprimer <b>« ${esc(b.nom)} »</b> : son site, ses produits, ses commandes et le fichier de son agence.<br><br>Son Google Sheets part dans la <b>corbeille de ton Google Drive</b> (récupérable pendant 30 jours). Le lien de son site ne marchera plus.`, ok: 'Oui, supprimer la boutique'}))) return;
+    try {
+      await bqAppel({action: 'supprimer', code});
+      if (BQS) BQS.boutiques = BQS.boutiques.filter(x => x.code !== code);
+      try { localStorage.setItem(K_BQS, JSON.stringify(BQS)); Object.keys(localStorage).filter(k => k.indexOf('adm_' + code + '_') === 0).forEach(k => localStorage.removeItem(k)); } catch(e){}
+      if (code === BQ) { ouvrirBoutique(''); return; }
+      retour('🗑 Boutique supprimée.');
+    } catch(e){ alert('Suppression impossible : ' + e.message); }
+  }
+
+  // Pays de vente d'une boutique existante : agrandir ou réduire
+  async function paysBq(b, retour){
+    const code = b.code || '';
+    const att = feuille('<h2>Pays de vente</h2><div class="empty">Chargement…</div>');
+    let j; try { j = await bqAppel({action: 'pays', code}); } catch(e){ att.remove(); return alert('Impossible de charger les pays : ' + e.message); }
+    att.remove();
+    const c = await choisirPays(j.pays.map(p => ({nom: p.nom, code: p.code})), j.pays.filter(p => p.actif).map(p => p.code));
+    if (!c) return;
+    try {
+      const k = await bqAppel({action: 'paysSauver', code, pays: c.join(',')});
+      b.pays = k.pays.filter(p => p.actif).map(p => p.code).join(', '); try { localStorage.setItem(K_BQS, JSON.stringify(BQS)); } catch(e){}
+      retour('✅ Pays de vente de « ' + esc(b.nom) + ' » : ' + esc(nomsPaysBq(b.pays)) + '. Le site se met à jour d’ici quelques minutes.');
+    } catch(e){ alert('Impossible d’enregistrer : ' + e.message); }
+  }
+
+  // Copier les produits : tous cochés, on décoche ceux qu'on ne veut pas
+  async function copierBq(b, retour){
+    const code = b.code || '';
+    const o = feuille(`<h2>📋 Copier les produits</h2><p class="sub">De « ${esc(b.nom)} ». Décoche ceux que tu ne veux pas copier.</p><div id="cpP"><div class="empty">Chargement…</div></div>`);
+    let j; try { j = await bqAppel({action: 'produitsListe', code}); } catch(e){ o.remove(); return alert('Impossible de charger les produits : ' + e.message); }
+    if (!o.isConnected) return;
+    const P = j.produits, sel = new Set(P.map(p => p.id)), box = o.querySelector('#cpP');
+    if (!P.length){ box.innerHTML = '<div class="empty">Cette boutique n’a aucun produit.</div><button class="btn ghost" id="cpX" style="margin-top:10px">Fermer</button>'; box.querySelector('#cpX').onclick = () => o.remove(); return; }
+    const dess = () => {
+      box.innerHTML = `<button class="lnk" id="cpTout" style="font-weight:800;color:var(--main);padding:6px 0">${sel.size === P.length ? 'Tout désélectionner' : 'Tout sélectionner'}</button>
+        <div class="cplist">${P.map(p => `<label class="cpi cpprod"><img src="${esc(vignette(p.photo))}" alt=""><span>${esc(p.nom)}<small>${p.enLigne ? 'En ligne' : 'Brouillon'}</small></span><input type="checkbox" value="${esc(p.id)}" ${sel.has(p.id) ? 'checked' : ''}></label>`).join('')}</div>
+        <button class="btn blue" id="cpGo" style="margin-top:12px" ${sel.size ? '' : 'disabled'}>Copier ${sel.size} produit${sel.size > 1 ? 's' : ''}</button>
+        <button class="btn ghost" id="cpX" style="margin-top:8px">Annuler</button>`;
+      box.querySelector('#cpTout').onclick = () => { if (sel.size === P.length) sel.clear(); else P.forEach(p => sel.add(p.id)); dess(); };
+      box.querySelectorAll('input').forEach(i => i.onchange = () => { i.checked ? sel.add(i.value) : sel.delete(i.value); dess(); });
+      box.querySelector('#cpX').onclick = () => o.remove();
+      box.querySelector('#cpGo').onclick = () => {
+        const ids = P.map(p => p.id).filter(id => sel.has(id));
+        try { localStorage.setItem(K_PP, JSON.stringify({source: code, nom: b.nom, ids, quand: Date.now()})); } catch(e){}
+        o.remove(); retour(`📋 ${ids.length} produit${ids.length > 1 ? 's' : ''} copié${ids.length > 1 ? 's' : ''}. Ouvre le ⋮ d’une autre boutique puis « Coller les produits ».`);
+      };
+    };
+    dess();
+  }
+
+  // Coller : une seule fois, ensuite il faut recopier
+  async function collerBq(b, retour){
+    const code = b.code || '', pp = pressePapier(); if (!pp || !pp.ids || !pp.ids.length) return alert('Aucun produit copié.');
+    if (!(await confirmer({titre: 'Coller les produits ?', texte: `<b>${pp.ids.length} produit${pp.ids.length > 1 ? 's' : ''}</b> de « ${esc(pp.nom)} » vont être ajoutés à <b>« ${esc(b.nom)} »</b>, avec leurs prix et leurs avis.<br><br>Après ça, pour coller encore, il faudra recopier.`, ok: 'Coller', danger: false, icone: '📥'}))) return;
+    const att = feuille(`<h2>📥 Collage en cours…</h2><p class="sub">${pp.ids.length} produit${pp.ids.length > 1 ? 's' : ''} vers « ${esc(b.nom)} ». Ne ferme pas l’application.</p><div class="empty"><span class="spin"></span></div>`);
+    try {
+      const j = await bqAppel({action: 'coller', source: pp.source || '', code, ids: pp.ids});
+      try { localStorage.removeItem(K_PP); } catch(e){}
+      att.remove(); if (code === BQ) { try { PR = null; } catch(e){} }
+      retour(`✅ ${j.colles} produit${j.colles > 1 ? 's' : ''} collé${j.colles > 1 ? 's' : ''} dans « ${esc(b.nom)} ». Ils sont sur son site d’ici quelques minutes.`);
+    } catch(e){ att.remove(); alert('Collage impossible : ' + e.message); }
+  }
+
+  // Réglages d'une boutique depuis l'application (le Google Sheets reste à jour)
+  async function reglagesBq(b){
+    const code = b.code || '';
+    const o = feuille(`<h2>⚙️ Réglages</h2><p class="sub">« ${esc(b.nom)} » · aussi modifiables dans son Google Sheets, onglet Réglages.</p><div id="rgB"><div class="empty">Chargement…</div></div>`);
+    let R, PX = null; try { R = await bqAppel({action: 'reglages', code}); } catch(e){ o.remove(); return alert('Impossible de charger les réglages : ' + e.message); }
+    if (!o.isConnected) return;
+    const V = Object.assign({}, R.valeurs), H = R.herite || {}, sub = !R.principale;
+    const K = {wa: 'WhatsApp des commandes', apres: 'Après la commande (MERCI = page de remerciement / WHATSAPP = le client envoie sur WhatsApp)', mail: 'Email qui reçoit les commandes (vide = ton Gmail)',
+      pre: 'Préfixe n° commande (optionnel)', reco: 'Nouvelle commande permise si la précédente est livrée (OUI/NON)', test: 'Numéros de test (jamais bloqués, séparés par des virgules)', preuves: 'Notifications de ventes sur le site (OUI/NON)',
+      coul: 'Couleur principale', logo: 'Logo (lien image, optionnel)', band: 'Bandeau du haut', fb: 'Pixel Facebook (ID)', fbj: 'Jeton API Conversions Meta (optionnel)', fbt: 'Code test événements Meta (optionnel)',
+      tt: 'Pixel TikTok (ID)', ttj: 'Jeton Events API TikTok (optionnel)', cmb: 'WhatsApp – clé CallMeBot (optionnel)', cmbn: 'WhatsApp – numéro qui reçoit les commandes (CallMeBot)', rel: 'Alerte de relance des abandons après (minutes, 0 = jamais)'};
+    const ph = k => sub && H[k] ? 'Vide = comme la principale (' + H[k] + ')' : '';
+    const champ = (k, lib, aide, type) => `<div class="rgc"><label for="rg_${String(k).replace(/\W/g, '')}">${lib}${aide ? `<small>${aide}</small>` : ''}</label><input class="field" id="rg_${String(k).replace(/\W/g, '')}" data-k="${esc(K[k] || k)}" ${type ? `type="${type}"` : ''} value="${esc(V[K[k] || k] || '')}" placeholder="${esc(ph(K[k] || k))}"></div>`;
+    const ouiNon = (k, lib, aide) => { const v = String(V[K[k]] || (sub ? '' : '')).toUpperCase(); return `<div class="rgc"><label>${lib}${aide ? `<small>${aide}</small>` : ''}</label><select class="field" data-k="${esc(K[k])}">${sub ? `<option value="" ${!v ? 'selected' : ''}>Comme la principale${H[K[k]] ? ' (' + esc(H[K[k]]) + ')' : ''}</option>` : ''}<option value="OUI" ${v === 'OUI' ? 'selected' : ''}>Oui</option><option value="NON" ${v === 'NON' ? 'selected' : ''}>Non</option></select></div>`; };
+    // Pixel : nouveau, le même qu'une autre boutique, ou celui de la principale
+    const pixelBloc = (k, nom) => { const v = V[K[k]] || ''; const mode = v ? 'nouveau' : (sub ? 'principale' : 'aucun');
+      return `<div class="rgc rgpx" data-px="${k}"><label>${nom}</label>
+        <div class="rgch">${sub ? `<label><input type="radio" name="px_${k}" value="principale" ${mode === 'principale' ? 'checked' : ''}> <span>Le même que la boutique principale${H[K[k]] ? ` <small>(${esc(H[K[k]])})</small>` : ' <small>(pas encore de pixel)</small>'}</span></label>` : `<label><input type="radio" name="px_${k}" value="aucun" ${mode === 'aucun' ? 'checked' : ''}> <span>Pas de pixel</span></label>`}
+        <label><input type="radio" name="px_${k}" value="autre"> <span>Le même qu’une autre boutique</span></label>
+        <select class="field rgautre hidden" data-pxa="${k}"><option value="">Chargement des boutiques…</option></select>
+        <label><input type="radio" name="px_${k}" value="nouveau" ${mode === 'nouveau' ? 'checked' : ''}> <span>Un nouveau pixel</span></label>
+        <input class="field rgnouv ${mode === 'nouveau' ? '' : 'hidden'}" data-pxn="${k}" ${k === 'fb' ? 'inputmode="numeric"' : ''} placeholder="ID du pixel" value="${esc(v)}"></div></div>`; };
+    o.querySelector('#rgB').innerHTML = `
+      <h3 class="rgt">📣 Publicité : Meta (Facebook, Instagram)</h3>
+      ${pixelBloc('fb', 'Pixel Meta')}
+      ${champ('fbj', 'Jeton API Conversions', 'Facultatif, recommandé : les achats arrivent même si le navigateur bloque le pixel', 'password')}
+      ${champ('fbt', 'Code test des événements', 'Facultatif : seulement pendant un test dans le Gestionnaire d’événements')}
+      <h3 class="rgt">🎵 Publicité : TikTok</h3>
+      ${pixelBloc('tt', 'Pixel TikTok')}
+      ${champ('ttj', 'Jeton Events API TikTok', 'Facultatif', 'password')}
+      <h3 class="rgt">🛒 Commandes</h3>
+      ${champ('wa', 'WhatsApp des commandes', 'Avec l’indicatif, sans + ni espace')}
+      <div class="rgc"><label>Après la commande</label><select class="field" data-k="${esc(K.apres)}">${sub ? `<option value="" ${!V[K.apres] ? 'selected' : ''}>Comme la principale</option>` : ''}<option value="MERCI" ${/MERCI/i.test(V[K.apres]) ? 'selected' : ''}>Page de remerciement</option><option value="WHATSAPP" ${/WHATSAPP/i.test(V[K.apres]) ? 'selected' : ''}>Le client envoie sa commande sur WhatsApp</option></select></div>
+      ${champ('mail', 'E-mail qui reçoit les commandes', '', 'email')}
+      ${champ('pre', 'Préfixe des numéros de commande', 'Ex : TG → TG1001')}
+      ${ouiNon('reco', 'Nouvelle commande seulement si la précédente est livrée')}
+      ${champ('test', 'Numéros de test', 'Jamais bloqués, séparés par des virgules')}
+      <h3 class="rgt">💬 WhatsApp automatique (CallMeBot)</h3>
+      ${champ('cmb', 'Clé CallMeBot', '', 'password')}
+      ${champ('cmbn', 'Numéro qui reçoit les alertes', 'Avec l’indicatif')}
+      ${champ('rel', 'Alerte de relance des abandons après (minutes)', '0 = jamais')}
+      <h3 class="rgt">🎨 Apparence du site</h3>
+      ${champ('band', 'Bandeau défilant du haut')}
+      ${champ('coul', 'Couleur principale', 'Ex : #1736A6')}
+      ${champ('logo', 'Logo (lien d’une image)', 'Facultatif')}
+      ${ouiNon('preuves', 'Notifications de ventes sur le site', '« Awa K. vient de commander… »')}
+      <h3 class="rgt">✅ Garanties affichées</h3>
+      ${[1, 2, 3, 4].map(n => `<div class="rggar"><b>Garantie ${n}</b>${champ('Garantie ' + n + ' – emoji', 'Emoji')}${champ('Garantie ' + n + ' – titre', 'Titre')}${champ('Garantie ' + n + ' – texte', 'Texte')}</div>`).join('')}
+      <button class="btn blue" id="rgOk" style="margin-top:14px">Enregistrer</button>
+      <button class="btn ghost" id="rgX" style="margin-top:8px">Fermer</button>`;
+    const B = o.querySelector('#rgB');
+    B.querySelector('#rgX').onclick = () => o.remove();
+    const chargerPixels = async () => { if (PX) return PX; try { PX = (await bqAppel({action: 'pixels'})).pixels; } catch(e){ PX = []; } return PX; };
+    B.querySelectorAll('.rgpx').forEach(bl => {
+      const k = bl.dataset.px, sa = bl.querySelector('[data-pxa]'), ni = bl.querySelector('[data-pxn]');
+      bl.querySelectorAll('input[type=radio]').forEach(r => r.onchange = async () => {
+        sa.classList.toggle('hidden', r.value !== 'autre'); ni.classList.toggle('hidden', r.value !== 'nouveau');
+        if (r.value === 'nouveau') ni.focus();
+        if (r.value === 'autre'){ const L = (await chargerPixels()).filter(p => (p.code || '') !== code && p[k]);
+          sa.innerHTML = L.length ? '<option value="">Choisis la boutique</option>' + L.map(p => `<option value="${esc(p[k])}">${esc(p.nom)} · ${esc(p[k])}</option>`).join('') : '<option value="">Aucune autre boutique n’a encore de pixel</option>'; }
+      });
+    });
+    B.querySelector('#rgOk').onclick = async e => {
+      const bt = e.currentTarget, val = {};
+      B.querySelectorAll('[data-k]').forEach(i => val[i.dataset.k] = i.value.trim());
+      for (const bl of B.querySelectorAll('.rgpx')){
+        const k = bl.dataset.px, m = (bl.querySelector('input[type=radio]:checked') || {}).value;
+        if (m === 'autre'){ const x = bl.querySelector('[data-pxa]').value; if (!x) return alert('Choisis la boutique dont tu veux utiliser le pixel.'); val[K[k]] = x; }
+        else if (m === 'nouveau'){ const x = bl.querySelector('[data-pxn]').value.replace(k === 'fb' ? /\D/g : /[^\w]/g, ''); if (!x) return alert('Écris l’ID du nouveau pixel.'); val[K[k]] = x; }
+        else val[K[k]] = '';
+      }
+      bt.disabled = true; bt.textContent = 'Enregistrement…';
+      try { await bqAppel({action: 'reglagesSauver', code, valeurs: val}); o.remove(); toast('✅ Réglages enregistrés'); }
+      catch(x){ bt.disabled = false; bt.textContent = 'Enregistrer'; alert('Impossible d’enregistrer : ' + x.message); }
+    };
   }
   /* ---------- Vendoo : panneau du propriétaire (paiements MoMo, abonnés, codes promo) ---------- */
   async function vendooAdmin(){
@@ -1057,7 +1275,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
       <label class="lbl" for="nbFi">Lien du Google Sheets de cette boutique</label><input class="field" id="nbFi" placeholder="https://docs.google.com/spreadsheets/d/…">` : ''}
       <label class="lbl" for="nbNom">Nom de la boutique</label><input class="field" id="nbNom" placeholder="Ex : ABROMARKET Togo">
       <label class="lbl">Pays de vente (l'agence de ce pays recevra les commandes)</label>
-      <div class="pchips" id="nbPays">${pays.map(p => `<label class="pchip"><input type="checkbox" value="${esc(p.code)}"><span>${esc(p.nom)}</span></label>`).join('')}</div>
+      <button type="button" class="cadran" id="nbPays" data-codes="">Choisir le ou les pays ▾</button>
       <label class="lbl" for="nbAg">Email Google de l'agence <span style="font-weight:500;color:var(--soft)">— facultatif</span></label><input class="field" id="nbAg" type="email" placeholder="Laisse vide si tu n'as pas encore d'agence">
       <p class="sub" style="margin:4px 0 0">Tu pourras l'ajouter, la changer ou la retirer plus tard : Mes boutiques → 🚚 Agences.</p>
       <label class="lbl" for="nbWa">WhatsApp qui reçoit les commandes (avec l'indicatif)</label><input class="field" id="nbWa" inputmode="tel" placeholder="Ex : 22890000000 (vide = le même que ta boutique principale)">
@@ -1067,9 +1285,11 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
       <button class="btn blue" id="nbOk" style="margin-top:14px">Créer la boutique</button>
       <button class="btn ghost" id="nbAnn" style="margin-top:10px">Annuler</button></div>`;
     ov.querySelector('#nbAnn').onclick = () => retour();
+    const cp = ov.querySelector('#nbPays');
+    cp.onclick = async () => { const c = await choisirPays(pays, cp.dataset.codes ? cp.dataset.codes.split(',') : []); if (!c) return; cp.dataset.codes = c.join(','); cp.textContent = c.length ? nomsPaysBq(c.join(', ')) + ' ▾' : 'Choisir le ou les pays ▾'; cp.classList.toggle('plein', !!c.length); };
     ov.querySelector('#nbOk').onclick = async e => {
       const b = e.currentTarget, nom = ov.querySelector('#nbNom').value.trim();
-      const codes = [...ov.querySelectorAll('#nbPays input:checked')].map(i => i.value);
+      const codes = (cp.dataset.codes || '').split(',').filter(Boolean);
       if (nom.length < 2){ alert('Donne un nom à la boutique.'); return; }
       if (!codes.length){ alert('Choisis au moins un pays de vente.'); return; }
       b.disabled = true; b.textContent = 'Création en cours… (environ 30 secondes)';
