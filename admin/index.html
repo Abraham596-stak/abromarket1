@@ -1250,7 +1250,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
       ov.querySelector('#pjSave').onclick = async e => {
         const b = e.currentTarget, modif = !!(J || []).find(x => x.date === jsel); b.disabled = true; b.textContent = 'Enregistrement…';
         try { await appel({action: 'jourSauver', date: jsel, ca: nb('ca'), livres: nb('livres'), achat: nb('achat'), pub: nb('pub'), abonnements: nb('abonnements'), note: ov.querySelector('#pj_note').value});
-          msg = (modif ? '✅ Point du ' + esc(libJour(jsel)) + ' modifié' : '✅ Point du ' + esc(libJour(jsel)) + ' enregistré · ta semaine est calculée toute seule'); vue = 'dash'; jchoix = jsel; dess(); }
+          msg = (modif ? '✅ Point du ' + esc(libJour(jsel)) + ' modifié' : '✅ Point du ' + esc(libJour(jsel)) + ' enregistré · ta semaine est calculée toute seule'); vue = 'dash'; jchoix = jsel; dess(); try { refresh(); } catch(x){} }
         catch(x){ b.disabled = false; b.textContent = modif ? 'Enregistrer les modifications' : 'Enregistrer le point du jour'; alert(/inconnu|introuvable/i.test(x.message) ? 'Mets à jour le code Apps Script (Code.gs).' : x.message); }
       };
       const del = ov.querySelector('#pjDel'); if (del) del.onclick = async () => { if (!(await confirmer({titre: 'Effacer ce jour ?', texte: 'Le point du ' + esc(libJour(jsel)) + ' sera effacé.', ok: 'Effacer'}))) return; try { await appel({action: 'jourSupprimer', date: jsel}); msg = 'Point du jour effacé.'; vue = 'dash'; dess(); } catch(e){ alert(e.message); } };
