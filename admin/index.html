@@ -696,6 +696,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
 .utmbox{display:flex;flex-direction:column;gap:8px;padding:10px;border-radius:12px;background:var(--surface)}
 .utmbox code{font:600 12.5px ui-monospace,Menlo,monospace;word-break:break-all;color:var(--ink)}
 .utmbox button{align-self:flex-start;background:var(--main);color:#fff;border-radius:10px;padding:8px 12px;font-weight:800}
+.ptres.neg{background:var(--errbg)}.ptres.neg b{color:var(--err)}
 </style>
 </head>
 <body>
@@ -1195,83 +1196,143 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
   }
   /* ---------- Point hebdomadaire : bénéfice net de la semaine, par boutique ---------- */
   const lundi = d => { const x = new Date(d); x.setHours(0, 0, 0, 0); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return x; };
-  const libSem = iso => { const a = isoJ2(iso), b = new Date(a); b.setDate(b.getDate() + 6); const M = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
+  const libSem = iso => { const a = isoJ2(iso), b = new Date(a); b.setDate(b.getDate() + 5); /* lundi → samedi */ const M = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
     return a.getMonth() === b.getMonth() ? a.getDate() + '–' + b.getDate() + ' ' + M[a.getMonth()] : a.getDate() + ' ' + M[a.getMonth()] + ' – ' + b.getDate() + ' ' + M[b.getMonth()]; };
   const isoJ2 = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
   async function pointHebdo(){
     const dev = (D && D.devise) || 'FCFA', nomB = (D && D.boutique) || 'Ma boutique';
     const semaines = []; let l0 = lundi(new Date()); for (let k = 0; k < 12; k++){ const x = new Date(l0); x.setDate(x.getDate() - 7 * k); semaines.push(isoJ(x)); }
-    let sem = semaines[new Date().getDay() === 1 ? 1 : 0], P = null, aide = null, msg = '', err = '', vue = 'dash', per = 4, choix = null;
+    let sem = semaines[new Date().getDay() === 1 ? 1 : 0], P = null, J = null, aide = null, msg = '', err = '', vue = 'dash', per = 4, choix = null, jsel = null, jchoix = null;
     const ov = document.createElement('div'); ov.className = 'overlay';
-    const appel = async o => { const j = await call(Object.assign({type: 'point', semaine: sem}, o)); P = j.points; aide = j.aide; err = ''; return j; };
+    const appel = async o => { const j = await call(Object.assign({type: 'point', semaine: sem}, o)); P = j.points; J = j.jours || []; aide = j.aide; err = ''; return j; };
     const charger = async () => { err = ''; try { await appel({}); } catch(e){ err = esc(/inconnu|introuvable/i.test(e.message) ? 'Mets à jour le code Apps Script (Code.gs).' : e.message); } if (ov.isConnected) dess(); };
     const errBloc = () => err ? `<div class="pterr" style="margin-bottom:10px">Impossible de charger : ${err}<button class="btn ghost" id="ptRe" style="margin-top:8px">↻ Réessayer</button></div>` : '';
     const brancherRe = () => { const b = ov.querySelector('#ptRe'); if (b) b.onclick = () => { err = ''; dess(); charger(); }; };
+    const JOURS = ['dim.', 'lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.'], MOIS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
+    const libJour = iso => { const x = isoJ2(iso); return JOURS[x.getDay()] + ' ' + x.getDate() + ' ' + MOIS[x.getMonth()]; };
+    const hier = () => { const x = new Date(); x.setDate(x.getDate() - 1); if (x.getDay() === 0) x.setDate(x.getDate() - 1); return isoJ(x); };
+    // Semaines (lundi → samedi) : calculées toutes seules avec les points du jour ; sinon le point saisi à la main
+    const fusion = () => {
+      const m = {};
+      (J || []).forEach(j => { const w = isoJ(lundi(isoJ2(j.date))); const x = m[w] = m[w] || {semaine: w, ca: 0, pub: 0, achat: 0, abonnements: 0, livres: 0, nbJours: 0, auto: true};
+        x.ca += j.ca; x.pub += j.pub; x.achat += j.achat; x.livres += j.livres; x.nbJours++; });
+      (P || []).forEach(p => { if (m[p.semaine]) m[p.semaine].abonnements = p.abonnements || 0; else m[p.semaine] = Object.assign({livres: null, auto: false}, p); });
+      return Object.values(m).map(x => Object.assign(x, {benefice: x.ca - x.pub - x.achat - (x.abonnements || 0)})).sort((a, b) => a.semaine < b.semaine ? -1 : 1);
+    };
+
+    // ---------- Point du jour : ce que l'agence t'envoie chaque jour ----------
+    const champsJ = [['ca', 'Chiffre d’affaires du jour', 'Ce que l’agence te verse pour ce jour, tout retiré'], ['livres', 'Produits livrés', 'Nombre de produits livrés ce jour'], ['achat', 'Coût d’achat des produits livrés', 'Ce qu’ont coûté les produits livrés'], ['pub', 'Dépense pub du jour', 'Toutes tes pubs de ce jour']];
+    const dessJour = () => {
+      const pt = (J || []).find(x => x.date === jsel) || {};
+      const dim = isoJ2(jsel).getDay() === 0;
+      ov.innerHTML = `<div class="detail bqsheet" role="dialog" aria-modal="true" aria-label="Point du jour"><div class="grab"></div>
+        <button class="lnk ptback" id="ptDash">← Tableau de bord</button>
+        <h2>${pt.date ? '✏️ Modifier le point du jour' : '🗓️ Point du jour'}</h2><p class="sub">${esc(nomB)} · en ${esc(dev)}</p>
+        ${errBloc()}
+        <label class="lbl" for="pj_date">Date du point (le jour des livraisons)</label>
+        <input class="field" type="date" id="pj_date" value="${esc(jsel)}" max="${esc(isoJ(new Date()))}">
+        <p class="sub" style="margin:6px 0 0">${esc(libJour(jsel))}${dim ? ' · <b style="color:var(--err)">dimanche : jour sans travail</b>' : ''}</p>
+        ${pt.date ? '<div class="ptaide" style="margin-top:10px">✏️ Ce jour est déjà enregistré. Change les montants puis « Enregistrer les modifications ».</div>' : ''}
+        ${champsJ.map(([k, l, a]) => `<div class="ptin"><label for="pj_${k}">${l}<small>${a}</small></label><input class="field" id="pj_${k}" inputmode="numeric" placeholder="0" value="${pt[k] ? esc(String(pt[k])) : ''}"></div>`).join('')}
+        <input class="field" id="pj_note" placeholder="Note (facultatif)" value="${esc(pt.note || '')}" style="margin-top:10px">
+        <div class="ptres" id="pjRes"><small>Bénéfice net du jour</small><b id="pjBen">0</b></div>
+        <button class="btn blue" id="pjSave">${pt.date ? 'Enregistrer les modifications' : 'Enregistrer le point du jour'}</button>
+        ${pt.date ? '<button class="btn ghost" id="pjDel" style="margin-top:8px">Effacer ce jour</button>' : ''}
+        <button class="btn ghost" id="ptX" style="margin-top:12px">Fermer</button></div>`;
+      const nb = id => Number(String(ov.querySelector('#pj_' + id).value).replace(/[^\d.-]/g, '')) || 0;
+      const calc = () => { const b = nb('ca') - nb('achat') - nb('pub'); ov.querySelector('#pjBen').textContent = fmt(b, dev); ov.querySelector('#pjRes').classList.toggle('neg', b < 0); };
+      ov.querySelectorAll('.ptin input').forEach(i => i.oninput = calc); calc();
+      ov.querySelector('#ptX').onclick = () => ov.remove();
+      ov.querySelector('#ptDash').onclick = () => { vue = 'dash'; msg = ''; dess(); };
+      ov.querySelector('#pj_date').onchange = e => { if (e.target.value) { jsel = e.target.value; dess(); } };
+      ov.querySelector('#pjSave').onclick = async e => {
+        const b = e.currentTarget, modif = !!(J || []).find(x => x.date === jsel); b.disabled = true; b.textContent = 'Enregistrement…';
+        try { await appel({action: 'jourSauver', date: jsel, ca: nb('ca'), livres: nb('livres'), achat: nb('achat'), pub: nb('pub'), note: ov.querySelector('#pj_note').value});
+          msg = (modif ? '✅ Point du ' + esc(libJour(jsel)) + ' modifié' : '✅ Point du ' + esc(libJour(jsel)) + ' enregistré · ta semaine est calculée toute seule'); vue = 'dash'; jchoix = jsel; dess(); }
+        catch(x){ b.disabled = false; b.textContent = modif ? 'Enregistrer les modifications' : 'Enregistrer le point du jour'; alert(/inconnu|introuvable/i.test(x.message) ? 'Mets à jour le code Apps Script (Code.gs).' : x.message); }
+      };
+      const del = ov.querySelector('#pjDel'); if (del) del.onclick = async () => { if (!(await confirmer({titre: 'Effacer ce jour ?', texte: 'Le point du ' + esc(libJour(jsel)) + ' sera effacé.', ok: 'Effacer'}))) return; try { await appel({action: 'jourSupprimer', date: jsel}); msg = 'Point du jour effacé.'; vue = 'dash'; dess(); } catch(e){ alert(e.message); } };
+    };
+    const ouvrirJour = d => { vue = 'jour'; msg = ''; jsel = d || hier(); dess(); };
+
+    // ---------- Point de la semaine saisi à la main (abonnements, ou semaine sans points du jour) ----------
     const champs = [['ca', 'Chiffre d’affaires réel', 'Ce que l’agence te verse, tout retiré'], ['pub', 'Dépenses pub', 'Toutes tes pubs de la semaine'], ['abonnements', 'Abonnements', 'Vendoo, applis, internet…'], ['achat', 'Achat des produits vendus', 'Ce qu’ont coûté les produits vendus']];
     const dessForm = () => {
-      const pt = (P || []).find(x => x.semaine === sem) || {};
-      const fait = new Set((P || []).map(x => x.semaine));
-      const tot4 = (P || []).filter(x => semaines.slice(0, 4).includes(x.semaine)).reduce((t, x) => t + x.benefice, 0);
+      const pt = (P || []).find(x => x.semaine === sem) || {}, auto = fusion().find(x => x.semaine === sem && x.auto);
+      const fait = new Set(fusion().map(x => x.semaine));
       ov.innerHTML = `<div class="detail bqsheet" role="dialog" aria-modal="true" aria-label="Point hebdomadaire"><div class="grab"></div>
         <button class="lnk ptback" id="ptDash">← Tableau de bord</button>
-        <h2>${pt.semaine ? '✏️ Modifier le point' : '📝 Point de la semaine'}</h2><p class="sub">${esc(nomB)} · en ${esc(dev)}</p>
+        <h2>${pt.semaine ? '✏️ Modifier le point de la semaine' : '📝 Point de la semaine'}</h2><p class="sub">${esc(nomB)} · en ${esc(dev)}</p>
         ${msg ? `<div class="okmsg">${msg}</div>` : ''}${errBloc()}
         <div class="ptsem">${semaines.map(w => `<button data-sem="${w}" class="${w === sem ? 'on' : ''} ${fait.has(w) ? 'fait' : ''}">${w === semaines[0] ? 'Cette semaine' : w === semaines[1] ? 'Semaine dernière' : libSem(w)}</button>`).join('')}</div>
-        <p class="sub" style="margin:-4px 0 8px">Du ${libSem(sem)}</p>
-        ${pt.semaine ? '<div class="ptaide">✏️ Ce point est déjà enregistré. Change les montants puis appuie sur « Enregistrer les modifications ».</div>' : ''}${aide ? `<div class="ptaide">D’après l’application : <b>${aide.commandes}</b> commande${aide.commandes > 1 ? 's' : ''} (${esc(fmt(aide.commande, dev))}), dont <b>${aide.livrees}</b> livrée${aide.livrees > 1 ? 's' : ''} (${esc(fmt(aide.livre, dev))}).</div>` : !P && !err ? '<div class="ptaide">Chargement…</div>' : ''}
-        ${champs.map(([k, l, aideTxt]) => `<div class="ptin"><label for="pt_${k}">${l}<small>${aideTxt}</small></label><input class="field" id="pt_${k}" inputmode="numeric" placeholder="0" value="${pt[k] ? esc(String(pt[k])) : ''}"></div>`).join('')}
+        <p class="sub" style="margin:-4px 0 8px">Du ${libSem(sem)} (lundi → samedi)</p>
+        ${auto ? `<div class="ptaide">🗓️ Cette semaine est calculée toute seule avec tes <b>${auto.nbJours} point${auto.nbJours > 1 ? 's' : ''} du jour</b> : CA ${esc(fmt(auto.ca, dev))} · ${auto.livres} livré${auto.livres > 1 ? 's' : ''} · pub ${esc(fmt(auto.pub, dev))} · achats ${esc(fmt(auto.achat, dev))}.<br>Ici, ajoute seulement tes <b>abonnements</b> de la semaine.</div>`
+          : aide ? `<div class="ptaide">D’après l’application : <b>${aide.commandes}</b> commande${aide.commandes > 1 ? 's' : ''} (${esc(fmt(aide.commande, dev))}), dont <b>${aide.livrees}</b> livrée${aide.livrees > 1 ? 's' : ''} (${esc(fmt(aide.livre, dev))}).</div>` : !P && !err ? '<div class="ptaide">Chargement…</div>' : ''}
+        ${(auto ? champs.filter(c => c[0] === 'abonnements') : champs).map(([k, l, a]) => `<div class="ptin"><label for="pt_${k}">${l}<small>${a}</small></label><input class="field" id="pt_${k}" inputmode="numeric" placeholder="0" value="${pt[k] ? esc(String(pt[k])) : ''}"></div>`).join('')}
         <input class="field" id="pt_note" placeholder="Note (facultatif)" value="${esc(pt.note || '')}" style="margin-top:10px">
         <div class="ptres" id="ptRes"><small>Bénéfice net de la semaine</small><b id="ptBen">0</b></div>
         <button class="btn blue" id="ptSave">${pt.semaine ? 'Enregistrer les modifications' : 'Enregistrer le point'}</button>
         ${pt.semaine ? '<button class="btn ghost" id="ptDel" style="margin-top:8px">Effacer ce point</button>' : ''}
-        ${P && P.length ? `<div class="pthist"><h3>Mes points · 4 dernières semaines : <span style="color:${tot4 < 0 ? 'var(--err)' : 'var(--ok)'}">${esc(fmt(tot4, dev))}</span></h3>${P.slice(0, 12).map(x => `<button class="pth" data-ouv="${x.semaine}"><span>${libSem(x.semaine)} <em class="ptmod">✏️ Modifier</em><small>CA ${esc(fmt(x.ca, dev))} · pub ${esc(fmt(x.pub, dev))} · achats ${esc(fmt(x.achat, dev))}</small></span><b class="${x.benefice < 0 ? 'n' : 'p'}">${esc(fmt(x.benefice, dev))}</b></button>`).join('')}</div>` : ''}
         <button class="btn ghost" id="ptX" style="margin-top:12px">Fermer</button></div>`;
-      const nb = id => Number(String(ov.querySelector('#pt_' + id).value).replace(/[^\d.-]/g, '')) || 0;
+      const nb = id => { const i = ov.querySelector('#pt_' + id); return i ? Number(String(i.value).replace(/[^\d.-]/g, '')) || 0 : (auto ? auto[id] : 0) || 0; };
       const calc = () => { const b = nb('ca') - nb('pub') - nb('abonnements') - nb('achat'); ov.querySelector('#ptBen').textContent = fmt(b, dev); ov.querySelector('#ptRes').classList.toggle('neg', b < 0); };
       ov.querySelectorAll('.ptin input').forEach(i => i.oninput = calc); calc();
       ov.querySelector('#ptX').onclick = () => ov.remove();
       ov.querySelector('#ptDash').onclick = () => { vue = 'dash'; msg = ''; dess(); };
-      ov.querySelectorAll('[data-sem],[data-ouv]').forEach(b => b.onclick = () => { sem = b.dataset.sem || b.dataset.ouv; msg = ''; aide = null; dess(); charger(); }); brancherRe();
+      ov.querySelectorAll('[data-sem]').forEach(b => b.onclick = () => { sem = b.dataset.sem; msg = ''; aide = null; dess(); charger(); }); brancherRe();
       ov.querySelector('#ptSave').onclick = async e => { const b = e.currentTarget; b.disabled = true; b.textContent = 'Enregistrement…';
         const modif = !!((P || []).find(x => x.semaine === sem));
-        try { await appel({action: 'sauver', ca: nb('ca'), pub: nb('pub'), abonnements: nb('abonnements'), achat: nb('achat'), note: ov.querySelector('#pt_note').value}); msg = modif ? '✅ Point modifié (aussi dans ton Google Sheets, onglet « 💰 Point hebdo »).' : '✅ Point enregistré (aussi dans ton Google Sheets, onglet « 💰 Point hebdo »). Tu peux le modifier à tout moment.'; vue = 'dash'; dess(); }
+        try { await appel({action: 'sauver', ca: nb('ca'), pub: nb('pub'), abonnements: nb('abonnements'), achat: nb('achat'), note: ov.querySelector('#pt_note').value}); msg = modif ? '✅ Point modifié.' : '✅ Point enregistré (aussi dans ton Google Sheets, onglet « 💰 Point hebdo »).'; vue = 'dash'; dess(); }
         catch(x){ b.disabled = false; b.textContent = modif ? 'Enregistrer les modifications' : 'Enregistrer le point'; alert(/inconnu|introuvable/i.test(x.message) ? 'Mets à jour le code Apps Script (Code.gs).' : x.message); } };
       const del = ov.querySelector('#ptDel'); if (del) del.onclick = async () => { if (!(await confirmer({titre: 'Effacer ce point ?', texte: 'Le point de la semaine du ' + esc(libSem(sem)) + ' sera effacé.', ok: 'Effacer'}))) return; try { await appel({action: 'supprimer'}); msg = 'Point effacé.'; dess(); } catch(e){ alert(e.message); } };
     };
-    // ---------- Tableau de bord : progression du bénéfice et de quoi il dépend ----------
+
+    // ---------- Tableau de bord ----------
     const PCT = (a, b) => b ? Math.round(a / b * 100) : 0;
     const COUL = {benefice: '#2a78d6', achat: '#eb6834', pub: '#1baf7a', abonnements: '#eda100'};
+    // Petit graphique en barres (positif bleu, négatif rouge), une barre par élément
+    const barres = (L, cle, sel, attr) => {
+      const W = 340, H = 150, pad = 6, n = L.length, max = Math.max(1, ...L.map(x => x[cle]), 0), min = Math.min(0, ...L.map(x => x[cle]));
+      const y = v => pad + (max - v) / (max - min || 1) * (H - 2 * pad), y0 = y(0), pas = n ? (W - 8) / n : 0, bw = Math.max(6, Math.min(34, pas - 6));
+      return `<svg viewBox="0 0 ${W} ${H}" class="ptchart" role="img"><line x1="0" x2="${W}" y1="${y0}" y2="${y0}" stroke="#C9CEDB" stroke-width="1"/>${L.map((x, k) => {
+        const cx = 4 + (k + .5) * pas, neg = x[cle] < 0, h = Math.max(4, Math.abs(y(x[cle]) - y0)), r = Math.min(4, bw / 2);
+        const d = neg ? `M${cx - bw / 2},${y0} h${bw} v${h - r} q0,${r} ${-r},${r} h${-(bw - 2 * r)} q${-r},0 ${-r},${-r} z` : `M${cx - bw / 2},${y0} v${-(h - r)} q0,${-r} ${r},${-r} h${bw - 2 * r} q${r},0 ${r},${r} v${h - r} z`;
+        return `<g class="ptbar ${sel === x[attr] ? 'on' : ''}" ${attr === 'date' ? 'data-j' : 'data-b'}="${x[attr]}"><rect x="${cx - pas / 2}" y="0" width="${pas}" height="${H}" fill="transparent"/><path d="${d}" fill="${neg ? '#e34948' : '#2a78d6'}"/></g>`; }).join('')}</svg>`;
+    };
     const dessDash = () => {
-      const tous = (P || []).slice().sort((a, b) => a.semaine < b.semaine ? -1 : 1);
-      const L = per ? tous.slice(-per) : tous, av = per ? tous.slice(-2 * per, -per) : [];
+      const tous = fusion(), L = per ? tous.slice(-per) : tous, av = per ? tous.slice(-2 * per, -per) : [];
       const som = (l, k) => l.reduce((t, x) => t + (x[k] || 0), 0);
-      const ben = som(L, 'benefice'), ca = som(L, 'ca'), benAv = som(av, 'benefice');
+      const ben = som(L, 'benefice'), ca = som(L, 'ca'), benAv = som(av, 'benefice'), liv = som(L, 'livres');
       const moy = L.length ? Math.round(ben / L.length) : 0, meil = L.slice().sort((a, b) => b.benefice - a.benefice)[0];
       const evo = av.length && benAv ? Math.round((ben - benAv) / Math.abs(benAv) * 100) : null;
       const parts = [['benefice', 'Bénéfice net', Math.max(0, ben)], ['achat', 'Achat des produits', som(L, 'achat')], ['pub', 'Publicité', som(L, 'pub')], ['abonnements', 'Abonnements', som(L, 'abonnements')]];
       const totParts = parts.reduce((t, p) => t + p[2], 0) || 1;
-      // Graphique : bénéfice net par semaine (barres ; ligne du zéro si une semaine est en perte)
-      const W = 340, H = 170, pad = 6, n = L.length, max = Math.max(1, ...L.map(x => x.benefice), 0), min = Math.min(0, ...L.map(x => x.benefice));
-      const y = v => pad + (max - v) / (max - min || 1) * (H - 2 * pad), y0 = y(0), pas = n ? (W - 8) / n : 0, bw = Math.max(6, Math.min(34, pas - 6));
       const sel = (choix && L.find(x => x.semaine === choix)) || L[L.length - 1];
-      const barres = L.map((x, k) => {
-        const cx = 4 + (k + .5) * pas, neg = x.benefice < 0, h = Math.max(4, Math.abs(y(x.benefice) - y0)), r = Math.min(4, bw / 2);
-        const d = neg ? `M${cx - bw / 2},${y0} h${bw} v${h - r} q0,${r} ${-r},${r} h${-(bw - 2 * r)} q${-r},0 ${-r},${-r} z`
-                      : `M${cx - bw / 2},${y0} v${-(h - r)} q0,${-r} ${r},${-r} h${bw - 2 * r} q${r},0 ${r},${r} v${h - r} z`;
-        return `<g class="ptbar ${sel && sel.semaine === x.semaine ? 'on' : ''}" data-b="${x.semaine}"><rect x="${cx - pas / 2}" y="0" width="${pas}" height="${H}" fill="transparent"/><path d="${d}" fill="${neg ? '#e34948' : '#2a78d6'}"/></g>`;
-      }).join('');
+      // Jours : les 12 derniers jours saisis (du plus ancien au plus récent)
+      const JL = (J || []).slice(0, 12).reverse(), js = (jchoix && JL.find(x => x.date === jchoix)) || JL[JL.length - 1];
+      const semC = isoJ(lundi(new Date())), jSem = (J || []).filter(x => isoJ(lundi(isoJ2(x.date))) === semC);
       ov.innerHTML = `<div class="detail bqsheet" role="dialog" aria-modal="true" aria-label="Point hebdomadaire"><div class="grab"></div>
-        <h2>💰 Point hebdomadaire</h2><p class="sub">${esc(nomB)} · en ${esc(dev)}</p>
+        <h2>💰 Point hebdomadaire</h2><p class="sub">${esc(nomB)} · en ${esc(dev)} · semaine du lundi au samedi</p>
         ${msg ? `<div class="okmsg">${msg}</div>` : ''}${errBloc()}
-        <button class="btn blue" id="ptFaire" style="margin:6px 0 14px">📝 Faire le point de la semaine</button>
-        ${!P ? (err ? '' : '<div class="empty">Chargement…</div>') : !tous.length ? '<div class="empty">Aucun point pour le moment.<br>Fais ton premier point : ton tableau de bord apparaîtra ici.</div>' : `
-        <div class="ptper">${[[4, '4 semaines'], [12, '12 semaines'], [0, 'Tout']].map(([k, l]) => `<button data-per="${k}" class="${per === k ? 'on' : ''}">${l}</button>`).join('')}</div>
+        <button class="btn blue" id="pjFaire" style="margin:6px 0 8px">🗓️ Faire le point du jour</button>
+        <button class="btn ghost" id="ptFaire" style="margin:0 0 14px">📝 Point de la semaine (abonnements…)</button>
+        ${!P ? (err ? '' : '<div class="empty">Chargement…</div>') : `
+        <div class="ptcard" style="margin-top:0"><h3>🗓️ Revenus réels par jour</h3>
+          ${JL.length ? `<p class="sub">Cette semaine : <b>${jSem.length}</b> jour${jSem.length > 1 ? 's' : ''} sur 6 · CA ${esc(fmt(som(jSem, 'ca'), dev))} · ${som(jSem, 'livres')} livré${som(jSem, 'livres') > 1 ? 's' : ''} · bénéfice <b class="${som(jSem, 'benefice') < 0 ? 'n' : 'p'}">${esc(fmt(som(jSem, 'benefice'), dev))}</b></p>
+          ${js ? `<div class="pttip"><b>${esc(libJour(js.date))}</b> : <span class="${js.benefice < 0 ? 'n' : 'p'}">${esc(fmt(js.benefice, dev))}</span><small>CA ${esc(fmt(js.ca, dev))} · ${js.livres} livré${js.livres > 1 ? 's' : ''} · achats ${esc(fmt(js.achat, dev))} · pub ${esc(fmt(js.pub, dev))}</small><button class="lnk ptedit" data-oj="${js.date}">✏️ Modifier ce jour</button></div>` : ''}
+          ${barres(JL, 'benefice', js && js.date, 'date')}
+          <div class="ptax">${JL.map(x => `<span>${isoJ2(x.date).getDate()}/${isoJ2(x.date).getMonth() + 1}</span>`).join('')}</div>
+          <p class="sub" style="margin-top:6px">Touche une barre pour voir le détail du jour.</p>
+          <div class="pthist" style="margin-top:10px"><h3>Mes journées</h3>${(J || []).slice(0, 30).map(x => `<button class="pth" data-oj="${x.date}"><span>${esc(libJour(x.date))} <em class="ptmod">✏️ Modifier</em><small>CA ${esc(fmt(x.ca, dev))} · ${x.livres} livré${x.livres > 1 ? 's' : ''} · pub ${esc(fmt(x.pub, dev))}</small></span><b class="${x.benefice < 0 ? 'n' : 'p'}">${esc(fmt(x.benefice, dev))}</b></button>`).join('')}</div>`
+          : '<div class="empty">Aucun point du jour pour le moment.<br>Dès que ton agence t’envoie son point, appuie sur « 🗓️ Faire le point du jour ».</div>'}</div>
+        ${!tous.length ? '' : `
+        <div class="ptper" style="margin-top:16px">${[[4, '4 semaines'], [12, '12 semaines'], [0, 'Tout']].map(([k, l]) => `<button data-per="${k}" class="${per === k ? 'on' : ''}">${l}</button>`).join('')}</div>
         <div class="pthero ${ben < 0 ? 'neg' : ''}"><small>Bénéfice net · ${per ? per + ' dernières semaines' : 'depuis le début'}</small><b>${esc(fmt(ben, dev))}</b>
           <span>${evo === null ? '' : `<em class="${evo < 0 ? 'bas' : 'haut'}">${evo < 0 ? '▼' : '▲'} ${Math.abs(evo)} %</em> vs les ${per} semaines d’avant · `}moyenne ${esc(fmt(moy, dev))} / semaine</span></div>
-        <div class="ptk"><div><small>Chiffre d’affaires réel</small><b>${esc(fmt(ca, dev))}</b></div><div><small>Marge nette</small><b>${PCT(ben, ca)} %</b></div><div><small>Meilleure semaine</small><b>${meil ? esc(fmt(meil.benefice, dev)) : '–'}</b><small>${meil ? libSem(meil.semaine) : ''}</small></div></div>
+        <div class="ptk"><div><small>Chiffre d’affaires réel</small><b>${esc(fmt(ca, dev))}</b></div><div><small>Produits livrés</small><b>${liv}</b><small>marge ${PCT(ben, ca)} %</small></div><div><small>Meilleure semaine</small><b>${meil ? esc(fmt(meil.benefice, dev)) : '–'}</b><small>${meil ? libSem(meil.semaine) : ''}</small></div></div>
         <div class="ptcard"><h3>Bénéfice net par semaine</h3>
-          ${sel ? `<div class="pttip"><b>${libSem(sel.semaine)}</b> : <span class="${sel.benefice < 0 ? 'n' : 'p'}">${esc(fmt(sel.benefice, dev))}</span><small>CA ${esc(fmt(sel.ca, dev))} − achats ${esc(fmt(sel.achat, dev))} − pub ${esc(fmt(sel.pub, dev))} − abonnements ${esc(fmt(sel.abonnements, dev))}</small><button class="lnk ptedit" data-ouv="${sel.semaine}">✏️ Modifier cette semaine</button></div>` : ''}
-          <svg viewBox="0 0 ${W} ${H}" class="ptchart" role="img" aria-label="Bénéfice net par semaine"><line x1="0" x2="${W}" y1="${y0}" y2="${y0}" stroke="#C9CEDB" stroke-width="1"/>${barres}</svg>
+          ${sel ? `<div class="pttip"><b>${libSem(sel.semaine)}</b> : <span class="${sel.benefice < 0 ? 'n' : 'p'}">${esc(fmt(sel.benefice, dev))}</span><small>CA ${esc(fmt(sel.ca, dev))}${sel.livres != null ? ' · ' + sel.livres + ' livrés' : ''} − achats ${esc(fmt(sel.achat, dev))} − pub ${esc(fmt(sel.pub, dev))} − abonnements ${esc(fmt(sel.abonnements, dev))}${sel.auto ? ' · 🗓️ calculée avec ' + sel.nbJours + ' jour' + (sel.nbJours > 1 ? 's' : '') : ''}</small><button class="lnk ptedit" data-ouv="${sel.semaine}">✏️ ${sel.auto ? 'Ajouter / modifier les abonnements' : 'Modifier cette semaine'}</button></div>` : ''}
+          ${barres(L, 'benefice', sel && sel.semaine, 'semaine')}
           <div class="ptax">${L.map(x => `<span>${isoJ2(x.semaine).getDate()}/${isoJ2(x.semaine).getMonth() + 1}</span>`).join('')}</div>
           <p class="sub" style="margin-top:6px">Touche une barre pour voir le détail de la semaine.</p></div>
         <div class="ptcard"><h3>De quoi dépend ton bénéfice</h3><p class="sub">Ce que devient ton chiffre d’affaires réel (${esc(fmt(ca, dev))})</p>
@@ -1279,66 +1340,24 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
           <div class="ptstack">${parts.filter(p => p[2] > 0).map(p => `<i style="width:${p[2] / totParts * 100}%;background:${COUL[p[0]]}" title="${esc(p[1])}"></i>`).join('')}</div>
           ${parts.map(p => `<div class="ptleg"><span><i style="background:${COUL[p[0]]}"></i>${esc(p[1])}</span><b>${esc(fmt(p[0] === 'benefice' ? ben : p[2], dev))}</b><em>${PCT(p[0] === 'benefice' ? ben : p[2], ca)} %</em></div>`).join('')}
           <p class="sub" style="margin-top:8px">${(() => { const c = parts.slice(1).sort((a, b) => b[2] - a[2])[0]; return c && c[2] ? `👉 Ta plus grosse dépense : <b>${esc(c[1].toLowerCase())}</b> (${PCT(c[2], ca)} % de ton chiffre d’affaires).` : ''; })()}</p></div>
-        <div class="pthist"><h3>Toutes mes semaines</h3>${tous.slice().reverse().map(x => `<button class="pth" data-ouv="${x.semaine}"><span>${libSem(x.semaine)} <em class="ptmod">✏️ Modifier</em><small>CA ${esc(fmt(x.ca, dev))} · marge ${PCT(x.benefice, x.ca)} %</small></span><b class="${x.benefice < 0 ? 'n' : 'p'}">${esc(fmt(x.benefice, dev))}</b></button>`).join('')}</div>`}
+        <div class="pthist"><h3>Toutes mes semaines</h3>${tous.slice().reverse().map(x => `<button class="pth" data-ouv="${x.semaine}"><span>${libSem(x.semaine)} <em class="ptmod">${x.auto ? '🗓️ auto' : '✏️ Modifier'}</em><small>CA ${esc(fmt(x.ca, dev))}${x.livres != null ? ' · ' + x.livres + ' livrés' : ''} · marge ${PCT(x.benefice, x.ca)} %</small></span><b class="${x.benefice < 0 ? 'n' : 'p'}">${esc(fmt(x.benefice, dev))}</b></button>`).join('')}</div>`}`}
         <button class="btn ghost" id="ptX" style="margin-top:12px">Fermer</button></div>`;
       ov.querySelector('#ptX').onclick = () => ov.remove();
       const ouvrirForm = w => { vue = 'form'; msg = ''; sem = w; aide = null; dess(); charger(); };
+      ov.querySelector('#pjFaire').onclick = () => ouvrirJour();
       ov.querySelector('#ptFaire').onclick = () => ouvrirForm(semaines[new Date().getDay() === 1 ? 1 : 0]);
       ov.querySelectorAll('[data-per]').forEach(b => b.onclick = () => { per = +b.dataset.per; choix = null; dess(); });
       ov.querySelectorAll('[data-b]').forEach(b => b.onclick = () => { choix = b.dataset.b; dess(); });
+      ov.querySelectorAll('[data-j]').forEach(b => b.onclick = () => { jchoix = b.dataset.j; dess(); });
+      ov.querySelectorAll('[data-oj]').forEach(b => b.onclick = () => ouvrirJour(b.dataset.oj));
       ov.querySelectorAll('.pthist [data-ouv], .ptedit[data-ouv]').forEach(b => b.onclick = () => ouvrirForm(b.dataset.ouv)); brancherRe();
     };
-    const dess = () => vue === 'dash' ? dessDash() : dessForm();
+    const dess = () => vue === 'dash' ? dessDash() : vue === 'jour' ? dessJour() : dessForm();
     ov.onclick = e => { if (e.target === ov) ov.remove(); };
     document.body.appendChild(ov); dess();
 
     charger();
   }
-  function nouvelleBoutique(ov, retour){
-    const pays = (BQS && BQS.paysListe) || [];
-    ov.innerHTML = `<div class="detail bqsheet" role="dialog" aria-modal="true" aria-label="Nouvelle boutique"><div class="grab"></div>
-      <h2>Nouvelle boutique</h2><p class="sub">Elle fonctionne exactement comme ta boutique principale : site, application, commandes, relances, TikTok, WhatsApp.</p>
-      ${BQS && BQS.abonne ? `<div class="help" style="margin:4px 0 10px"><b>1.</b> <a href="https://sheets.new" target="_blank" rel="noopener">Crée un Google Sheets vide</a> dans ton Google.<br><b>2.</b> Appuie sur « Partager » et ajoute <b>${esc(BQS.partage)}</b> en « Éditeur ».<br><b>3.</b> Colle son lien ici : tes données restent dans ton Google.</div>
-      <label class="lbl" for="nbFi">Lien du Google Sheets de cette boutique</label><input class="field" id="nbFi" placeholder="https://docs.google.com/spreadsheets/d/…">` : ''}
-      <label class="lbl" for="nbNom">Nom de la boutique</label><input class="field" id="nbNom" placeholder="Ex : ABROMARKET Togo">
-      <label class="lbl">Pays de vente (l'agence de ce pays recevra les commandes)</label>
-      <button type="button" class="cadran" id="nbPays" data-codes="">Choisir le ou les pays ▾</button>
-      <label class="lbl" for="nbAg">Email Google de l'agence <span style="font-weight:500;color:var(--soft)">— facultatif</span></label><input class="field" id="nbAg" type="email" placeholder="Laisse vide si tu n'as pas encore d'agence">
-      <p class="sub" style="margin:4px 0 0">Tu pourras l'ajouter, la changer ou la retirer plus tard : Mes boutiques → 🚚 Agences.</p>
-      <label class="lbl" for="nbWa">WhatsApp qui reçoit les commandes (avec l'indicatif)</label><input class="field" id="nbWa" inputmode="tel" placeholder="Ex : 22890000000 (vide = le même que ta boutique principale)">
-      <label class="lbl" for="nbMail">Email qui reçoit les commandes</label><input class="field" id="nbMail" type="email" placeholder="Vide = le même que ta boutique principale">
-      <label class="lbl" for="nbPre">Préfixe des numéros de commande</label><input class="field" id="nbPre" maxlength="6" placeholder="Ex : TG (commandes TG1001, TG1002…)">
-      <label class="confirm2"><input type="checkbox" id="nbCop" checked> Copier les produits, prix et avis de ma boutique principale</label>
-      <button class="btn blue" id="nbOk" style="margin-top:14px">Créer la boutique</button>
-      <button class="btn ghost" id="nbAnn" style="margin-top:10px">Annuler</button></div>`;
-    ov.querySelector('#nbAnn').onclick = () => retour();
-    const cp = ov.querySelector('#nbPays');
-    cp.onclick = async () => { const c = await choisirPays(pays, cp.dataset.codes ? cp.dataset.codes.split(',') : []); if (!c) return; cp.dataset.codes = c.join(','); cp.textContent = c.length ? nomsPaysBq(c.join(', ')) + ' ▾' : 'Choisir le ou les pays ▾'; cp.classList.toggle('plein', !!c.length); };
-    ov.querySelector('#nbOk').onclick = async e => {
-      const b = e.currentTarget, nom = ov.querySelector('#nbNom').value.trim();
-      const codes = (cp.dataset.codes || '').split(',').filter(Boolean);
-      if (nom.length < 2){ alert('Donne un nom à la boutique.'); return; }
-      if (!codes.length){ alert('Choisis au moins un pays de vente.'); return; }
-      b.disabled = true; b.textContent = 'Création en cours… (environ 30 secondes)';
-      try {
-        const r = await fetch(API, {method: 'POST', body: JSON.stringify({type: 'boutiques', action: 'creer', key, v: VID, fichier: (ov.querySelector('#nbFi') || {}).value || '', nom, pays: codes.join(','), agence: ov.querySelector('#nbAg').value.trim(),
-          whatsapp: ov.querySelector('#nbWa').value.trim(), email: ov.querySelector('#nbMail').value.trim(), prefixe: ov.querySelector('#nbPre').value.trim(), copier: ov.querySelector('#nbCop').checked})});
-        const j = await r.json(); if (!j.ok) throw new Error(frErr(j.erreur) || 'Erreur');
-        BQS = null; try { localStorage.removeItem(K_BQS); } catch(x){}
-        ov.innerHTML = `<div class="detail bqsheet"><div class="grab"></div><h2>✅ Boutique créée</h2>
-          <p class="sub"><b>${esc(j.nom)}</b> est prête. Son site sera en ligne dans 10 minutes environ.</p>
-          <div class="linkbox">${esc(siteDe(j.code))}</div>
-          <div class="addrow"><button id="nbCp">🔗 Copier le lien du site</button><a href="${esc(j.sheetUrl)}" target="_blank" rel="noopener">📄 Ouvrir son Google Sheets</a></div>
-          <button class="btn blue" id="nbGo" style="margin-top:14px">Ouvrir cette boutique dans l'application</button>
-          <button class="btn ghost" id="nbF" style="margin-top:10px">Fermer</button></div>`;
-        ov.querySelector('#nbCp').onclick = async ev => { try { await navigator.clipboard.writeText(siteDe(j.code)); ev.target.textContent = '✓ Copié'; } catch(x){ prompt('Lien du site :', siteDe(j.code)); } };
-        ov.querySelector('#nbGo').onclick = () => ouvrirBoutique(j.code);
-        ov.querySelector('#nbF').onclick = () => ov.remove();
-      } catch(err){ b.disabled = false; b.textContent = 'Créer la boutique'; alert('Création impossible : ' + err.message); }
-    };
-  }
-
-  /* ---------- Échanges avec le Google Sheets ---------- */
   async function call(body){
     // Lecture : si Google répond mal (page d'erreur, réseau coupé), on réessaie tout seul 2 fois
     let j, n = body && body.action ? 1 : 3;
@@ -1614,7 +1633,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
           <div class="tile yes"><small>Livrées</small><b>${c.livrees}</b></div>
           <div class="tile"><small>Taux de livraison</small><b>${c.commandes ? Math.round(c.livrees / c.commandes * 100) : 0} %</b></div>
         </div>
-        <button class="ptile" id="ptOpen"><span>💰</span><div><b>Point de la semaine</b><small>Ton bénéfice net, boutique par boutique</small></div><i>›</i></button>
+        <button class="ptile" id="ptOpen"><span>💰</span><div><b>Point du jour et de la semaine</b><small>Tes revenus réels : chiffre d’affaires, livrés, pub, bénéfice net</small></div><i>›</i></button>
         <div class="block"><h3>Chiffre d'affaires</h3><div class="money">
           <div><span>Commandé (brut)</span><span>${esc(fmt(ca, dev))}</span></div>
           <div><span>Livré (encaissé)</span><span>${esc(fmt(c.caLivre[dev] || 0, dev))}</span></div>
