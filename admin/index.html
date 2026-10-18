@@ -1985,7 +1985,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
         try { S.set('adm_dash_' + periode, JSON.stringify(D)); } catch(x){}
         toast(j.recule ? '🗑 Commande supprimée · la prochaine reprendra le n°' + o.numero : '🗑 Commande supprimée');
         close(); refresh();
-      } catch(err){ b.disabled = false; b.textContent = '🗑 Supprimer cette commande (test, erreur…)'; alert('Suppression impossible : ' + (/inconnu|introuvable/i.test(err.message) && !/commande/i.test(err.message) ? 'mets à jour le code Apps Script (Code.gs).' : err.message)); }
+      } catch(err){ b.disabled = false; b.textContent = '🗑 Supprimer cette commande (test, erreur…)'; alert('Suppression impossible : ' + (/inconnu|introuvable|^Erreur/i.test(err.message) && !/commande/i.test(err.message) ? 'ton serveur n’a pas encore la mise à jour. Colle le dernier Code.gs dans Apps Script puis « Nouvelle version ». Rien n’a été modifié.' : err.message)); }
     };
     ov.querySelector('#save').onclick = async e => {
       const b = e.target, st = ov.querySelector('#st').value; b.textContent = 'Enregistrement…'; b.disabled = true;
