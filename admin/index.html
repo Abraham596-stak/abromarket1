@@ -1217,7 +1217,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
       const m = {};
       (J || []).forEach(j => { const w = isoJ(lundi(isoJ2(j.date))); const x = m[w] = m[w] || {semaine: w, ca: 0, pub: 0, achat: 0, abonnements: 0, livres: 0, nbJours: 0, auto: true};
         x.ca += j.ca; x.pub += j.pub; x.achat += j.achat; x.livres += j.livres; x.abonnements += j.abonnements || 0; x.nbJours++; });
-      (P || []).forEach(p => { if (m[p.semaine]) { if (!m[p.semaine].abonnements) m[p.semaine].abonnements = p.abonnements || 0; } else m[p.semaine] = Object.assign({livres: null, auto: false}, p); });
+      (P || []).filter(p => /^\d{4}-\d{2}-\d{2}$/.test(p.semaine)).forEach(p => { if (m[p.semaine]) { if (!m[p.semaine].abonnements) m[p.semaine].abonnements = p.abonnements || 0; } else m[p.semaine] = Object.assign({livres: null, auto: false}, p); });
       return Object.values(m).map(x => Object.assign(x, {benefice: x.ca - x.pub - x.achat - (x.abonnements || 0)})).sort((a, b) => a.semaine < b.semaine ? -1 : 1);
     };
 
