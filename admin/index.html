@@ -2235,7 +2235,7 @@ html.ordi .pmsheet{max-width:420px}
     if (o.produit){
       const P = o.produit;
       P.photos = (await Promise.all((P.photos || []).map(resoudre))).filter(Boolean);
-      if (/^\s*</.test(String(P.description || ''))){
+      if (/<(p|img|h[1-6]|br|ul|ol|li|div|table|b|strong|em|i|u|a|span|blockquote|figure)\b[^>]*>/i.test(String(P.description || ''))){
         let h = String(P.description); const toks = [...new Set(h.match(/upload:[a-z0-9]+/g) || [])];
         for (const t of toks) h = h.split(t).join(await resoudre(t) || '');
         P.description = h;
@@ -2248,7 +2248,7 @@ html.ordi .pmsheet{max-width:420px}
     if (!PR) return;
     PR.produits.forEach(p => {
       p.photos = p.photos.map(u => u === de ? vers : u).filter(Boolean);
-      p.description = /^\s*</.test(String(p.description || '')) ? String(p.description).split(de).join(vers) : String(p.description || '').split('\n').map(l => l === de ? vers : l).filter(Boolean).join('\n');
+      p.description = /<(p|img|h[1-6]|br|ul|ol|li|div|table|b|strong|em|i|u|a|span|blockquote|figure)\b[^>]*>/i.test(String(p.description || '')) ? String(p.description).split(de).join(vers) : String(p.description || '').split('\n').map(l => l === de ? vers : l).filter(Boolean).join('\n');
       (p.avis || []).forEach(a => ['photo', 'avatar', 'audio', 'video'].forEach(c => { if (a[c] === de) a[c] = vers; }));
     });
     memoPR();
@@ -2534,7 +2534,7 @@ html.ordi .pmsheet{max-width:420px}
     const neuf = !src;
     const P = JSON.parse(JSON.stringify(src || { id: '', enLigne: false, nom: '', accroche: '', photos: [], description: '', avantages: '', boite: '', stock: '', faq: '', prix: [], avis: [] }));
     // Description mise en forme (comme Shopify) : ancien format converti automatiquement
-    let descHtml = /^\s*</.test(String(P.description || '')) ? String(P.description) : String(P.description || '').split(/\n/).map(l => l.trim()).filter(Boolean).map(l =>
+    let descHtml = /<(p|img|h[1-6]|br|ul|ol|li|div|table|b|strong|em|i|u|a|span|blockquote|figure)\b[^>]*>/i.test(String(P.description || '')) ? String(P.description) : String(P.description || '').split(/\n/).map(l => l.trim()).filter(Boolean).map(l =>
       /^(https?:\/\/\S+|upload:\S+)$/.test(l) ? `<p><img src="${esc(l)}"></p>` : /^##\s*/.test(l) ? `<h3>${esc(l.replace(/^##\s*/, ''))}</h3>` : `<p>${esc(l).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')}</p>`).join('');
     let faq = String(P.faq || '').split(/\n/).map(l => l.split('>>')).filter(x => x[0].trim()).map(x => ({q: x[0].trim(), r: x.slice(1).join('>>').trim()}));
     const paysTous = PR.pays.filter(p => p.actif || P.prix.some(x => x.pays.toLowerCase() === p.nom.toLowerCase()));

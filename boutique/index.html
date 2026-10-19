@@ -382,7 +382,7 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
     const d = document.createElement('div'); d.appendChild(t.content); return d.innerHTML;
   }
   function rich(t){
-    if (/^\s*</.test(String(t || ''))) return richHtml(t);
+    if (/<(p|img|h[1-6]|br|ul|ol|li|div|table|b|strong|em|i|u|a|span|blockquote|figure)\b[^>]*>/i.test(String(t || ''))) return richHtml(t);
     return String(t || '').split(/\r?\n|\s*\|\s*/).map(l => l.trim()).filter(Boolean).map(l => {
       if (isUrl(l)) return `<img src="${esc(img(l))}" alt="" decoding="async">`;
       if (/^##\s*/.test(l)) return `<h3>${esc(l.replace(/^##\s*/, ''))}</h3>`;
