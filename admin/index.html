@@ -772,6 +772,20 @@ html.ordi .pmsheet{max-width:420px}
   const lienSite = qs => siteDe(BQ, qs);
   const fichierData = () => VENDOO ? 'data/v-' + vId() + (BQ ? '-' + BQ : '') + '.json' : (BQ ? 'data/' + BQ + '.json' : 'data.json');
   const lienProduit = id => lienSite('p=' + encodeURIComponent(id));
+const BAL_HTML = /<(p|img|h[1-6]|br|ul|ol|li|div|table|b|strong|em|i|u|a|span|blockquote|figure)\b[^>]*>/i;
+// Description dont le HTML a été transformé en texte (&lt;p&gt;…) : on retrouve les vraies balises
+function decoderHtml(t){
+  t = String(t || '');
+  for (let k = 0; k < 3 && /&lt;\/?(p|img|h[1-6]|br|ul|ol|li|div|table|b|strong|em|i|u|a|span|blockquote|figure)\b/i.test(t); k++){ const x = document.createElement('textarea'); x.innerHTML = t; t = x.value; }
+  return t;
+}
+// Retire tout ce qui pourrait s'exécuter (scripts, on…=) d'un HTML collé
+function nettoyerHtml(h){
+  const t = document.createElement('template'); t.innerHTML = String(h || '');
+  t.content.querySelectorAll('script,style,iframe,object,embed,link,meta,form,input,button,textarea,select').forEach(e => e.remove());
+  t.content.querySelectorAll('*').forEach(e => [...e.attributes].forEach(a => { if (/^on/i.test(a.name) || /^\s*javascript:/i.test(a.value)) e.removeAttribute(a.name); }));
+  return t.innerHTML;
+}
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
   /* ---------- Tout en français : erreurs réseau, réponses du serveur Google ---------- */
@@ -1205,7 +1219,7 @@ html.ordi .pmsheet{max-width:420px}
     const appel = async o => { const r = await fetch(API, {method: 'POST', body: JSON.stringify(Object.assign({type: 'boutiques', key, v: VID, code}, o))}); const j = await r.json(); if (!j.ok) throw new Error(frErr(j.erreur) || 'Erreur'); L = j.pays; return j; };
     const dess = msg => {
       ov.innerHTML = `<div class="detail bqsheet" role="dialog" aria-modal="true" aria-label="Agences"><div class="grab"></div>
-        <h2>🚚 Agences – ${esc(nom)}</h2><p class="sub">Facultatif. Tu peux mettre <b>une ou plusieurs agences par pays</b> (ex. l’agence et son collaborateur) : elles reçoivent toutes les commandes de ce pays dans le même fichier. Une agence retirée perd l’accès à toutes les commandes.</p>
+        <h2>🚚 Agences – ${esc(nom)}</h2><p class="sub">Facultatif. Tu peux mettre <b>une ou plusieurs agences par pays</b> (ex. l’agence et son collaborateur) : elles reçoivent toutes les commandes de ce pays dans le même fichier. Une agence retirée perd l’accès à toutes les commandes.</p><p class="sub">🔔 <b>Rien à installer pour elles :</b> chaque agence reçoit un e-mail pour <b>chaque nouvelle commande</b> et <b>chaque client à relancer</b> (notification de l’appli Gmail, même téléphone verrouillé, iPhone compris). Les relances sont aussi dans l’onglet « Abandons » de leur fichier, juste après « Commandes ». Elles n’ont accès qu’à ce fichier, jamais à ton Google Sheets.</p>
         ${msg ? `<div class="okmsg">${msg}</div>` : ''}
         ${!L ? '<div class="empty">Chargement…</div>' : !L.length ? '<div class="empty">Aucun pays actif dans cette boutique.</div>' : L.map(p => { const A = p.agences || (p.agence ? p.agence.split(/\s*,\s*/) : []); return `<div class="bqrow agbloc" style="grid-template-columns:1fr">
           <div class="bqi"><b>${esc(p.nom)}</b><small>${A.length ? A.length + ' agence' + (A.length > 1 ? 's' : '') + ' reçoi' + (A.length > 1 ? 'vent' : 't') + ' les commandes' : 'Pas d’agence (tu livres toi-même)'}${p.fichier ? ` · <a href="${esc(p.fichier)}" target="_blank" rel="noopener">📄 Fichier des commandes</a>` : ''}</small></div>
@@ -2536,6 +2550,7 @@ html.ordi .pmsheet{max-width:420px}
     // Description mise en forme (comme Shopify) : ancien format converti automatiquement
     let descHtml = /<(p|img|h[1-6]|br|ul|ol|li|div|table|b|strong|em|i|u|a|span|blockquote|figure)\b[^>]*>/i.test(String(P.description || '')) ? String(P.description) : String(P.description || '').split(/\n/).map(l => l.trim()).filter(Boolean).map(l =>
       /^(https?:\/\/\S+|upload:\S+)$/.test(l) ? `<p><img src="${esc(l)}"></p>` : /^##\s*/.test(l) ? `<h3>${esc(l.replace(/^##\s*/, ''))}</h3>` : `<p>${esc(l).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')}</p>`).join('');
+    descHtml = nettoyerHtml(decoderHtml(descHtml));
     let faq = String(P.faq || '').split(/\n/).map(l => l.split('>>')).filter(x => x[0].trim()).map(x => ({q: x[0].trim(), r: x.slice(1).join('>>').trim()}));
     const paysTous = PR.pays.filter(p => p.actif || P.prix.some(x => x.pays.toLowerCase() === p.nom.toLowerCase()));
     const prixDe = nom => P.prix.find(x => x.pays.toLowerCase() === nom.toLowerCase());
@@ -2723,7 +2738,7 @@ html.ordi .pmsheet{max-width:420px}
       c.querySelectorAll('img').forEach(i => { const u = i.dataset.src || i.getAttribute('src') || ''; const w = i.style.width; [...i.attributes].forEach(a => i.removeAttribute(a.name)); if (/^data:/.test(u)) { i.remove(); return; } i.setAttribute('src', u); if (w) i.style.width = w; });
       c.querySelectorAll('.vid').forEach(v => { const u = v.dataset.v; [...v.attributes].forEach(a => v.removeAttribute(a.name)); v.className = 'vid'; v.dataset.v = u; v.textContent = '▶'; });
       c.querySelectorAll('[contenteditable],[spellcheck]').forEach(e => { e.removeAttribute('contenteditable'); e.removeAttribute('spellcheck'); });
-      return c.innerHTML.replace(/\n/g, ' ').replace(/<p><br><\/p>/g, '').trim();
+      return nettoyerHtml(decoderHtml(c.innerHTML.replace(/\n/g, ' ').replace(/<p><br><\/p>/g, '').trim()));
     }
     const descVide = h => !String(h || '').replace(/<(?!img|table|div class="vid")[^>]*>/g, '').replace(/&nbsp;|\s/g, '');
     function lierDesc(){
@@ -2732,6 +2747,12 @@ html.ordi .pmsheet{max-width:420px}
       const garder = () => { const s = getSelection(); if (s.rangeCount && z.contains(s.anchorNode)) plage = s.getRangeAt(0).cloneRange(); };
       const remettre = () => { z.focus(); if (plage){ const s = getSelection(); s.removeAllRanges(); s.addRange(plage); } };
       z.addEventListener('keyup', garder); z.addEventListener('mouseup', garder); z.addEventListener('input', () => { sale = true; garder(); });
+      // Code HTML collé comme du texte (<p>, <img src=…>) : on l'insère mis en forme, pas comme des caractères
+      z.addEventListener('paste', e => {
+        const t = (e.clipboardData && e.clipboardData.getData('text/plain')) || '';
+        if (!BAL_HTML.test(t) && !/&lt;(p|img|h[1-6]|div|br)\b/i.test(t)) return;
+        e.preventDefault(); document.execCommand('insertHTML', false, nettoyerHtml(decoderHtml(t))); sale = true; garder();
+      });
       ed._garder = garder;
       if (!ed._sel){ ed._sel = true; document.addEventListener('selectionchange', () => { if (ed.isConnected && ed._garder) ed._garder(); }); }
       const imgBar = ed.querySelector('#rteImgBar'), tabBar = ed.querySelector('#rteTabBar');

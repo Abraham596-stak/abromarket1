@@ -85,6 +85,54 @@ header{display:flex;align-items:center;justify-content:center;gap:10px;padding:1
 .pricetag .old{text-decoration:line-through;color:#6B5A1E;font-size:15px;margin-top:4px}
 .pricetag .off{background:var(--ink);color:#fff;font-weight:700;border-radius:999px;padding:6px 12px;font-size:15px;white-space:nowrap}
 .stock{margin:12px 18px 0;font-size:15px;color:var(--err);font-weight:600}
+.stk{margin:12px 18px 0;background:#FFF6EA;border:1.5px solid #FFB547;border-radius:16px;padding:12px 14px;transition:background .3s,border-color .3s}
+.stk .sl{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:15px;font-weight:700;color:#A33F00}
+.stk .st{background:#FF7A00;color:#fff;border-radius:999px;padding:3px 10px;font-size:12.5px;font-weight:800;letter-spacing:.02em;white-space:nowrap}
+.stk .sn b{font:800 21px "Bricolage Grotesque",sans-serif;color:#D32F2F}
+.stk .bar{height:9px;background:#FFE3BF;border-radius:999px;margin-top:9px;overflow:hidden}
+.stk .bar i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#FF9800,#E53935);transition:width .7s cubic-bezier(.2,.8,.2,1)}
+.stk small{display:block;margin-top:7px;color:#8A4B12;font-size:12.5px}
+.stk.last{background:#FFEBEE;border-color:#E53935;animation:stkp 1.2s ease-in-out infinite}
+.stk.last .st{background:#D32F2F}
+.stk.last .sn{color:#B71C1C}
+@keyframes stkp{0%,100%{box-shadow:0 0 0 0 rgba(229,57,53,.45)}50%{box-shadow:0 0 0 7px rgba(229,57,53,0)}}
+.urg{position:fixed;left:50%;top:12px;z-index:60;width:min(440px,calc(100vw - 20px));transform:translate(-50%,-140%);transition:transform .45s cubic-bezier(.2,1.3,.4,1);display:flex;align-items:center;gap:10px;background:linear-gradient(120deg,#D50000,#FF6D00);color:#fff;border-radius:18px;padding:12px 12px 12px 14px;box-shadow:0 14px 40px rgba(213,0,0,.38)}
+.urg.on{transform:translate(-50%,0);animation:urgs .5s .45s 2}
+@keyframes urgs{0%,100%{margin-left:0}25%{margin-left:-6px}75%{margin-left:6px}}
+.urg .ui{font-size:28px;line-height:1}
+.urg .ut{flex:1;min-width:0;line-height:1.3}
+.urg .ut b{display:block;font-size:15.5px;font-weight:800}
+.urg .ut span{font-size:13px;opacity:.95}
+.urg .ub{background:#fff;color:#C62828;font-weight:800;font-size:14px;border-radius:999px;padding:9px 13px;text-decoration:none;white-space:nowrap}
+.urg .ux{background:none;border:0;color:#fff;font-size:22px;line-height:1;cursor:pointer;padding:0 2px;opacity:.85}
+.valider{display:flex;gap:10px;align-items:flex-start;background:#FFF8E1;border:1.5px dashed #F9A825;border-radius:14px;padding:11px 13px;margin:14px 0 10px;font-size:14px;line-height:1.4;color:#5D4300}
+.valider[hidden]{display:none}
+.valider .vi{font-size:20px;line-height:1;animation:vib 2s ease-in-out infinite}
+@keyframes vib{0%,100%{transform:rotate(0)}10%{transform:rotate(-14deg)}20%{transform:rotate(14deg)}30%{transform:rotate(0)}}
+.retour{margin:12px 18px 0;background:linear-gradient(120deg,#0B6E4F,#128C4A);color:#fff;border-radius:16px;padding:13px 15px;display:flex;flex-direction:column;gap:3px;font-size:14px;line-height:1.35}
+.retour b{font-size:15.5px}
+.retour a{color:#fff;font-weight:800;margin-top:5px;text-decoration:underline}
+.sticky .nv{display:none}
+.sticky.brou{flex-wrap:wrap;row-gap:6px}
+.sticky.brou .nv{display:block;flex:0 0 100%;text-align:center;font-size:13px;font-weight:700;color:#8A5A00;background:#FFF3CD;border-radius:9px;padding:5px 8px}
+body.has-sticky:has(.sticky.brou){padding-bottom:116px}
+.nbz{border-top:0;padding-top:8px}
+.nbc{position:relative;border-radius:22px;padding:22px 18px 18px;background:linear-gradient(160deg,#141A2E 0%,#1F2A4D 100%);color:#fff;overflow:hidden;box-shadow:0 18px 44px rgba(20,26,46,.28)}
+.nbc::before{content:"";position:absolute;right:-60px;top:-60px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(255,201,60,.35),transparent 70%)}
+.nbh{display:flex;align-items:center;gap:12px;margin-bottom:16px;position:relative}
+.nbt{background:var(--sun);color:var(--ink);font:800 20px "Bricolage Grotesque",sans-serif;border-radius:12px;padding:6px 12px;letter-spacing:.04em}
+.nbh h2{font-size:22px;font-weight:800;margin:0;color:#fff}
+.nbi{display:flex;gap:12px;align-items:flex-start;padding:13px 0;border-top:1px solid rgba(255,255,255,.12);position:relative}
+.nbe{flex:0 0 42px;height:42px;border-radius:12px;background:rgba(255,255,255,.1);display:grid;place-items:center;font-size:21px}
+.nbi b{font-size:16.5px;font-weight:800;line-height:1.3;display:block}
+.nbi p{color:rgba(255,255,255,.82);font-size:15px;line-height:1.5;margin-top:4px}
+.nbi p b{display:inline;font-size:inherit;color:#fff}
+.nbi .nbnum{color:var(--sun)!important;white-space:nowrap}
+.nbwa{display:inline-flex;align-items:center;gap:8px;margin-top:10px;background:#25D366;color:#fff;font-weight:800;font-size:15px;border-radius:999px;padding:10px 16px;text-decoration:none;box-shadow:0 6px 18px rgba(37,211,102,.35)}
+.nbw{margin-top:6px;background:rgba(255,201,60,.13);border:1.5px solid rgba(255,201,60,.55);border-radius:14px;padding:13px 14px;position:relative}
+.nbw b{display:block;font-size:15.5px;line-height:1.4;color:#FFE08A}
+.nbw span{display:block;margin-top:6px;font-weight:700;font-size:14.5px;color:#fff}
+@media (min-width:1000px){.nbc{padding:30px 34px 26px}.nbh h2{font-size:26px}.nbi b{font-size:17.5px}}
 .unavail{margin:16px 18px;background:var(--surface);border-radius:14px;padding:16px;font-weight:600}
 section{padding:26px 18px;border-top:1px solid var(--line)}
 section h2{font-size:23px;font-weight:800;margin-bottom:14px}
@@ -247,7 +295,7 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
   .thumbs img{width:100%;height:100%;object-fit:contain;background:#fff}
   .intro{padding:0}
   .intro h1{font-size:36px}
-  .pricetag,.stock,.unavail{margin-left:0;margin-right:0}
+  .pricetag,.stock,.stk,.retour,.unavail{margin-left:0;margin-right:0}
   #commande{border-radius:22px;margin-top:22px;padding:26px 24px}
   .pbelow{max-width:860px;margin:0 auto;padding:10px 32px 0}
   .pbelow section{padding:36px 0}
@@ -381,7 +429,15 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
     net(t.content);
     const d = document.createElement('div'); d.appendChild(t.content); return d.innerHTML;
   }
+  const BAL = /<(p|img|h[1-6]|br|ul|ol|li|div|table|b|strong|em|i|u|a|span|blockquote|figure)\b[^>]*>/i;
+  function decoder(t){
+    t = String(t || '');
+    if (!/&lt;\/?(p|img|h[1-6]|br|ul|ol|li|div|table|b|strong|em|i|u|a|span|blockquote|figure)\b/i.test(t)) return t;
+    for (let k = 0; k < 3 && /&lt;\/?[a-z]/i.test(t); k++){ const x = document.createElement('textarea'); x.innerHTML = t; t = x.value; }
+    return t;
+  }
   function rich(t){
+    t = decoder(t);
     if (/<(p|img|h[1-6]|br|ul|ol|li|div|table|b|strong|em|i|u|a|span|blockquote|figure)\b[^>]*>/i.test(String(t || ''))) return richHtml(t);
     return String(t || '').split(/\r?\n|\s*\|\s*/).map(l => l.trim()).filter(Boolean).map(l => {
       if (isUrl(l)) return `<img src="${esc(img(l))}" alt="" decoding="async">`;
@@ -443,7 +499,20 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
       const t = R(`Garantie ${i} – titre`); if (!t) continue;
       h += `<div><div class="e">${esc(R(`Garantie ${i} – emoji`))}</div><b>${esc(t)}</b><small>${esc(R(`Garantie ${i} – texte`))}</small></div>`;
     }
-    return h ? `<section><h2>Nos garanties</h2><div class="trust">${h}</div></section>` : '';
+    return (h ? `<section><h2>Nos garanties</h2><div class="trust">${h}</div></section>` : '') + nb();
+  }
+  // Note importante (boutiques ABROMARKET) : jours de livraison, contact WhatsApp, conditions pour l'intérieur du pays
+  const WA_NB = '2290150420757';
+  function nb(){
+    if (VID) return '';
+    return `<section class="nbz" aria-label="Note importante"><div class="nbc">
+      <div class="nbh"><span class="nbt">NB</span><h2>À lire avant de commander</h2></div>
+      <div class="nbi"><span class="nbe">📅</span><div><b>Nous livrons du lundi au samedi.</b><p>Mais nous recevons vos commandes <b>tous les jours, du lundi au dimanche</b>.</p></div></div>
+      <div class="nbi"><span class="nbe">💬</span><div><b>Une question ? Écrivez-nous sur WhatsApp.</b><p>Nous répondons à vos messages au <b class="nbnum">+229 01 50 42 07 57</b>. Laissez-nous simplement un message WhatsApp, nous vous répondons.</p>
+        <a class="nbwa" href="https://wa.me/${WA_NB}?text=${encodeURIComponent('Bonjour, j\'ai une question sur un produit.')}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.3-.5.1-1 .1-1.7-.1-.4-.1-.9-.3-1.5-.6-2.7-1.2-4.4-3.9-4.6-4.1-.1-.2-1.1-1.4-1.1-2.7s.7-1.9.9-2.2c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.1.1.3 0 .5l-.3.5-.4.4c-.1.1-.3.3-.1.6.2.3.7 1.2 1.6 1.9 1.1.9 2 1.2 2.3 1.4.3.1.5.1.6-.1l.9-1c.2-.3.4-.2.6-.1l1.9.9c.3.1.5.2.5.3.1.1.1.6-.1 1.2Z"/></svg>Écrire sur WhatsApp</a></div></div>
+      <div class="nbi"><span class="nbe">🚚</span><div><b>La livraison est gratuite pour tout le monde.</b><p>Pour les clients de <b>l'intérieur du pays</b> (hors grandes villes), les <b>frais de paiement et les frais d'expédition</b>, précisés lors de notre appel, sont à <b>payer à l'avance</b>.</p></div></div>
+      <div class="nbw"><b>⚠️ Si vous ne nous faites pas confiance pour envoyer ces frais, merci de ne pas nous contacter : il n'y a pas d'autre moyen.</b><span>Merci pour votre compréhension 🙏</span></div>
+    </div></section>`;
   }
   function bindCountry(){ const s = $('cSel'); if (s) s.onchange = () => { touched = true; setCountry(s.value); }; }
 
@@ -473,6 +542,42 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
     bindCountry();
   }
 
+  /* ---------- Stock en direct : 3 → 2 → 1 (une pièce de moins à chaque vente affichée), retour à 3 chaque minute ---------- */
+  const STK = {n: 3, dec: Date.now() - 3000, reset: Date.now(), alerte: 0, on: false};
+  function stkPeindre(){
+    const el = $('stk'); if (!el) return;
+    const n = STK.n;
+    $('stkBar').style.width = (n / 3 * 100) + '%';
+    el.classList.toggle('last', n === 1);
+    $('stkTxt').innerHTML = n === 1 ? '<b>DERNIÈRE PIÈCE</b> disponible !' : 'Plus que <b id="stkN">' + n + '</b> en stock';
+    const sub = $('stkSub'); if (sub){ sub.dataset.d = sub.dataset.d || sub.textContent; sub.textContent = n === 1 ? 'Après celle-ci, il faudra attendre le prochain arrivage.' : sub.dataset.d; }
+  }
+  function stkMoins(){
+    if (!$('stk')) return;
+    STK.dec = Date.now();
+    if (STK.n > 1){ STK.n--; stkPeindre(); if (STK.n === 1) stkUrgence(); }
+  }
+  function stkUrgence(){
+    if (!$('stk') || Date.now() - STK.alerte < 50000) return;
+    const ae = document.activeElement; if (ae && /INPUT|TEXTAREA|SELECT/.test(ae.tagName)) return;   // jamais pendant la saisie
+    STK.alerte = Date.now();
+    let u = document.querySelector('.urg'); if (!u){ u = document.createElement('div'); u.className = 'urg'; u.setAttribute('role', 'alert'); document.body.appendChild(u); }
+    u.innerHTML = `<div class="ui">🚨</div><div class="ut"><b>Plus qu'UNE seule pièce en stock !</b><span>Commandez maintenant ou vous risquez de le regretter.</span></div><a href="#commande" class="ub">Je la prends</a><button type="button" class="ux" aria-label="Fermer">×</button>`;
+    u.querySelector('.ux').onclick = () => u.classList.remove('on');
+    u.querySelector('.ub').onclick = () => u.classList.remove('on');
+    requestAnimationFrame(() => u.classList.add('on'));
+    clearTimeout(STK.tu); STK.tu = setTimeout(() => u.classList.remove('on'), 7000);
+  }
+  function stkDemarrer(){
+    if (STK.on) return; STK.on = true;
+    setInterval(() => {
+      if (!$('stk')) return;
+      const t = Date.now();
+      if (t - STK.reset >= 60000){ STK.reset = t; STK.dec = t; STK.n = 3; stkPeindre(); return; }
+      if (t - STK.dec >= 8600) stkMoins();   // si aucune notification de vente n'a été affichée
+    }, 1000);
+  }
+
   /* ---------- Page produit ---------- */
   function renderProduct(P){
     document.body.className = 'prod has-sticky';
@@ -489,7 +594,7 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
     if (px){
       const off = o1.ancien > o1.prix ? Math.round((1 - o1.prix/o1.ancien)*100) : 0;
       priceBlock = `<div class="pricetag"><div><div class="now">${money(o1.prix, dev)}</div>${off?`<div class="old">${money(o1.ancien, dev)}</div>`:''}</div>${off?`<div class="off">−${off} %</div>`:''}</div>
-        ${P.stock ? `<p class="stock">⚠️ Stock très limité</p>` : ''}`;
+        <div class="stk" id="stk" aria-live="polite"><div class="sl"><span class="st">🔥 Forte demande</span><span class="sn"><span id="stkTxt">Plus que <b id="stkN">${STK.n}</b> en stock</span></span></div><div class="bar"><i id="stkBar" style="width:${STK.n / 3 * 100}%"></i></div><small id="stkSub">Stock très limité : ${esc(P.nom.length > 40 ? P.nom.slice(0, 38).trim() + '…' : P.nom)} part très vite.</small></div>`;
       const promo = Number(px.promoJour) || 0;
       form = `<section id="commande"><h2>Passer ma commande</h2><p class="sub">Remplissez ce formulaire, ça prend moins d'une minute.</p>
         <form id="form" novalidate>
@@ -527,6 +632,7 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
             <div class="row"><span>Livraison</span><span id="tDay"></span></div>
             <div class="row" id="tPromoRow"><span>Promo livraison du jour</span><span id="tPromo"></span></div>
             <div class="row total"><span>À payer à la livraison</span><span id="tTotal"></span></div></div>
+          <div class="valider" id="valider" hidden><span class="vi">⏳</span><div><b>Votre commande n'est pas encore validée.</b> Appuyez sur « Je commande maintenant » pour la confirmer, sinon elle ne sera pas enregistrée.</div></div>
           <button type="submit" class="cta attn" id="sendBtn">Je commande maintenant</button>
           <p class="reassure">Aucun paiement en ligne. Vous payez au livreur.</p>
           <div class="senderr" id="sendErr"></div>
@@ -557,7 +663,7 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
       ${trust()}
       </div>
       <footer><a href="${ACCUEIL}">← Voir tous nos produits</a><br>© ${new Date().getFullYear()} ${esc(R('Nom de la boutique'))}</footer></div>
-      ${px ? `<div class="sticky" id="sticky"><div class="sp">${money(o1.prix, dev)}</div><a href="#commande" class="cta attn">Je commande</a></div>` : ''}`;
+      ${px ? `<div class="sticky" id="sticky"><div class="nv" id="nv">⏳ N'oubliez pas de valider votre commande</div><div class="sp">${money(o1.prix, dev)}</div><a href="#commande" class="cta attn" id="stCta">Je commande</a></div>` : ''}`;
 
     bindCountry();
     slider($('slides'), $('dots'), false);
@@ -567,7 +673,7 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
       sl.addEventListener('scroll', () => { const i = Math.round(sl.scrollLeft / (sl.children[0].getBoundingClientRect().width || 1)); [...th.children].forEach((b, k) => b.classList.toggle('on', k === i)); }, {passive: true});
     }
     slider($('revs'), $('rdots'), true);
-    if (px) bindForm(P, pays, px);
+    if (px){ bindForm(P, pays, px); stkPeindre(); stkDemarrer(); }
   }
 
   function slider(el, dots, auto){
@@ -636,8 +742,32 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
     const abNow = () => { clearTimeout(abTimer); abSend(true); };
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') abNow(); });
     window.addEventListener('pagehide', abNow);
-    form.__markOrdered = () => { ordered = true; clearTimeout(abTimer); };
-    form.__unmarkOrdered = () => { ordered = false; abSent = ''; };
+    form.__markOrdered = () => { ordered = true; clearTimeout(abTimer); brouillon(false); rappel(); };
+    form.__unmarkOrdered = () => { ordered = false; abSent = ''; rappel(); };
+    /* Rappel « validez votre commande » : dès que le client a commencé à remplir, et brouillon gardé sur son téléphone */
+    const K_BR = 'brouillon_' + (BQ || '') + '_' + P.id;
+    const commence = () => ($('nom').value.trim().length >= 2 || $('tel').value.replace(/\D/g,'').length >= 6 || $('adr').value.trim().length >= 3);
+    const rappel = () => {
+      const on = !ordered && !dejaPour(P.id) && commence();
+      const v = $('valider'); if (v) v.hidden = !on;
+      const st = $('sticky'); if (st) st.classList.toggle('brou', on);
+      const c = $('stCta'); if (c) c.textContent = on ? 'Valider ma commande' : 'Je commande';
+    };
+    function brouillon(garder){ try { if (garder && commence() && !ordered) localStorage.setItem(K_BR, JSON.stringify({t: Date.now(), f: saveForm()})); else if (!garder) localStorage.removeItem(K_BR); } catch(x){} }
+    form.addEventListener('input', () => { rappel(); brouillon(true); });
+    form.addEventListener('change', () => { rappel(); brouillon(true); });
+    if (!dejaPour(P.id)){
+      try {
+        const b = JSON.parse(localStorage.getItem(K_BR) || 'null');
+        if (b && b.f && Date.now() - b.t < 7 * 864e5 && !$('nom').value && !$('tel').value){
+          restoreForm(b.f); update();
+          const bn = document.createElement('div'); bn.className = 'retour';
+          bn.innerHTML = `<b>👋 Vous n'avez pas terminé votre commande.</b><span>Vos informations sont gardées : il ne reste qu'à la valider.</span><a href="#commande">Valider ma commande →</a>`;
+          const pt = document.querySelector('.ptop'); if (pt) pt.parentNode.insertBefore(bn, pt);
+        }
+      } catch(x){}
+    } else brouillon(false);
+    rappel();
 
     form.addEventListener('input', () => {
       touched = true;
@@ -861,6 +991,16 @@ Heure de la livraison : ${r.livraison}`;
     window.addEventListener('pagehide', () => beacon('quitte'));
   }
 
+  // Sécurité : un produit sans prix pour un pays actif reprend le prix d'un pays de même monnaie
+  function completerPrix(d){
+    const dev = {}; (d.pays || []).forEach(p => dev[p.code] = p.codeDevise || p.devise);
+    const FCFA = {BJ:'XOF',BF:'XOF',CI:'XOF',ML:'XOF',NE:'XOF',SN:'XOF',TG:'XOF',GW:'XOF',CM:'XAF',CF:'XAF',CG:'XAF',GA:'XAF',GQ:'XAF',TD:'XAF'};
+    const devDe = c => dev[c] || FCFA[c] || c;
+    (d.produits || []).forEach(x => {
+      x.prix = x.prix || {}; const codes = Object.keys(x.prix); if (!codes.length) return;
+      (d.pays || []).forEach(p => { if (x.prix[p.code]) return; const src = codes.find(c => devDe(c) === devDe(p.code)); if (src) x.prix[p.code] = x.prix[src]; });
+    });
+  }
   let liveDone = false;
   async function load(){
     if (!/^https:\/\/script\.google(usercontent)?\.com\//.test(API)){
@@ -883,6 +1023,7 @@ Heure de la livraison : ${r.livraison}`;
     const use = (fresh, save) => {
       if (fresh && fresh.indisponible){ indispo = true; D = null; try { localStorage.removeItem(K_DATA); } catch(e){} app.innerHTML = '<div class="empty">Cette boutique est momentanément indisponible.</div>'; return; }
       if (!fresh || !fresh.produits) return;
+      completerPrix(fresh);
       if (fresh.imgs){ Object.assign(IMG, fresh.imgs); try { localStorage.setItem('imgs', JSON.stringify(IMG)); } catch(e){} }
       if (fresh.imgsM){ Object.assign(IMGM, fresh.imgsM); try { localStorage.setItem('imgsM', JSON.stringify(IMGM)); } catch(e){} }
       if (save) store.set(K_DATA, JSON.stringify(fresh));
@@ -919,6 +1060,7 @@ Heure de la livraison : ${r.livraison}`;
       const p = l[i++ % l.length], prod = D.produits.find(x => x.nom === p.produit);
       el.innerHTML = `${prod && prod.photos[0] ? `<img src="${esc(imgM(prod.photos[0]))}" alt="">` : ''}<div><b>${esc(p.nom)}</b> ${p.livree ? 'a reçu sa commande' : 'a commandé'} <b>${esc((t => t.length > 34 ? t.slice(0, 32).trim() + '…' : t)(prod ? prod.nom : p.produit))}</b><small>${p.livree ? '<span class="ok">✔ Livré</span> · ' : ''}${ilya(p.t)}</small></div>`;
       el.classList.add('on'); setTimeout(() => el.classList.remove('on'), 5000);
+      stkMoins();
     };
     setTimeout(() => { montrer(); setInterval(montrer, 8000); }, 5000);
   }
