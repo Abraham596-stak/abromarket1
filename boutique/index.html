@@ -499,12 +499,15 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
   // Note importante (boutiques ABROMARKET) : jours de livraison, contact WhatsApp, conditions pour l'intérieur du pays
   const WA_NB = '2290150420757';
   function nb(){
-    if (VID) return '';
+    // Chaque boutique a son propre bloc : un abonné l'active dans ses Réglages avec SON numéro (jamais celui d'ABROMARKET)
+    if (String(R('Bloc NB en bas du site (OUI/NON)') || (VID ? 'NON' : 'OUI')).trim().toUpperCase() === 'NON') return '';
+    const wa = String(R('WhatsApp affiché dans le NB') || (VID ? R('WhatsApp des commandes') : WA_NB)).replace(/\D/g, '');
+    const waAff = wa ? '+' + wa.slice(0, 3) + ' ' + wa.slice(3).replace(/(\d{2})(?=\d)/g, '$1 ') : '';
     return `<section class="nbz" aria-label="Note importante"><div class="nbc">
       <div class="nbh"><span class="nbt">NB</span><h2>À lire avant de commander</h2></div>
       <div class="nbi"><span class="nbe">📅</span><div><b>Nous livrons du lundi au samedi.</b><p>Mais nous recevons vos commandes <b>tous les jours, du lundi au dimanche</b>.</p></div></div>
-      <div class="nbi"><span class="nbe">💬</span><div><b>Une question ? Écrivez-nous sur WhatsApp.</b><p>Nous répondons à vos messages au <b class="nbnum">+229 01 50 42 07 57</b>. Laissez-nous simplement un message WhatsApp, nous vous répondons.</p>
-        <a class="nbwa" href="https://wa.me/${WA_NB}?text=${encodeURIComponent('Bonjour, j\'ai une question sur un produit.')}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.3-.5.1-1 .1-1.7-.1-.4-.1-.9-.3-1.5-.6-2.7-1.2-4.4-3.9-4.6-4.1-.1-.2-1.1-1.4-1.1-2.7s.7-1.9.9-2.2c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.1.1.3 0 .5l-.3.5-.4.4c-.1.1-.3.3-.1.6.2.3.7 1.2 1.6 1.9 1.1.9 2 1.2 2.3 1.4.3.1.5.1.6-.1l.9-1c.2-.3.4-.2.6-.1l1.9.9c.3.1.5.2.5.3.1.1.1.6-.1 1.2Z"/></svg>Écrire sur WhatsApp</a></div></div>
+      ${wa ? `<div class="nbi"><span class="nbe">💬</span><div><b>Une question ? Écrivez-nous sur WhatsApp.</b><p>Nous répondons à vos messages au <b class="nbnum">${esc(waAff)}</b>. Laissez-nous simplement un message WhatsApp, nous vous répondons.</p>
+        <a class="nbwa" href="https://wa.me/${wa}?text=${encodeURIComponent('Bonjour, j\'ai une question sur un produit.')}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.3-.5.1-1 .1-1.7-.1-.4-.1-.9-.3-1.5-.6-2.7-1.2-4.4-3.9-4.6-4.1-.1-.2-1.1-1.4-1.1-2.7s.7-1.9.9-2.2c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.1.1.3 0 .5l-.3.5-.4.4c-.1.1-.3.3-.1.6.2.3.7 1.2 1.6 1.9 1.1.9 2 1.2 2.3 1.4.3.1.5.1.6-.1l.9-1c.2-.3.4-.2.6-.1l1.9.9c.3.1.5.2.5.3.1.1.1.6-.1 1.2Z"/></svg>Écrire sur WhatsApp</a></div></div>` : ''}
       <div class="nbi"><span class="nbe">🚚</span><div><b>La livraison est gratuite pour tout le monde.</b><p>Pour les clients de <b>l'intérieur du pays</b> (hors grandes villes), les <b>frais de paiement et les frais d'expédition</b>, précisés lors de notre appel, sont à <b>payer à l'avance</b>.</p></div></div>
       <div class="nbw"><b>⚠️ Si vous ne nous faites pas confiance pour envoyer ces frais, merci de ne pas nous contacter : il n'y a pas d'autre moyen.</b><span>Merci pour votre compréhension 🙏</span></div>
     </div></section>`;

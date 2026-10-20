@@ -1093,7 +1093,7 @@ function nettoyerHtml(h){
     const K = {wa: 'WhatsApp des commandes', apres: 'Après la commande (MERCI = page de remerciement / WHATSAPP = le client envoie sur WhatsApp)', mail: 'Email qui reçoit les commandes (vide = ton Gmail)',
       pre: 'Préfixe n° commande (optionnel)', reco: 'Nouvelle commande permise si la précédente est livrée (OUI/NON)', test: 'Numéros de test (jamais bloqués, séparés par des virgules)', preuves: 'Notifications de ventes sur le site (OUI/NON)',
       coul: 'Couleur principale', logo: 'Logo (lien image, optionnel)', band: 'Bandeau du haut', fb: 'Pixel Facebook (ID)', fbj: 'Jeton API Conversions Meta (optionnel)', fbt: 'Code test événements Meta (optionnel)',
-      tt: 'Pixel TikTok (ID)', ttj: 'Jeton Events API TikTok (optionnel)', cmb: 'WhatsApp – clé CallMeBot (optionnel)', cmbn: 'WhatsApp – numéro qui reçoit les commandes (CallMeBot)', rel: 'Alerte de relance des abandons après (minutes, 0 = jamais)'};
+      nb: 'Bloc NB en bas du site (OUI/NON)', nbwa: 'WhatsApp affiché dans le NB', tt: 'Pixel TikTok (ID)', ttj: 'Jeton Events API TikTok (optionnel)', cmb: 'WhatsApp – clé CallMeBot (optionnel)', cmbn: 'WhatsApp – numéro qui reçoit les commandes (CallMeBot)', rel: 'Alerte de relance des abandons après (minutes, 0 = jamais)'};
     const SECRET = /jeton|clé|cle /i, ph = k => sub && H[k] ? (SECRET.test(k) ? 'Vide = comme la principale (déjà rempli)' : 'Vide = comme la principale (' + H[k] + ')') : '';
     const champ = (k, lib, aide, type) => `<div class="rgc"><label for="rg_${String(k).replace(/\W/g, '')}">${lib}${aide ? `<small>${aide}</small>` : ''}</label><input class="field" id="rg_${String(k).replace(/\W/g, '')}" data-k="${esc(K[k] || k)}" ${type ? `type="${type}"` : ''} value="${esc(V[K[k] || k] || '')}" placeholder="${esc(ph(K[k] || k))}"></div>`;
     const ouiNon = (k, lib, aide) => { const v = String(V[K[k]] || (sub ? '' : '')).toUpperCase(); return `<div class="rgc"><label>${lib}${aide ? `<small>${aide}</small>` : ''}</label><select class="field" data-k="${esc(K[k])}">${sub ? `<option value="" ${!v ? 'selected' : ''}>Comme la principale${H[K[k]] ? ' (' + esc(H[K[k]]) + ')' : ''}</option>` : ''}<option value="OUI" ${v === 'OUI' ? 'selected' : ''}>Oui</option><option value="NON" ${v === 'NON' ? 'selected' : ''}>Non</option></select></div>`; };
@@ -1134,6 +1134,10 @@ function nettoyerHtml(h){
       ${champ('coul', 'Couleur principale', 'Ex : #1736A6')}
       ${champ('logo', 'Logo (lien d’une image)', 'Facultatif')}
       ${ouiNon('preuves', 'Notifications de ventes sur le site', '« Awa K. vient de commander… »')}
+      <h3 class="rgt">📌 Bloc NB en bas du site</h3>
+      ${(() => { const v = String(V[K.nb] || '').toUpperCase(), def = VENDOO ? 'NON' : 'OUI', cur = v || (sub ? '' : def);
+        return `<div class="rgc"><label>Afficher le bloc NB<small>Jours de livraison, contact WhatsApp, conditions pour l’intérieur du pays</small></label><select class="field" data-k="${esc(K.nb)}">${sub ? `<option value="" ${!cur ? 'selected' : ''}>Comme la principale</option>` : ''}<option value="OUI" ${cur === 'OUI' ? 'selected' : ''}>Oui</option><option value="NON" ${cur === 'NON' ? 'selected' : ''}>Non</option></select></div>`; })()}
+      ${champ('nbwa', 'Numéro WhatsApp affiché dans le NB', VENDOO ? 'Avec l’indicatif. Vide = le WhatsApp des commandes' : 'Avec l’indicatif. Vide = 2290150420757')}
       <h3 class="rgt">✅ Garanties affichées</h3>
       ${[1, 2, 3, 4].map(n => `<div class="rggar"><b>Garantie ${n}</b>${champ('Garantie ' + n + ' – emoji', 'Emoji')}${champ('Garantie ' + n + ' – titre', 'Titre')}${champ('Garantie ' + n + ' – texte', 'Texte')}</div>`).join('')}
       <button class="btn blue" id="rgOk" style="margin-top:14px">Enregistrer</button>
