@@ -124,7 +124,10 @@ body.has-sticky:has(.sticky.brou){padding-bottom:116px}
 .nbi p b{display:inline;font-size:inherit}
 .nbi .nbnum{color:var(--main)!important;white-space:nowrap}
 .nbwa{display:inline-flex;align-items:center;gap:8px;margin-top:10px;background:var(--main);color:#fff;font-weight:800;font-size:15px;border-radius:999px;padding:10px 16px;text-decoration:none}
-.nbw{margin-top:6px;background:var(--surface);border-left:4px solid var(--sun);border-radius:10px;padding:13px 14px}
+.nbcas{margin-top:10px;background:var(--surface);border-radius:10px;padding:11px 13px}
+.nbcas b{font-size:15px!important}
+.nbcas p{margin-top:3px!important}
+.nbw{margin-top:10px;background:var(--surface);border-left:4px solid var(--sun);border-radius:10px;padding:13px 14px}
 .nbw b{display:block;font-size:15.5px;line-height:1.4;color:var(--ink)}
 .nbw span{display:block;margin-top:6px;font-weight:700;font-size:14.5px;color:var(--soft)}
 @media (min-width:1000px){.nbc{padding:26px 30px 22px}.nbh h2{font-size:25px}.nbi b{font-size:17.5px}}
@@ -505,11 +508,14 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
     const waAff = wa ? '+' + wa.slice(0, 3) + ' ' + wa.slice(3).replace(/(\d{2})(?=\d)/g, '$1 ') : '';
     return `<section class="nbz" aria-label="Note importante"><div class="nbc">
       <div class="nbh"><span class="nbt">NB</span><h2>À lire avant de commander</h2></div>
-      <div class="nbi"><span class="nbe">📅</span><div><b>Nous livrons du lundi au samedi.</b><p>Mais nous recevons vos commandes <b>tous les jours, du lundi au dimanche</b>.</p></div></div>
-      ${wa ? `<div class="nbi"><span class="nbe">💬</span><div><b>Une question ? Écrivez-nous sur WhatsApp.</b><p>Nous répondons à vos messages au <b class="nbnum">${esc(waAff)}</b>. Laissez-nous simplement un message WhatsApp, nous vous répondons.</p>
+      <div class="nbi"><span class="nbe">📅</span><div><b>Nous livrons du lundi au samedi.</b><p>Mais vous pouvez commander <b>tous les jours</b>, même le dimanche.</p></div></div>
+      ${wa ? `<div class="nbi"><span class="nbe">💬</span><div><b>Vous avez une question&nbsp;?</b><p>Écrivez-nous sur WhatsApp au <b class="nbnum">${esc(waAff)}</b>. Laissez-nous un message, nous allons vous répondre.</p>
         <a class="nbwa" href="https://wa.me/${wa}?text=${encodeURIComponent('Bonjour, j\'ai une question sur un produit.')}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.3-.5.1-1 .1-1.7-.1-.4-.1-.9-.3-1.5-.6-2.7-1.2-4.4-3.9-4.6-4.1-.1-.2-1.1-1.4-1.1-2.7s.7-1.9.9-2.2c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.1.1.3 0 .5l-.3.5-.4.4c-.1.1-.3.3-.1.6.2.3.7 1.2 1.6 1.9 1.1.9 2 1.2 2.3 1.4.3.1.5.1.6-.1l.9-1c.2-.3.4-.2.6-.1l1.9.9c.3.1.5.2.5.3.1.1.1.6-.1 1.2Z"/></svg>Écrire sur WhatsApp</a></div></div>` : ''}
-      <div class="nbi"><span class="nbe">🚚</span><div><b>La livraison est gratuite pour tout le monde.</b><p>Pour les clients de <b>l'intérieur du pays</b> (hors grandes villes), les <b>frais de paiement et les frais d'expédition</b>, précisés lors de notre appel, sont à <b>payer à l'avance</b>.</p></div></div>
-      <div class="nbw"><b>⚠️ Si vous ne nous faites pas confiance pour envoyer ces frais, merci de ne pas nous contacter : il n'y a pas d'autre moyen.</b><span>Merci pour votre compréhension 🙏</span></div>
+      <div class="nbi"><span class="nbe">🚚</span><div><b>La livraison est gratuite pour tout le monde.</b>
+        <div class="nbcas"><b>Vous êtes dans une grande ville&nbsp;?</b><p>Vous payez <b>seulement quand le livreur vous donne le colis</b>. Vous n'envoyez rien avant.</p></div>
+        <div class="nbcas"><b>Vous êtes dans une autre ville du pays&nbsp;?</b><p>Nous vous envoyons le colis par expédition. <b>Avant l'envoi, vous devez payer les frais d'envoi et les frais de paiement.</b> Nous vous disons le montant au téléphone.</p></div>
+        <div class="nbw"><b>⚠️ Si vous êtes dans une autre ville et que vous ne voulez pas payer ces frais avant l'envoi, merci de ne pas nous contacter. Il n'y a pas d'autre solution.</b><span>Merci pour votre compréhension 🙏</span></div>
+      </div></div>
     </div></section>`;
   }
   function bindCountry(){ const s = $('cSel'); if (s) s.onchange = () => { touched = true; setCountry(s.value); }; }
