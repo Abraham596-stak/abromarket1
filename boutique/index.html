@@ -85,54 +85,49 @@ header{display:flex;align-items:center;justify-content:center;gap:10px;padding:1
 .pricetag .old{text-decoration:line-through;color:#6B5A1E;font-size:15px;margin-top:4px}
 .pricetag .off{background:var(--ink);color:#fff;font-weight:700;border-radius:999px;padding:6px 12px;font-size:15px;white-space:nowrap}
 .stock{margin:12px 18px 0;font-size:15px;color:var(--err);font-weight:600}
-.stk{margin:12px 18px 0;background:#FFF6EA;border:1.5px solid #FFB547;border-radius:16px;padding:12px 14px;transition:background .3s,border-color .3s}
-.stk .sl{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:15px;font-weight:700;color:#A33F00}
-.stk .st{background:#FF7A00;color:#fff;border-radius:999px;padding:3px 10px;font-size:12.5px;font-weight:800;letter-spacing:.02em;white-space:nowrap}
-.stk .sn b{font:800 21px "Bricolage Grotesque",sans-serif;color:#D32F2F}
-.stk .bar{height:9px;background:#FFE3BF;border-radius:999px;margin-top:9px;overflow:hidden}
-.stk .bar i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#FF9800,#E53935);transition:width .7s cubic-bezier(.2,.8,.2,1)}
-.stk small{display:block;margin-top:7px;color:#8A4B12;font-size:12.5px}
-.stk.last{background:#FFEBEE;border-color:#E53935;animation:stkp 1.2s ease-in-out infinite}
-.stk.last .st{background:#D32F2F}
-.stk.last .sn{color:#B71C1C}
-@keyframes stkp{0%,100%{box-shadow:0 0 0 0 rgba(229,57,53,.45)}50%{box-shadow:0 0 0 7px rgba(229,57,53,0)}}
-.urg{position:fixed;left:50%;top:12px;z-index:60;width:min(440px,calc(100vw - 20px));transform:translate(-50%,-140%);transition:transform .45s cubic-bezier(.2,1.3,.4,1);display:flex;align-items:center;gap:10px;background:linear-gradient(120deg,#D50000,#FF6D00);color:#fff;border-radius:18px;padding:12px 12px 12px 14px;box-shadow:0 14px 40px rgba(213,0,0,.38)}
-.urg.on{transform:translate(-50%,0);animation:urgs .5s .45s 2}
-@keyframes urgs{0%,100%{margin-left:0}25%{margin-left:-6px}75%{margin-left:6px}}
-.urg .ui{font-size:28px;line-height:1}
+.stk{margin:12px 18px 0;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.stk .sl{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:15px;font-weight:700;color:var(--ink)}
+.stk .st{background:var(--sun);color:var(--ink);border-radius:999px;padding:3px 10px;font-size:12.5px;font-weight:800;white-space:nowrap}
+.stk .sn b{font:800 20px "Bricolage Grotesque",sans-serif;color:var(--main)}
+.stk .bar{height:7px;background:var(--line);border-radius:999px;margin-top:9px;overflow:hidden}
+.stk .bar i{display:block;height:100%;border-radius:999px;background:var(--main);transition:width .7s ease}
+.stk small{display:block;margin-top:7px;color:var(--soft);font-size:12.5px}
+.stk.last{border-color:var(--main);box-shadow:inset 4px 0 0 var(--main)}
+.urg{position:fixed;left:50%;top:12px;z-index:60;width:min(440px,calc(100vw - 20px));transform:translate(-50%,-150%);transition:transform .4s ease;display:flex;align-items:center;gap:12px;background:#fff;color:var(--ink);border:1px solid var(--line);border-left:5px solid var(--main);border-radius:14px;padding:12px 12px 12px 14px;box-shadow:0 10px 30px rgba(20,26,46,.18)}
+.urg.on{transform:translate(-50%,0)}
+.urg .ui{width:38px;height:38px;flex:0 0 38px;border-radius:10px;background:var(--sun);display:grid;place-items:center;font-size:19px}
 .urg .ut{flex:1;min-width:0;line-height:1.3}
-.urg .ut b{display:block;font-size:15.5px;font-weight:800}
-.urg .ut span{font-size:13px;opacity:.95}
-.urg .ub{background:#fff;color:#C62828;font-weight:800;font-size:14px;border-radius:999px;padding:9px 13px;text-decoration:none;white-space:nowrap}
-.urg .ux{background:none;border:0;color:#fff;font-size:22px;line-height:1;cursor:pointer;padding:0 2px;opacity:.85}
-.valider{display:flex;gap:10px;align-items:flex-start;background:#FFF8E1;border:1.5px dashed #F9A825;border-radius:14px;padding:11px 13px;margin:14px 0 10px;font-size:14px;line-height:1.4;color:#5D4300}
+.urg .ut b{display:block;font-size:15px;font-weight:800}
+.urg .ut span{font-size:13px;color:var(--soft)}
+.urg .ub{background:var(--main);color:#fff;font-weight:800;font-size:14px;border-radius:999px;padding:9px 14px;text-decoration:none;white-space:nowrap}
+.urg .ux{background:none;border:0;color:var(--soft);font-size:22px;line-height:1;cursor:pointer;padding:0 2px}
+.valider{display:flex;gap:10px;align-items:flex-start;background:var(--surface);border-left:4px solid var(--main);border-radius:10px;padding:11px 13px;margin:14px 0 10px;font-size:14px;line-height:1.4;color:var(--ink)}
 .valider[hidden]{display:none}
-.valider .vi{font-size:20px;line-height:1;animation:vib 2s ease-in-out infinite}
-@keyframes vib{0%,100%{transform:rotate(0)}10%{transform:rotate(-14deg)}20%{transform:rotate(14deg)}30%{transform:rotate(0)}}
-.retour{margin:12px 18px 0;background:linear-gradient(120deg,#0B6E4F,#128C4A);color:#fff;border-radius:16px;padding:13px 15px;display:flex;flex-direction:column;gap:3px;font-size:14px;line-height:1.35}
+.valider .vi{font-size:18px;line-height:1.2}
+.retour{margin:12px 18px 0;background:var(--surface);border-left:4px solid var(--main);color:var(--ink);border-radius:12px;padding:13px 15px;display:flex;flex-direction:column;gap:3px;font-size:14px;line-height:1.35}
 .retour b{font-size:15.5px}
-.retour a{color:#fff;font-weight:800;margin-top:5px;text-decoration:underline}
+.retour span{color:var(--soft)}
+.retour a{color:var(--main);font-weight:800;margin-top:5px}
 .sticky .nv{display:none}
 .sticky.brou{flex-wrap:wrap;row-gap:6px}
-.sticky.brou .nv{display:block;flex:0 0 100%;text-align:center;font-size:13px;font-weight:700;color:#8A5A00;background:#FFF3CD;border-radius:9px;padding:5px 8px}
+.sticky.brou .nv{display:block;flex:0 0 100%;text-align:center;font-size:13px;font-weight:700;color:var(--ink);background:var(--sun);border-radius:8px;padding:5px 8px}
 body.has-sticky:has(.sticky.brou){padding-bottom:116px}
 .nbz{border-top:0;padding-top:8px}
-.nbc{position:relative;border-radius:22px;padding:22px 18px 18px;background:linear-gradient(160deg,#141A2E 0%,#1F2A4D 100%);color:#fff;overflow:hidden;box-shadow:0 18px 44px rgba(20,26,46,.28)}
-.nbc::before{content:"";position:absolute;right:-60px;top:-60px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(255,201,60,.35),transparent 70%)}
-.nbh{display:flex;align-items:center;gap:12px;margin-bottom:16px;position:relative}
-.nbt{background:var(--sun);color:var(--ink);font:800 20px "Bricolage Grotesque",sans-serif;border-radius:12px;padding:6px 12px;letter-spacing:.04em}
-.nbh h2{font-size:22px;font-weight:800;margin:0;color:#fff}
-.nbi{display:flex;gap:12px;align-items:flex-start;padding:13px 0;border-top:1px solid rgba(255,255,255,.12);position:relative}
-.nbe{flex:0 0 42px;height:42px;border-radius:12px;background:rgba(255,255,255,.1);display:grid;place-items:center;font-size:21px}
-.nbi b{font-size:16.5px;font-weight:800;line-height:1.3;display:block}
-.nbi p{color:rgba(255,255,255,.82);font-size:15px;line-height:1.5;margin-top:4px}
-.nbi p b{display:inline;font-size:inherit;color:#fff}
-.nbi .nbnum{color:var(--sun)!important;white-space:nowrap}
-.nbwa{display:inline-flex;align-items:center;gap:8px;margin-top:10px;background:#25D366;color:#fff;font-weight:800;font-size:15px;border-radius:999px;padding:10px 16px;text-decoration:none;box-shadow:0 6px 18px rgba(37,211,102,.35)}
-.nbw{margin-top:6px;background:rgba(255,201,60,.13);border:1.5px solid rgba(255,201,60,.55);border-radius:14px;padding:13px 14px;position:relative}
-.nbw b{display:block;font-size:15.5px;line-height:1.4;color:#FFE08A}
-.nbw span{display:block;margin-top:6px;font-weight:700;font-size:14.5px;color:#fff}
-@media (min-width:1000px){.nbc{padding:30px 34px 26px}.nbh h2{font-size:26px}.nbi b{font-size:17.5px}}
+.nbc{border:1px solid var(--line);border-top:4px solid var(--main);border-radius:16px;padding:20px 18px 18px;background:#fff}
+.nbh{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.nbt{background:var(--main);color:#fff;font:800 18px "Bricolage Grotesque",sans-serif;border-radius:8px;padding:5px 11px;letter-spacing:.04em}
+.nbh h2{font-size:22px;font-weight:800;margin:0;color:var(--ink)}
+.nbi{display:flex;gap:12px;align-items:flex-start;padding:13px 0;border-top:1px solid var(--line)}
+.nbe{flex:0 0 40px;height:40px;border-radius:10px;background:var(--surface);display:grid;place-items:center;font-size:19px}
+.nbi b{font-size:16.5px;font-weight:800;line-height:1.3;display:block;color:var(--ink)}
+.nbi p{color:var(--soft);font-size:15px;line-height:1.5;margin-top:4px}
+.nbi p b{display:inline;font-size:inherit}
+.nbi .nbnum{color:var(--main)!important;white-space:nowrap}
+.nbwa{display:inline-flex;align-items:center;gap:8px;margin-top:10px;background:var(--main);color:#fff;font-weight:800;font-size:15px;border-radius:999px;padding:10px 16px;text-decoration:none}
+.nbw{margin-top:6px;background:var(--surface);border-left:4px solid var(--sun);border-radius:10px;padding:13px 14px}
+.nbw b{display:block;font-size:15.5px;line-height:1.4;color:var(--ink)}
+.nbw span{display:block;margin-top:6px;font-weight:700;font-size:14.5px;color:var(--soft)}
+@media (min-width:1000px){.nbc{padding:26px 30px 22px}.nbh h2{font-size:25px}.nbi b{font-size:17.5px}}
 .unavail{margin:16px 18px;background:var(--surface);border-radius:14px;padding:16px;font-weight:600}
 section{padding:26px 18px;border-top:1px solid var(--line)}
 section h2{font-size:23px;font-weight:800;margin-bottom:14px}
@@ -543,7 +538,7 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
   }
 
   /* ---------- Stock en direct : 3 → 2 → 1 (une pièce de moins à chaque vente affichée), retour à 3 chaque minute ---------- */
-  const STK = {n: 3, dec: Date.now() - 3000, reset: Date.now(), alerte: 0, on: false};
+  const STK = {n: 3, dec: Date.now() - 3000, alerte: 0, on: false};
   function stkPeindre(){
     const el = $('stk'); if (!el) return;
     const n = STK.n;
@@ -554,15 +549,16 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
   }
   function stkMoins(){
     if (!$('stk')) return;
-    STK.dec = Date.now();
-    if (STK.n > 1){ STK.n--; stkPeindre(); if (STK.n === 1) stkUrgence(); }
+    const t = Date.now();
+    if (STK.n === 3){ STK.n = 2; STK.dec = t; stkPeindre(); }
+    else if (STK.n === 2 && t - STK.dec >= 240000){ STK.n = 1; STK.dec = t; stkPeindre(); stkUrgence(); }   // la dernière pièce : 4 min après l'avant-dernière
   }
   function stkUrgence(){
-    if (!$('stk') || Date.now() - STK.alerte < 50000) return;
+    if (!$('stk') || Date.now() - STK.alerte < 120000) return;
     const ae = document.activeElement; if (ae && /INPUT|TEXTAREA|SELECT/.test(ae.tagName)) return;   // jamais pendant la saisie
     STK.alerte = Date.now();
     let u = document.querySelector('.urg'); if (!u){ u = document.createElement('div'); u.className = 'urg'; u.setAttribute('role', 'alert'); document.body.appendChild(u); }
-    u.innerHTML = `<div class="ui">🚨</div><div class="ut"><b>Plus qu'UNE seule pièce en stock !</b><span>Commandez maintenant ou vous risquez de le regretter.</span></div><a href="#commande" class="ub">Je la prends</a><button type="button" class="ux" aria-label="Fermer">×</button>`;
+    u.innerHTML = `<div class="ui">⚡</div><div class="ut"><b>Plus qu'UNE seule pièce en stock !</b><span>Commandez maintenant ou vous risquez de le regretter.</span></div><a href="#commande" class="ub">Je la prends</a><button type="button" class="ux" aria-label="Fermer">×</button>`;
     u.querySelector('.ux').onclick = () => u.classList.remove('on');
     u.querySelector('.ub').onclick = () => u.classList.remove('on');
     requestAnimationFrame(() => u.classList.add('on'));
@@ -573,8 +569,9 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
     setInterval(() => {
       if (!$('stk')) return;
       const t = Date.now();
-      if (t - STK.reset >= 60000){ STK.reset = t; STK.dec = t; STK.n = 3; stkPeindre(); return; }
-      if (t - STK.dec >= 8600) stkMoins();   // si aucune notification de vente n'a été affichée
+      if (STK.n === 1 && t - STK.dec >= 60000){ STK.n = 3; STK.dec = t; stkPeindre(); return; }   // réassort 1 min après la dernière pièce
+      if (STK.n === 3 && t - STK.dec >= 8600) stkMoins();   // si aucune notification de vente n'a été affichée
+      if (STK.n === 2 && t - STK.dec >= 240000) stkMoins();
     }, 1000);
   }
 
