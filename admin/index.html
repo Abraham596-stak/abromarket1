@@ -9,7 +9,9 @@
 <meta name="apple-mobile-web-app-title" content="ABROMARKET">
 <title>ABROMARKET Gestion</title>
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="logo-v2-192.png">
+<link rel="icon" href="favicon.ico?v=2" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
+<link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png?v=2">
 <link rel="apple-touch-icon" href="logo-v2-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -371,7 +373,7 @@ html.ordi .dvgrid{grid-template-columns:repeat(4,minmax(0,1fr))}
 .rtezone th{background:var(--surface)}
 .rtezone .vid{background:#111;color:#fff;border-radius:10px;padding:18px;text-align:center;font-weight:700;margin:6px 0 10px;word-break:break-all}
 .rtezone ul{padding-left:22px;margin:0 0 10px}
-.phedit{position:absolute;top:4px;right:4px;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.92);font-size:15px;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+.phedit{position:absolute;top:4px;right:4px;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.92);font-size:19px;font-weight:800;line-height:1;box-shadow:0 2px 6px rgba(0,0,0,.2)}
 .ph img{object-fit:contain!important;background:#fff}
 /* Retouche photo */
 .retouche{position:fixed;inset:0;z-index:95;background:#111;display:flex;flex-direction:column;color:#fff}
@@ -2487,6 +2489,33 @@ function nettoyerHtml(h){
     if (/^data:/.test(src)) return (await fetch(src)).blob();
     const r = await fetch(src, {mode: 'cors'}); if (!r.ok) throw new Error('photo inaccessible'); return r.blob();
   }
+  // Menu vertical d'options (⋮) : renvoie la clé choisie, ou null
+  function menuListe(image, titre, options){
+    return new Promise(fin => {
+      const ov = document.createElement('div'); ov.className = 'overlay'; ov.style.zIndex = 300;
+      ov.innerHTML = `<div class="detail pmsheet" role="dialog" aria-modal="true"><div class="grab"></div>
+        <div class="pmtete">${image ? `<img src="${esc(image)}" alt="">` : ''}<b>${esc(titre)}</b></div>
+        ${options.map(([k, l, c]) => `<button data-o="${esc(k)}" class="${c || ''}">${l}</button>`).join('')}
+        <button data-o="" class="annul">Annuler</button></div>`;
+      document.body.appendChild(ov);
+      ov.onclick = e => { if (e.target === ov){ ov.remove(); fin(null); return; } const b = e.target.closest('[data-o]'); if (!b) return; ov.remove(); fin(b.dataset.o || null); };
+    });
+  }
+  // Enregistre une photo du produit sur le téléphone (ou l'ordinateur)
+  async function telechargerPhoto(u, nom){
+    const src = apercus[u] || vignette(u, 2000);
+    let blob;
+    try { blob = await blobDe(src); } catch(e){ window.open(src, '_blank'); toast('Photo ouverte : appui long dessus → Télécharger l’image'); return; }
+    const ext = /png/.test(blob.type) ? 'png' : /webp/.test(blob.type) ? 'webp' : 'jpg';
+    const fichier = String(nom || 'photo').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^\w-]+/g, '-').slice(0, 60) + '.' + ext;
+    const f = new File([blob], fichier, {type: blob.type || 'image/jpeg'});
+    if (!html_ordi() && navigator.canShare && navigator.canShare({files: [f]})){
+      try { await navigator.share({files: [f]}); return; } catch(e){ if (e && e.name === 'AbortError') return; }
+    }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(f); a.download = fichier; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000); toast('⬇️ Photo téléchargée');
+  }
+  const html_ordi = () => document.documentElement.classList.contains('ordi');
   function retoucher(src){
     return new Promise(async fin => {
       let blob, C;
@@ -2579,7 +2608,7 @@ function nettoyerHtml(h){
           <label class="lbl" for="eAcc">Accroche (sous le titre)</label><input class="field" id="eAcc" value="${esc(P.accroche)}" placeholder="Ex : Marcher enfin librement sans douleur"></div>
 
         <div class="card"><h3>Photos</h3><p class="tag">La première photo est la photo principale.</p>
-          <div class="phgrid">${P.photos.map((u, i) => `<div class="ph"><img src="${esc(img(u))}" alt=""><button class="phedit" data-pe="${i}" aria-label="Retoucher la photo">✏️</button><div class="phb">${i ? `<button data-pl="${i}" aria-label="Avancer">◀</button>` : ''}<button data-pd="${i}" aria-label="Supprimer">✕</button>${i < P.photos.length - 1 ? `<button data-pr="${i}" aria-label="Reculer">▶</button>` : ''}</div></div>`).join('')}
+          <div class="phgrid">${P.photos.map((u, i) => `<div class="ph"><img src="${esc(img(u))}" alt=""><button class="phedit" data-pe="${i}" aria-label="Options de la photo">⋮</button><div class="phb">${i ? `<button data-pl="${i}" aria-label="Avancer">◀</button>` : ''}<button data-pd="${i}" aria-label="Supprimer">✕</button>${i < P.photos.length - 1 ? `<button data-pr="${i}" aria-label="Reculer">▶</button>` : ''}</div></div>`).join('')}
             <button class="ph add" id="phAdd">＋<span>Ajouter</span></button></div>
           <button class="lnk" id="phUrl">Ou coller le lien d'une photo</button></div>
 
@@ -2702,7 +2731,12 @@ function nettoyerHtml(h){
       ed.querySelector('#phUrl').onclick = () => { const u = prompt('Colle le lien de la photo :'); if (u && /^https?:\/\//.test(u.trim())) maj(() => P.photos.push(u.trim()))(); };
       lierDesc();
       ed.querySelectorAll('[data-pe]').forEach(b => b.onclick = async () => {
-        const i = +b.dataset.pe, f = await retoucher(img(P.photos[i])); if (!f) return;
+        const i = +b.dataset.pe;
+        const o = await menuListe(img(P.photos[i]), 'Photo ' + (i + 1), [['ret', '✂️ Retoucher (recadrer, tourner, effacer le fond)'], ['tel', '⬇️ Télécharger sur mon téléphone'], ['sup', '🗑 Retirer la photo', 'danger']]);
+        if (o === 'tel') return telechargerPhoto(P.photos[i], (P.nom || 'photo') + '-' + (i + 1));
+        if (o === 'sup'){ if (await confirmer({titre: 'Retirer cette photo ?', texte: 'La photo sera retirée du produit quand tu enregistreras.', ok: 'Retirer la photo'})) maj(() => P.photos.splice(i, 1))(); return; }
+        if (o !== 'ret') return;
+        const f = await retoucher(img(P.photos[i])); if (!f) return;
         lire(); const tok = await photoInstantanee(f, P.nom || 'produit'); P.photos[i] = tok; sale = true;
         uploads[tok].then(url => { P.photos = P.photos.map(u => u === tok ? url : u); }).catch(() => {});
         dessiner();
