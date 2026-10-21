@@ -593,7 +593,12 @@ html.ordi .iapan{inset:auto 24px 24px auto;width:420px;height:min(680px,calc(100
 .pst{color:#B45309;font-weight:700}.pst.on{color:#0B6B35}
 .editor{position:fixed;inset:0;z-index:50;background:var(--surface);overflow-y:auto;-webkit-overflow-scrolling:touch}
 .edbar{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fff;padding:calc(env(safe-area-inset-top) + 10px) 12px 10px;border-bottom:1px solid var(--line)}
-.edbar b{font-size:17px}
+.edbar b{font-size:17px;flex:1;text-align:center;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.edacts{display:flex;gap:8px;align-items:center}
+.edacts.off{visibility:hidden;pointer-events:none}
+.edacts.edbas{margin-top:6px}.edacts.edbas .btn{flex:1}
+.edacts.edbas.off{display:none}
+@media (max-width:520px){.edbar.chg b{display:none}.edbar.chg .edacts{flex:1;justify-content:flex-end}}
 .iconbtn2{width:42px;height:42px;border-radius:50%;background:var(--surface);font-size:18px}
 .edbody{max-width:600px;margin:0 auto;padding:12px 12px calc(40px + env(safe-area-inset-bottom))}
 .card{background:#fff;border-radius:18px;padding:16px;margin-bottom:12px;border:1px solid var(--line)}
@@ -2614,7 +2619,7 @@ function nettoyerHtml(h){
     let faq = String(P.faq || '').split(/\n/).map(l => l.split('>>')).filter(x => x[0].trim()).map(x => ({q: x[0].trim(), r: x.slice(1).join('>>').trim()}));
     const paysTous = PR.pays.filter(p => p.actif || P.prix.some(x => x.pays.toLowerCase() === p.nom.toLowerCase()));
     const prixDe = nom => P.prix.find(x => x.pays.toLowerCase() === nom.toLowerCase());
-    let sale = false;
+    let sale = false, base = null, sigCourante = null;
     const ed = document.createElement('div'); ed.className = 'editor'; ed.setAttribute('role', 'dialog'); ed.setAttribute('aria-modal', 'true');
     document.body.appendChild(ed); document.body.style.overflow = 'hidden';
     const fermer = async force => { if (!force && sale && !(await confirmer({titre: 'Quitter sans enregistrer ?', texte: 'Tes dernières modifications de ce produit seront perdues.', ok: 'Quitter sans enregistrer', annuler: 'Continuer à modifier'}))) return; ed.remove(); document.body.style.overflow = ''; drawProducts(); };
@@ -2624,7 +2629,7 @@ function nettoyerHtml(h){
     function dessiner(){
       const y = ed.scrollTop;
       ed.querySelectorAll('details[data-p]').forEach(d => { const i = ouverts.indexOf(d.dataset.p); if (d.open && i < 0) ouverts.push(d.dataset.p); if (!d.open && i >= 0) ouverts.splice(i, 1); });
-      ed.innerHTML = `<div class="edbar"><button class="iconbtn2" id="edX" aria-label="Fermer">✕</button><b>${neuf ? 'Nouveau produit' : 'Modifier le produit'}</b><button class="btn blue small" id="edSave">Enregistrer</button></div>
+      ed.innerHTML = `<div class="edbar"><button class="iconbtn2" id="edX" aria-label="Fermer">✕</button><b>${neuf ? 'Nouveau produit' : 'Modifier le produit'}</b><div class="edacts${base != null && base !== sigCourante ? '' : ' off'}"><button class="btn ghost small" data-ann="1">Annuler</button><button class="btn blue small" id="edSave">Enregistrer</button></div></div>
       <div class="edbody">
         ${message ? `<div class="okmsg">${esc(message)}</div>` : ''}
         <div class="card"><div class="seg" role="radiogroup" aria-label="Statut">
@@ -2695,9 +2700,10 @@ function nettoyerHtml(h){
           ${P.id ? `<div class="linkbox">${esc(lienProduit(P.id))}</div><div class="addrow"><button data-copy="${esc(lienProduit(P.id))}">🔗 Copier le lien</button><a href="${esc(lienProduit(P.id))}" target="_blank" rel="noopener">Voir sur le site</a></div>` : ''}</div>
 
         ${neuf ? '' : `<div class="card"><div class="addrow"><button id="eDup">⧉ Dupliquer ce produit</button><button id="eDel" class="danger">🗑 Supprimer</button></div></div>`}
-        <button class="btn blue" id="edSave2">Enregistrer</button>
+        <div class="edacts edbas${base != null && base !== sigCourante ? '' : ' off'}"><button class="btn ghost" data-ann="1">Annuler les modifications</button><button class="btn blue" id="edSave2">Enregistrer</button></div>
       </div>`;
       ed.scrollTop = y;
+      ed.querySelectorAll('[data-ann]').forEach(b => b.onclick = annulerModifs);
       lier();
     }
     function lire(){
@@ -3050,7 +3056,26 @@ function nettoyerHtml(h){
       sale = false; fermer(true);
       toast(fait.enLigne ? '✅ Enregistré · en ligne sur le site dans quelques secondes' : '📝 Enregistré en brouillon');
     }
+    // « Enregistrer » et « Annuler » n'apparaissent que s'il y a vraiment une modification
+    const signature = () => { lire(); return JSON.stringify([P, descHtml, faq]); };
+    function majActions(){
+      if (!ed.isConnected){ clearInterval(suivi); return; }
+      if (base == null) return;
+      sigCourante = signature(); const chg = sigCourante !== base; sale = chg;
+      ed.querySelectorAll('.edacts').forEach(x => x.classList.toggle('off', !chg));
+      const bar = ed.querySelector('.edbar'); if (bar) bar.classList.toggle('chg', chg);
+    }
+    async function annulerModifs(){
+      if (!(await confirmer({titre: 'Annuler tes modifications ?', texte: 'Le produit reviendra exactement comme il était avant tes changements.', ok: 'Oui, annuler les modifications', annuler: 'Continuer à modifier', danger: false, icone: '↶'}))) return;
+      ed.remove(); document.body.style.overflow = '';
+      if (neuf) drawProducts(); else editer(src, message); toast('↶ Modifications annulées');
+    }
     dessiner();
+    base = signature(); sigCourante = base;
+    const suivi = setInterval(majActions, 600);
+    ed.addEventListener('input', () => setTimeout(majActions, 0));
+    ed.addEventListener('change', () => setTimeout(majActions, 0));
+    ed.addEventListener('click', () => setTimeout(majActions, 50));
   }
   // Fenêtre de confirmation claire (remplace la petite fenêtre du navigateur)
   function confirmer({titre, texte, ok = 'Supprimer', annuler = 'Annuler', danger = true, icone = '⚠️'}){
