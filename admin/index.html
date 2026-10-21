@@ -990,15 +990,15 @@ function nettoyerHtml(h){
     if (!(R.cles || []).includes(K)){ o.querySelector('#iaB').innerHTML = '<div class="iaerr">Colle d’abord le dernier <b>Code.gs</b> dans Apps Script (Gérer les déploiements → Modifier → Nouvelle version), puis reviens ici.</div><button class="btn ghost" data-x style="margin-top:12px">Fermer</button>'; o.querySelector('[data-x]').onclick = () => o.remove(); return; }
     o.querySelector('#iaB').innerHTML = `
       <p class="sub">${ok ? '✅ <b>Ton assistant est branché.</b> Tu peux changer la clé ci-dessous.' : 'C’est gratuit et ça prend 1 minute :'}</p>
-      <ol class="iasteps"><li>Ouvre <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener"><b>aistudio.google.com/app/apikey</b></a> et connecte-toi avec ton compte Google.</li><li>Appuie sur <b>« Create API key »</b>, puis copie la clé (elle commence par <b>AIza</b>).</li><li>Colle-la ici et appuie sur Enregistrer.</li></ol>
-      <label class="lbl" for="iaK">Clé Gemini</label><input class="field" id="iaK" type="password" autocomplete="off" placeholder="${ok ? 'Déjà enregistrée (colle une autre clé pour la changer)' : 'AIza…'}">
+      <ol class="iasteps"><li>Ouvre <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener"><b>aistudio.google.com/app/apikey</b></a> et connecte-toi avec ton compte Google.</li><li>Appuie sur <b>« Créer une clé »</b>, puis sur <b>« Copier la clé »</b> (elle commence par <b>AIza</b> ou <b>AQ.</b>).</li><li>Colle-la ici et appuie sur Enregistrer.</li></ol>
+      <label class="lbl" for="iaK">Clé Gemini</label><input class="field" id="iaK" type="password" autocomplete="off" placeholder="${ok ? 'Déjà enregistrée (colle une autre clé pour la changer)' : 'Colle ta clé ici'}">
       <button class="btn blue" id="iaOk" style="margin-top:14px">Enregistrer</button>
       ${ok ? '<button class="btn ghost" id="iaDel" style="margin-top:8px">Retirer la clé</button>' : ''}
       <button class="btn ghost" data-x style="margin-top:8px">Fermer</button>
       <p class="sub" style="margin-top:12px">La clé reste dans ton Google Sheets. Chaque abonné branche la sienne : ta clé ne sert jamais pour eux.</p>`;
     o.querySelector('[data-x]').onclick = () => o.remove();
     const sauver = async (v, bt) => { bt.disabled = true; try { await bqAppel({action: 'reglagesSauver', code: '', valeurs: {[K]: v}}); o.remove(); toast(v ? '✅ Assistant IA branché' : 'Clé retirée'); } catch(e){ bt.disabled = false; alert('Impossible d’enregistrer : ' + e.message); } };
-    o.querySelector('#iaOk').onclick = e => { const v = o.querySelector('#iaK').value.trim(); if (!/^AIza[\w-]{20,}$/.test(v)) return alert('Cette clé ne ressemble pas à une clé Gemini : elle doit commencer par « AIza ». Recopie-la depuis aistudio.google.com.'); sauver(v, e.currentTarget); };
+    o.querySelector('#iaOk').onclick = e => { const v = o.querySelector('#iaK').value.trim(); if (/\s/.test(v) || v.length < 30 || !/^(AIza|AQ\.)/.test(v)) return alert('Cette clé ne ressemble pas à une clé Gemini (elle commence par « AIza » ou « AQ. »). Recopie-la avec le bouton « Copier la clé » sur aistudio.google.com.'); sauver(v, e.currentTarget); };
     const del = o.querySelector('#iaDel'); if (del) del.onclick = e => sauver('', e.currentTarget);
   }
   // Feuille par-dessus (sans fermer la liste des boutiques)
