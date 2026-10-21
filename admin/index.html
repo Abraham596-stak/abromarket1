@@ -373,6 +373,7 @@ html.ordi .dvgrid{grid-template-columns:repeat(4,minmax(0,1fr))}
 .rtezone th{background:var(--surface)}
 .rtezone .vid{background:#111;color:#fff;border-radius:10px;padding:18px;text-align:center;font-weight:700;margin:6px 0 10px;word-break:break-all}
 .rtezone ul{padding-left:22px;margin:0 0 10px}
+.rtebar .gifbtn{font-size:11px;font-weight:800;letter-spacing:.03em;border:1.5px solid currentColor;border-radius:6px;padding:1px 4px;line-height:1.2}
 .iah{display:flex;align-items:center;gap:8px;justify-content:space-between}
 .iah .lbl{margin-bottom:8px}.iah h3{margin-bottom:4px}
 .iab{flex:0 0 auto;background:var(--surface);color:var(--main);border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-size:13px;font-weight:800;white-space:nowrap}
@@ -2289,7 +2290,9 @@ function nettoyerHtml(h){
     u = String(u || '').trim(); if (!u) return '';
     if (apercus[u]) return apercus[u];
     const im = pubData && pubData.imgs && pubData.imgs[u]; if (im) return SITE + im;
-    const m = u.match(DRIVE); return m ? 'https://drive.google.com/thumbnail?id=' + m[1] + '&sz=w' + (w || 300) : u;
+    const m = u.match(DRIVE);
+    if (m && /#gif$/.test(u)) return 'https://lh3.googleusercontent.com/d/' + m[1];   // GIF animé : le fichier d'origine (la vignette serait figée)
+    return m ? 'https://drive.google.com/thumbnail?id=' + m[1] + '&sz=w' + (w || 300) : u;
   }
   let PR = null, prBusy = false, prFiltre = 'tous';
   /* File d'envoi : l'écran répond tout de suite, le Google Sheets est mis à jour en arrière-plan, dans l'ordre */
@@ -2695,7 +2698,7 @@ function nettoyerHtml(h){
               <button data-c="justifyLeft" aria-label="Aligner à gauche">⇤</button><button data-c="justifyCenter" aria-label="Centrer">≡</button><button data-c="justifyRight" aria-label="Aligner à droite">⇥</button>
               <button data-c="insertUnorderedList" aria-label="Liste à puces">•</button>
               <span class="sep"></span>
-              <button id="rteLien" aria-label="Lien">🔗</button><button id="rteImg" aria-label="Image">🖼</button><button id="rteVid" aria-label="Vidéo">▶</button><button id="rteTab" aria-label="Tableau">▦</button>
+              <button id="rteLien" aria-label="Lien">🔗</button><button id="rteImg" aria-label="Image">🖼</button><button id="rteGif" aria-label="GIF animé" class="gifbtn">GIF</button><button id="rteVid" aria-label="Vidéo">▶</button><button id="rteTab" aria-label="Tableau">▦</button>
               <span class="sep"></span>
               <button data-c="undo" aria-label="Annuler">↶</button><button data-c="redo" aria-label="Rétablir">↷</button>
             </div>
@@ -2841,7 +2844,8 @@ function nettoyerHtml(h){
     // Options d'une image de la description (double-clic / double appui, ou bouton ⋮ Options)
     async function optionsImgDesc(cible){
       const src = cible.dataset.src || cible.getAttribute('src') || '';
-      const o = await menuListe(cible.src, 'Image de la description', [['ret', '✂️ Retoucher (recadrer, tourner, effacer le fond)'], ['ia', '✨ Modifier avec l’IA (ChatGPT ou assistant)'], ['rem', '📷 Remplacer par une photo du téléphone'], ['tel', '⬇️ Télécharger sur mon téléphone'], ['sup', '🗑 Retirer l’image', 'danger']]);
+      const gif = /#gif$|\.gif(\?|$)|^data:image\/gif/i.test(src) || /^data:image\/gif/.test(cible.src);
+      const o = await menuListe(cible.src, gif ? 'GIF animé' : 'Image de la description', gif ? [['tel', '⬇️ Télécharger sur mon téléphone'], ['sup', '🗑 Retirer le GIF', 'danger']] : [['ret', '✂️ Retoucher (recadrer, tourner, effacer le fond)'], ['ia', '✨ Modifier avec l’IA (ChatGPT ou assistant)'], ['rem', '📷 Remplacer par une photo du téléphone'], ['tel', '⬇️ Télécharger sur mon téléphone'], ['sup', '🗑 Retirer l’image', 'danger']]);
       if (o === 'ia') return iaPanneau('photo', {el: cible});
       if (o === 'rem'){ const fs = await choisirPhotos(false); if (fs[0]){ await remplacerImgDesc(cible, fs[0]); toast('✅ Image remplacée (pense à Enregistrer)'); } return; }
       if (o === 'tel') return telechargerPhoto(src, (P.nom || 'image') + '-description');
@@ -3083,6 +3087,28 @@ function nettoyerHtml(h){
             uploads[tok].then(url => { ed.querySelectorAll(`img[data-src="${tok}"]`).forEach(i => i.dataset.src = url); descHtml = descHtml.split(tok).join(url); }).catch(() => {});
           } catch(e){ alert('Photo illisible : ' + e.message); }
         }
+      };
+      // GIF animé : envoyé tel quel (jamais recompressé, sinon il ne bouge plus)
+      ed.querySelector('#rteGif').onclick = async () => {
+        garder();
+        const o = await menuListe('', 'Ajouter un GIF animé', [['tel', '📁 Choisir un GIF dans mon téléphone'], ['lien', '🔗 Coller le lien d’un GIF (Giphy, Tenor…)']]);
+        if (o === 'lien'){
+          const u = (prompt('Colle le lien du GIF (il doit finir par .gif, ou venir de Giphy / Tenor) :') || '').trim(); if (!/^https?:\/\//.test(u)) return;
+          const g = u.match(/giphy\.com\/(?:gifs|embed)\/(?:[\w-]*-)?(\w+)$/);
+          const src = g ? 'https://media.giphy.com/media/' + g[1] + '/giphy.gif' : u;
+          inserer(`<p style="text-align:center"><img src="${esc(src)}" data-src="${esc(src)}"></p><p><br></p>`); return;
+        }
+        if (o !== 'tel') return;
+        const f = await new Promise(ok => { const i = document.createElement('input'); i.type = 'file'; i.accept = 'image/gif'; i.onchange = () => ok(i.files[0]); i.click(); });
+        if (!f) return;
+        if (!/gif/i.test(f.type) && !/\.gif$/i.test(f.name)) return alert('Ce fichier n’est pas un GIF. Pour une photo, utilise le bouton 🖼.');
+        if (f.size > 15 * 1024 * 1024) return alert('Ce GIF est trop lourd (' + Math.round(f.size / 1048576) + ' Mo). Prends un GIF de moins de 15 Mo : il s’affichera plus vite chez tes clients.');
+        if (f.size > 6 * 1024 * 1024) toast('GIF un peu lourd : l’envoi peut prendre une minute');
+        try {
+          const tok = await fichierInstantane(new File([f], f.name, {type: 'image/gif'}), (P.nom || 'produit') + '-gif');
+          inserer(`<p style="text-align:center"><img src="${apercus[tok]}" data-src="${tok}#gif"></p><p><br></p>`);
+          uploads[tok].then(url => { ed.querySelectorAll(`img[data-src="${tok}#gif"]`).forEach(i => i.dataset.src = url + '#gif'); descHtml = descHtml.split(tok).join(url); }).catch(() => alert('Le GIF n’a pas pu être envoyé. Vérifie ta connexion et réessaie.'));
+        } catch(e){ alert(e.message); }
       };
       ed.querySelector('#rteVid').onclick = () => {
         const u = prompt('Colle le lien de la vidéo (YouTube, TikTok, Google Drive ou .mp4) :'); if (!u || !/^https?:\/\//.test(u.trim())) return;

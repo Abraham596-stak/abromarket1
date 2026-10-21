@@ -21,7 +21,7 @@ jobs:
           API=$(grep -oE 'https://script\.google\.com/macros/s/[A-Za-z0-9_-]+/exec' boutique/index.html | head -1)
           API="$API" python3 - <<'PY'
           import json, re, hashlib, io, os, urllib.request
-          from PIL import Image, ImageOps
+          from PIL import Image, ImageOps, ImageSequence
           API = os.environ['API']
           os.makedirs('boutique/img', exist_ok=True)
           os.makedirs('boutique/data', exist_ok=True)
@@ -48,6 +48,25 @@ jobs:
               if logo: urls.append(logo)
               imgs, imgsm = {}, {}
               for u in dict.fromkeys(u.strip() for u in urls if u and u.strip()):
+                  # GIF animé (marqué #gif) : WebP animé, plus léger, qui bouge toujours
+                  if u.endswith('#gif') or re.search(r'\.gif(\?|$)', u, re.I):
+                      nom = 'img/' + hashlib.sha1(u.encode()).hexdigest()[:14] + '-anim.webp'
+                      if not os.path.exists('boutique/' + nom):
+                          try:
+                              mg = re.search(r'drive\.google\.com/(?:file/d/|open\?id=|uc\?(?:export=\w+&)?id=)([\w-]{20,})', u)
+                              brut = lire('https://drive.google.com/uc?export=download&id=%s' % mg.group(1) if mg else u.split('#')[0])
+                              im = Image.open(io.BytesIO(brut))
+                              cadres, durees = [], []
+                              for fr in ImageSequence.Iterator(im):
+                                  c = fr.convert('RGBA'); c.thumbnail((1080, 1080), Image.LANCZOS)
+                                  cadres.append(c); durees.append(fr.info.get('duration', im.info.get('duration', 100)) or 100)
+                              cadres[0].save('boutique/' + nom, 'WEBP', save_all=True, append_images=cadres[1:], duration=durees, loop=0, quality=80, method=4)
+                              print('GIF animé :', u, '->', os.path.getsize('boutique/' + nom) // 1024, 'Ko,', len(cadres), 'images')
+                          except Exception as e:
+                              print('GIF ignoré :', u, e)
+                              continue
+                      imgs[u] = nom; imgsm[u] = nom
+                      continue
                   # v2 : images nettes (1600 px, qualité 88) et jamais rognées
                   nom = 'img/' + hashlib.sha1(u.encode()).hexdigest()[:14] + '-v2.webp'
                   chemin = 'boutique/' + nom
