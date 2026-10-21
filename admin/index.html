@@ -373,6 +373,31 @@ html.ordi .dvgrid{grid-template-columns:repeat(4,minmax(0,1fr))}
 .rtezone th{background:var(--surface)}
 .rtezone .vid{background:#111;color:#fff;border-radius:10px;padding:18px;text-align:center;font-weight:700;margin:6px 0 10px;word-break:break-all}
 .rtezone ul{padding-left:22px;margin:0 0 10px}
+.iah{display:flex;align-items:center;gap:8px;justify-content:space-between}
+.iah .lbl{margin-bottom:8px}.iah h3{margin-bottom:4px}
+.iab{flex:0 0 auto;background:var(--surface);color:var(--main);border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-size:13px;font-weight:800;white-space:nowrap}
+.blkh .iab{margin-left:auto;margin-right:8px;padding:3px 9px;font-size:12px}
+.iacard{padding:0;overflow:hidden}
+.ianote{display:flex;gap:12px;align-items:center;width:100%;text-align:left;padding:14px 16px;background:var(--surface)}
+.ianote>span{flex:0 0 40px;height:40px;border-radius:12px;background:var(--main);color:#fff;display:grid;place-items:center;font-size:19px}
+.ianote b{display:block;font-size:16px}.ianote small{display:block;color:var(--soft);font-size:13px;line-height:1.35;margin-top:2px}
+.iasheet h2{margin-bottom:10px}.iasheet .lbl small{font-weight:500;color:var(--soft)}
+.iasheet textarea{width:100%;min-height:110px;resize:vertical}
+.iaacts{margin-top:10px;border:1px solid var(--line);border-radius:14px;padding:4px}
+.iaacts>button{padding:12px 10px;font-size:15px}
+.iaacts>button:disabled{opacity:.45}
+.iaimg{display:block;max-width:100%;max-height:260px;margin:4px auto 12px;border-radius:12px;border:1px solid var(--line)}
+.iaload{display:flex;gap:10px;align-items:center;margin-top:14px;color:var(--soft);font-weight:700}
+.iaload .spin{width:18px;height:18px;border:3px solid var(--line);border-top-color:var(--main);border-radius:50%;animation:iasp 0.8s linear infinite}
+@keyframes iasp{to{transform:rotate(360deg)}}
+.iaerr{margin-top:14px;background:var(--surface);border-left:4px solid var(--main);border-radius:10px;padding:12px 14px;font-size:14.5px;line-height:1.45}
+.iaerr a{color:var(--main);font-weight:700}
+.iat{margin:14px 0 6px;font-weight:700}
+.iarow{display:flex;gap:10px;align-items:center;justify-content:space-between;width:100%;text-align:left;padding:12px;border:1px solid var(--line);border-radius:12px;margin-top:8px;background:#fff}
+.iarow b{color:var(--main);font-size:13.5px;white-space:nowrap}
+.iaprev{margin-top:14px;border:1px solid var(--line);border-radius:12px;padding:12px 14px;max-height:340px;overflow:auto;font-size:14.5px;line-height:1.5;background:#fff}
+.iaprev p{margin:0 0 8px}.iaprev ul{padding-left:20px}
+.iabilan{max-height:none}
 .phedit{position:absolute;top:4px;right:4px;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.92);font-size:19px;font-weight:800;line-height:1;box-shadow:0 2px 6px rgba(0,0,0,.2)}
 .ph img{object-fit:contain!important;background:#fff}
 /* Retouche photo */
@@ -1095,7 +1120,7 @@ function nettoyerHtml(h){
     const K = {wa: 'WhatsApp des commandes', apres: 'Après la commande (MERCI = page de remerciement / WHATSAPP = le client envoie sur WhatsApp)', mail: 'Email qui reçoit les commandes (vide = ton Gmail)',
       pre: 'Préfixe n° commande (optionnel)', reco: 'Nouvelle commande permise si la précédente est livrée (OUI/NON)', test: 'Numéros de test (jamais bloqués, séparés par des virgules)', preuves: 'Notifications de ventes sur le site (OUI/NON)',
       coul: 'Couleur principale', logo: 'Logo (lien image, optionnel)', band: 'Bandeau du haut', fb: 'Pixel Facebook (ID)', fbj: 'Jeton API Conversions Meta (optionnel)', fbt: 'Code test événements Meta (optionnel)',
-      nb: 'Bloc NB en bas du site (OUI/NON)', nbwa: 'WhatsApp affiché dans le NB', tt: 'Pixel TikTok (ID)', ttj: 'Jeton Events API TikTok (optionnel)', cmb: 'WhatsApp – clé CallMeBot (optionnel)', cmbn: 'WhatsApp – numéro qui reçoit les commandes (CallMeBot)', rel: 'Alerte de relance des abandons après (minutes, 0 = jamais)'};
+      iak: 'IA – clé Gemini (gratuite sur aistudio.google.com)', nb: 'Bloc NB en bas du site (OUI/NON)', nbwa: 'WhatsApp affiché dans le NB', tt: 'Pixel TikTok (ID)', ttj: 'Jeton Events API TikTok (optionnel)', cmb: 'WhatsApp – clé CallMeBot (optionnel)', cmbn: 'WhatsApp – numéro qui reçoit les commandes (CallMeBot)', rel: 'Alerte de relance des abandons après (minutes, 0 = jamais)'};
     const SECRET = /jeton|clé|cle /i, ph = k => sub && H[k] ? (SECRET.test(k) ? 'Vide = comme la principale (déjà rempli)' : 'Vide = comme la principale (' + H[k] + ')') : '';
     const champ = (k, lib, aide, type) => `<div class="rgc"><label for="rg_${String(k).replace(/\W/g, '')}">${lib}${aide ? `<small>${aide}</small>` : ''}</label><input class="field" id="rg_${String(k).replace(/\W/g, '')}" data-k="${esc(K[k] || k)}" ${type ? `type="${type}"` : ''} value="${esc(V[K[k] || k] || '')}" placeholder="${esc(ph(K[k] || k))}"></div>`;
     const ouiNon = (k, lib, aide) => { const v = String(V[K[k]] || (sub ? '' : '')).toUpperCase(); return `<div class="rgc"><label>${lib}${aide ? `<small>${aide}</small>` : ''}</label><select class="field" data-k="${esc(K[k])}">${sub ? `<option value="" ${!v ? 'selected' : ''}>Comme la principale${H[K[k]] ? ' (' + esc(H[K[k]]) + ')' : ''}</option>` : ''}<option value="OUI" ${v === 'OUI' ? 'selected' : ''}>Oui</option><option value="NON" ${v === 'NON' ? 'selected' : ''}>Non</option></select></div>`; };
@@ -1136,6 +1161,8 @@ function nettoyerHtml(h){
       ${champ('coul', 'Couleur principale', 'Ex : #1736A6')}
       ${champ('logo', 'Logo (lien d’une image)', 'Facultatif')}
       ${ouiNon('preuves', 'Notifications de ventes sur le site', '« Awa K. vient de commander… »')}
+      ${sub ? '' : `<h3 class="rgt">🤖 Assistant IA (pages produits)</h3>
+      ${champ('iak', 'Clé Gemini (gratuite)', 'Crée-la en 1 minute sur aistudio.google.com/app/apikey (bouton « Create API key »), puis colle-la ici. Elle sert à toutes tes boutiques et reste dans ton Google Sheets.', 'password')}`}
       <h3 class="rgt">📌 Bloc NB en bas du site</h3>
       ${(() => { const v = String(V[K.nb] || '').toUpperCase(), def = VENDOO ? 'NON' : 'OUI', cur = v || (sub ? '' : def);
         return `<div class="rgc"><label>Afficher le bloc NB<small>Jours de livraison, contact WhatsApp, conditions pour l’intérieur du pays</small></label><select class="field" data-k="${esc(K.nb)}">${sub ? `<option value="" ${!cur ? 'selected' : ''}>Comme la principale</option>` : ''}<option value="OUI" ${cur === 'OUI' ? 'selected' : ''}>Oui</option><option value="NON" ${cur === 'NON' ? 'selected' : ''}>Non</option></select></div>`; })()}
@@ -2604,15 +2631,17 @@ function nettoyerHtml(h){
           <button class="${P.enLigne ? 'on' : ''}" data-st="1">🟢 En ligne</button><button class="${!P.enLigne ? 'on' : ''}" data-st="0">📝 Brouillon</button></div>
           <p class="tag" style="margin-top:8px">${P.enLigne ? 'Visible sur le site par tes clients.' : 'Caché du site. Tu recevras un rappel chaque matin pour le mettre en ligne.'}</p></div>
 
-        <div class="card"><label class="lbl" for="eNom">Titre</label><input class="field" id="eNom" value="${esc(P.nom)}" placeholder="Ex : Calcium Complexe Premium">
-          <label class="lbl" for="eAcc">Accroche (sous le titre)</label><input class="field" id="eAcc" value="${esc(P.accroche)}" placeholder="Ex : Marcher enfin librement sans douleur"></div>
+        <div class="card iacard"><button class="ianote" data-ia="note"><span>✨</span><div><b>Un client achèterait-il ?</b><small>L’IA note ta page sur 10 et te dit quoi améliorer avant de la publier</small></div></button></div>
 
-        <div class="card"><h3>Photos</h3><p class="tag">La première photo est la photo principale.</p>
+        <div class="card"><div class="iah"><label class="lbl" for="eNom">Titre</label><button class="iab" data-ia="titre">✨ IA</button></div><input class="field" id="eNom" value="${esc(P.nom)}" placeholder="Ex : Calcium Complexe Premium">
+          <div class="iah"><label class="lbl" for="eAcc">Accroche (sous le titre)</label><button class="iab" data-ia="accroche">✨ IA</button></div><input class="field" id="eAcc" value="${esc(P.accroche)}" placeholder="Ex : Marcher enfin librement sans douleur"></div>
+
+        <div class="card"><div class="iah"><h3>Photos</h3><button class="iab" data-ia="photo">✨ IA</button></div><p class="tag">La première photo est la photo principale. Touche ⋮ sur une photo pour la retoucher, la modifier avec l’IA ou la télécharger.</p>
           <div class="phgrid">${P.photos.map((u, i) => `<div class="ph"><img src="${esc(img(u))}" alt=""><button class="phedit" data-pe="${i}" aria-label="Options de la photo">⋮</button><div class="phb">${i ? `<button data-pl="${i}" aria-label="Avancer">◀</button>` : ''}<button data-pd="${i}" aria-label="Supprimer">✕</button>${i < P.photos.length - 1 ? `<button data-pr="${i}" aria-label="Reculer">▶</button>` : ''}</div></div>`).join('')}
             <button class="ph add" id="phAdd">＋<span>Ajouter</span></button></div>
           <button class="lnk" id="phUrl">Ou coller le lien d'une photo</button></div>
 
-        <div class="card"><h3>Description</h3><p class="tag">Écris comme dans Shopify : gras, italique, alignement, liens, images, vidéos et tableaux. Touche une image pour la redimensionner ou la retoucher.</p>
+        <div class="card"><div class="iah"><h3>Description</h3><button class="iab" data-ia="description">✨ IA</button></div><p class="tag">Écris comme dans Shopify : gras, italique, alignement, liens, images, vidéos et tableaux. Touche une image pour la redimensionner ou la retoucher.</p>
           <div class="rte">
             <div class="rtebar" id="rteBar">
               <select id="rteBloc" aria-label="Style du texte"><option value="p">Paragraphe</option><option value="h2">Titre</option><option value="h3">Sous-titre</option></select>
@@ -2639,17 +2668,17 @@ function nettoyerHtml(h){
             <label>Offre : offerts<input class="field" inputmode="numeric" data-px="${k}|oo" value="${esc(x.oo || '')}" placeholder="ex : 1"></label><label>Offre : prix<input class="field" inputmode="numeric" data-px="${k}|op" value="${esc(x.op || '')}" placeholder="auto"></label></div>
             <button class="lnk" data-cp="${k}">Copier ces prix dans tous les pays ${esc(p.devise)}</button></details>`; }).join('')}</div>
 
-        <div class="card"><h3>Avantages</h3><textarea class="field" id="eAv" rows="4" placeholder="Un avantage par ligne">${esc(P.avantages)}</textarea>
-          <label class="lbl" for="eBo">Dans la boîte</label><textarea class="field" id="eBo" rows="2" placeholder="Un élément par ligne">${esc(P.boite)}</textarea>
+        <div class="card"><div class="iah"><h3>Avantages</h3><button class="iab" data-ia="avantages">✨ IA</button></div><textarea class="field" id="eAv" rows="4" placeholder="Un avantage par ligne">${esc(P.avantages)}</textarea>
+          <div class="iah"><label class="lbl" for="eBo">Dans la boîte</label><button class="iab" data-ia="boite">✨ IA</button></div><textarea class="field" id="eBo" rows="2" placeholder="Un élément par ligne">${esc(P.boite)}</textarea>
           <label class="lbl" for="eSt">Stock affiché (vide = caché)</label><input class="field" id="eSt" inputmode="numeric" value="${esc(P.stock)}"></div>
 
-        <div class="card"><h3>Questions fréquentes</h3>
+        <div class="card"><div class="iah"><h3>Questions fréquentes</h3><button class="iab" data-ia="faq">✨ IA</button></div>
           ${faq.map((f, i) => `<div class="blk"><div class="blkh"><span>Question ${i + 1}</span><button data-fx="${i}" aria-label="Supprimer">✕</button></div><input class="field" data-fq="${i}" value="${esc(f.q)}" placeholder="Question"><textarea class="field" data-fr="${i}" rows="2" placeholder="Réponse" style="margin-top:6px">${esc(f.r)}</textarea></div>`).join('')}
           <div class="addrow"><button id="fAdd">+ Ajouter une question</button></div></div>
 
         <div class="card"><h3>Avis clients</h3>
           <p class="tag">Pour chaque avis, mets ce que tu as : un texte, une capture d'écran WhatsApp, une note vocale ou une vidéo du client.</p>
-          ${P.avis.map((a, i) => `<div class="blk avblk"><div class="blkh"><span>Avis ${i + 1}</span><button data-ax="${i}" aria-label="Supprimer">✕</button></div>
+          ${P.avis.map((a, i) => `<div class="blk avblk"><div class="blkh"><span>Avis ${i + 1}</span><button class="iab" data-ia="avis" data-iai="${i}">✨ Reformuler</button><button data-ax="${i}" aria-label="Supprimer">✕</button></div>
             <div class="avtete"><button class="avatar2" data-amed="${i}|avatar" aria-label="Photo du client">${a.avatar ? `<img src="${esc(img(a.avatar))}" alt="">` : '👤<small>Photo</small>'}</button>
               <div class="avchamps"><input class="field" data-an="${i}" value="${esc(a.nom)}" placeholder="Nom (ex : Maman Rose)">
                 <div class="g2"><input class="field" data-aag="${i}" value="${esc(a.age || '')}" placeholder="Âge (ex : 53 ans)"><select class="field" data-ano="${i}">${[5,4,3,2,1].map(n => `<option value="${n}" ${Number(a.note) === n ? 'selected' : ''}>${'★'.repeat(n)}</option>`).join('')}</select></div></div></div>
@@ -2721,6 +2750,165 @@ function nettoyerHtml(h){
       }
       dessiner();
     }
+    // ---------- ✨ Assistant : ChatGPT (son propre compte) ou assistant intégré (sa clé Gemini gratuite) ----------
+    const IA_REGLES = 'Tu aides un vendeur en ligne (paiement à la livraison, clients d’Afrique francophone). Écris en français très simple, avec des phrases courtes, qu’un enfant de 10 ans comprend. Parle au client avec « vous ». Ne cite aucun pays ni aucune ville. N’invente rien sur le produit et ne promets pas de guérison. Réponds seulement avec le contenu demandé, sans introduction.';
+    const IA_T = {
+      note: {lib: 'Un client achèterait-il ?', type: 'note', photo: 0, consigne: 'Imagine que tu es un client qui arrive sur cette page produit après avoir vu une publicité. Sois honnête et exigeant.\n1. Donne une note sur 10.\n2. Dis clairement « J’achèterais » ou « Je n’achèterais pas », et pourquoi, en 2 phrases.\n3. Donne les 5 améliorations les plus importantes, de la plus urgente à la moins urgente. Pour chacune : ce qui ne va pas, puis exactement quoi écrire ou changer.\nRéponds en texte simple avec des tirets.'},
+      titre: {lib: 'Titre', type: 'liste', consigne: 'Propose 6 titres courts et accrocheurs pour ce produit (60 caractères maximum). Un titre par ligne, sans numéro.', mettre: v => P.nom = v},
+      accroche: {lib: 'Accroche', type: 'liste', consigne: 'Propose 6 accroches : une phrase courte, sous le titre, qui donne envie d’acheter tout de suite. Une par ligne, sans numéro.', mettre: v => P.accroche = v},
+      description: {lib: 'Description', type: 'html', consigne: 'Écris la description complète de la page produit, pour donner envie d’acheter maintenant : le problème du client, comment le produit l’aide, comment l’utiliser, pourquoi commander aujourd’hui (paiement à la livraison). Utilise des petits titres et des listes. Format : HTML simple avec seulement <h3>, <p>, <b>, <ul> et <li>.'},
+      avantages: {lib: 'Avantages', type: 'lignes', champ: 'avantages', consigne: 'Écris 4 avantages courts (6 à 10 mots) qui donnent envie d’acheter. Un par ligne, sans tiret ni numéro.'},
+      boite: {lib: 'Dans la boîte', type: 'lignes', champ: 'boite', consigne: 'Liste ce que le client reçoit dans son colis. Un élément par ligne, sans tiret.'},
+      faq: {lib: 'Questions fréquentes', type: 'faq', consigne: 'Écris les 6 questions que les clients posent le plus avant d’acheter ce produit, avec une réponse courte et rassurante. Une ligne par question, exactement comme ceci : Question ? >> Réponse'},
+      avis: {lib: 'Avis du client', type: 'texte', consigne: 'Voici l’avis d’un vrai client. Corrige les fautes et rends-le facile à lire, SANS changer ce qu’il veut dire et sans rien ajouter. Garde sa façon de parler, à la première personne. Réponds seulement avec l’avis corrigé.'},
+      photo: {lib: 'Photo', type: 'image', consigne: 'Améliore cette photo de produit pour une boutique en ligne : fond propre et clair, belle lumière, produit net et bien centré. Ne change pas le produit ni son emballage. N’ajoute aucun texte.'}
+    };
+    const texteSeul = h => String(h || '').replace(/<\/(p|h\d|li)>/gi, '\n').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/[ \t]+/g, ' ').replace(/\n\s*/g, '\n').trim();
+    function iaContexte(){
+      lire();
+      const px = P.prix.find(x => String(x.p1 || '').trim());
+      return [ 'Nom : ' + (P.nom || '(pas encore de titre)'), P.accroche && 'Accroche : ' + P.accroche,
+        px && 'Prix : ' + px.p1 + (px.ancien ? ' (au lieu de ' + px.ancien + ')' : ''),
+        P.avantages && 'Avantages : ' + P.avantages.split(/\n/).filter(Boolean).join(' ; '),
+        texteSeul(descHtml) && 'Description actuelle :\n' + texteSeul(descHtml).slice(0, 5000),
+        P.boite && 'Dans la boîte : ' + P.boite.split(/\n/).filter(Boolean).join(' ; '),
+        faq.filter(f => f.q).length && 'Questions fréquentes : ' + faq.filter(f => f.q).map(f => f.q + ' → ' + f.r).join(' | '),
+        'Nombre d’avis clients : ' + P.avis.length, 'Photos : ' + P.photos.length, 'Le client paie à la livraison.' ].filter(Boolean).join('\n');
+    }
+    async function iaPhoto(u){
+      try {
+        const b = await blobDe(apercus[u] || vignette(u, 1400)), bm = await createImageBitmap(b), k = Math.min(1, 1280 / Math.max(bm.width, bm.height));
+        const c = document.createElement('canvas'); c.width = Math.round(bm.width * k); c.height = Math.round(bm.height * k);
+        const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(bm, 0, 0, c.width, c.height);
+        const d = c.toDataURL('image/jpeg', .88), blob = await (await fetch(d)).blob();
+        return {b64: d.split(',')[1], mime: 'image/jpeg', file: new File([blob], 'photo-produit.jpg', {type: 'image/jpeg'})};
+      } catch(e){ return null; }
+    }
+    async function remplacerPhoto(i, file){
+      lire(); const tok = await photoInstantanee(file, P.nom || 'produit');
+      if (i == null || i < 0) P.photos.push(tok); else P.photos[i] = tok; sale = true;
+      uploads[tok].then(url => { P.photos = P.photos.map(u => u === tok ? url : u); }).catch(() => {});
+      dessiner();
+    }
+    const lignesPropres = t => String(t || '').split(/\n/).map(l => l.replace(/^\s*(\d+\s*[.)\-:]|[-*•–])\s*/, '').replace(/\*\*/g, '').replace(/^["«“]\s*|\s*["»”]$/g, '').trim()).filter(l => l && !/^(voici|bien sûr|titres?|accroches?)\b.*:$/i.test(l));
+    function enHtml(t){
+      t = String(t || '').replace(/^```(html)?|```$/gim, '').trim();
+      if (BAL_HTML.test(t) || /&lt;(p|h\d|ul)\b/i.test(t)) return nettoyerHtml(decoderHtml(t)).replace(/<\/?(html|body|head)[^>]*>/gi, '');
+      let h = '', ul = false;
+      t.split(/\n/).forEach(l => {
+        const x = l.trim(); const gras = s => esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+        if (/^[-*•]\s+/.test(x)){ if (!ul){ h += '<ul>'; ul = true; } h += '<li>' + gras(x.replace(/^[-*•]\s+/, '')) + '</li>'; return; }
+        if (ul){ h += '</ul>'; ul = false; }
+        if (!x) return;
+        if (/^#{1,6}\s+/.test(x)) h += '<h3>' + gras(x.replace(/^#+\s+/, '')) + '</h3>'; else h += '<p>' + gras(x) + '</p>';
+      });
+      return h + (ul ? '</ul>' : '');
+    }
+    function enFaq(t){
+      const L = String(t || '').split(/\n/).map(l => l.replace(/\*\*/g, '').trim()).filter(Boolean), out = [];
+      for (let k = 0; k < L.length; k++){
+        const l = L[k].replace(/^\s*(\d+\s*[.)]|[-*•])\s*/, '');
+        if (l.includes('>>')){ const [q, ...r] = l.split('>>'); out.push({q: q.trim(), r: r.join('>>').trim()}); continue; }
+        if (/\?\s*$/.test(l) && L[k + 1] && !/\?\s*$/.test(L[k + 1])){ out.push({q: l.replace(/^(q(uestion)?\s*\d*\s*[:.-])\s*/i, ''), r: L[k + 1].replace(/^(r(éponse)?\s*[:.-])\s*/i, '')}); k++; }
+      }
+      return out.filter(f => f.q && f.r);
+    }
+    async function versChatGPT(texte, fichier){
+      try { await navigator.clipboard.writeText(texte); } catch(e){}
+      if (fichier && !html_ordi() && navigator.canShare && navigator.canShare({files: [fichier]})){
+        try { await navigator.share({files: [fichier], text: texte}); toast('Choisis ChatGPT dans la liste'); return; } catch(e){ if (e && e.name === 'AbortError') return; }
+      }
+      if (fichier){ const a = document.createElement('a'); a.href = URL.createObjectURL(fichier); a.download = fichier.name; document.body.appendChild(a); a.click(); a.remove(); }
+      window.open('https://chatgpt.com/?q=' + encodeURIComponent(texte.slice(0, 7000)), '_blank', 'noopener');
+      toast(fichier ? 'Dans ChatGPT, ajoute la photo téléchargée avec 📎' : 'Ta demande est prête dans ChatGPT (aussi copiée)');
+    }
+    async function iaPanneau(cle, x){
+      x = x || {}; lire();
+      const T = IA_T[cle]; if (!T) return;
+      let consigne = T.consigne;
+      if (cle === 'avis'){ const a = P.avis[x.avis] || {}; if (!String(a.texte || '').trim()) return alert('Écris d’abord le texte de cet avis (ce que le client a dit), puis l’IA le rendra plus clair.'); consigne += '\n\nAvis du client :\n' + a.texte; }
+      const iPhoto = cle === 'photo' ? (x.photo != null ? x.photo : 0) : T.photo;
+      const ov = document.createElement('div'); ov.className = 'overlay'; ov.style.zIndex = 280;
+      ov.innerHTML = `<div class="detail bqsheet iasheet" role="dialog" aria-modal="true"><div class="grab"></div>
+        <h2>✨ ${esc(T.lib)}</h2>
+        ${cle === 'photo' && P.photos[iPhoto] ? `<img class="iaimg" src="${esc(img(P.photos[iPhoto]))}" alt="">` : ''}
+        ${cle === 'photo' && !P.photos.length ? '<p class="sub">Pas encore de photo : décris l’image que tu veux, l’IA la crée.</p>' : ''}
+        <label class="lbl" for="iaQ">Ta demande <small>(tu peux la changer ou ajouter des détails)</small></label>
+        <textarea class="field" id="iaQ" rows="5">${esc(cle === 'photo' && !P.photos.length ? 'Crée une belle photo de ce produit pour une boutique en ligne, sur fond clair, sans texte.' : consigne)}</textarea>
+        <div class="pmsheet iaacts">
+          <button data-a="ici">✨ Générer ici, dans l’application</button>
+          <button data-a="gpt">🤖 Ouvrir dans mon ChatGPT</button>
+          <button data-a="coller">${T.type === 'image' ? '📷 Mettre la photo faite par ChatGPT' : '📋 Coller la réponse de ChatGPT'}</button>
+        </div>
+        <div id="iaR"></div>
+        <button class="btn ghost" id="iaX" style="margin-top:10px">Fermer</button></div>`;
+      document.body.appendChild(ov);
+      const R = ov.querySelector('#iaR'), Q = ov.querySelector('#iaQ'), fermerIA = () => ov.remove();
+      ov.onclick = e => { if (e.target === ov) fermerIA(); };
+      ov.querySelector('#iaX').onclick = fermerIA;
+      const fini = msg => { fermerIA(); toast(msg || '✅ Ajouté au produit (pense à Enregistrer)'); };
+      const montrer = t => {
+        t = String(t || '').trim(); if (!t) { R.innerHTML = '<div class="iaerr">Réponse vide.</div>'; return; }
+        const copier = `<button class="lnk" data-c="1">📋 Copier le texte</button>`;
+        if (T.type === 'liste'){
+          const L = lignesPropres(t).slice(0, 12);
+          R.innerHTML = `<p class="iat">Touche celle que tu veux :</p>${L.map((l, k) => `<button class="iarow" data-u="${k}"><span>${esc(l)}</span><b>Utiliser</b></button>`).join('')}`;
+          R.querySelectorAll('[data-u]').forEach(b => b.onclick = () => { lire(); T.mettre(L[+b.dataset.u]); sale = true; dessiner(); fini(); });
+        } else if (T.type === 'html'){
+          const h = enHtml(t);
+          R.innerHTML = `<div class="iaprev rtezone">${h}</div><div class="pmsheet iaacts"><button data-m="rem">✅ Remplacer la description</button><button data-m="aj">➕ Ajouter à la fin</button></div>${copier}`;
+          R.querySelectorAll('[data-m]').forEach(b => b.onclick = () => { lire(); descHtml = b.dataset.m === 'rem' ? h : (descVide(descHtml) ? '' : descHtml) + h; sale = true; dessiner(); fini(); });
+        } else if (T.type === 'lignes'){
+          const L = lignesPropres(t);
+          R.innerHTML = `<ul class="iaprev">${L.map(l => `<li>${esc(l)}</li>`).join('')}</ul><div class="pmsheet iaacts"><button data-m="rem">✅ Remplacer</button><button data-m="aj">➕ Ajouter à la suite</button></div>${copier}`;
+          R.querySelectorAll('[data-m]').forEach(b => b.onclick = () => { lire(); const v = L.join('\n'); P[T.champ] = b.dataset.m === 'rem' || !String(P[T.champ] || '').trim() ? v : String(P[T.champ]).trim() + '\n' + v; sale = true; dessiner(); fini(); });
+        } else if (T.type === 'faq'){
+          const F = enFaq(t);
+          if (!F.length){ R.innerHTML = `<div class="iaerr">Je n’ai pas trouvé de questions dans cette réponse. Demande le format « Question ? >> Réponse ».</div>${copier}`; }
+          else {
+            R.innerHTML = `<div class="iaprev">${F.map(f => `<p><b>${esc(f.q)}</b><br>${esc(f.r)}</p>`).join('')}</div><div class="pmsheet iaacts"><button data-m="rem">✅ Remplacer les questions</button><button data-m="aj">➕ Ajouter aux questions</button></div>${copier}`;
+            R.querySelectorAll('[data-m]').forEach(b => b.onclick = () => { lire(); const garde = faq.filter(f => f.q.trim()); faq.length = 0; (b.dataset.m === 'rem' ? F : garde.concat(F)).forEach(f => faq.push(f)); sale = true; dessiner(); fini(); });
+          }
+        } else if (T.type === 'texte'){
+          R.innerHTML = `<div class="iaprev">${esc(t).replace(/\n/g, '<br>')}</div><div class="pmsheet iaacts"><button data-m="rem">✅ Remplacer le texte de l’avis</button></div>${copier}`;
+          R.querySelector('[data-m]').onclick = () => { lire(); P.avis[x.avis].texte = t; sale = true; dessiner(); fini(); };
+        } else {
+          R.innerHTML = `<div class="iaprev iabilan">${esc(t).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>')}</div>${copier}`;
+        }
+        const c = R.querySelector('[data-c]'); if (c) c.onclick = async () => { try { await navigator.clipboard.writeText(t); toast('📋 Copié'); } catch(e){ prompt('Copie ce texte :', t); } };
+      };
+      ov.querySelectorAll('[data-a]').forEach(b => b.onclick = async () => {
+        const a = b.dataset.a, demande = Q.value.trim(); if (!demande && a !== 'coller') return Q.focus();
+        if (a === 'gpt'){
+          const ph = iPhoto != null && P.photos[iPhoto] ? await iaPhoto(P.photos[iPhoto]) : null;
+          const dem = T.type === 'html' ? demande.replace(/Format : HTML simple avec seulement <h3>, <p>, <b>, <ul> et <li>\./, 'Format : petits titres qui commencent par ##, listes avec des tirets, mots importants en **gras**.') : demande;
+          const texte = T.type === 'image' ? demande + (P.nom ? '\n\nProduit : ' + P.nom : '') : IA_REGLES + '\n\n=== LE PRODUIT ===\n' + iaContexte() + '\n\n=== CE QUE JE VEUX ===\n' + dem + (ph ? '\n\n(La photo principale du produit est jointe.)' : '');
+          await versChatGPT(texte, ph && ph.file);
+          return;
+        }
+        if (a === 'coller'){
+          if (T.type === 'image'){ const fs = await choisirPhotos(false); if (!fs[0]) return; fermerIA(); remplacerPhoto(cle === 'photo' && P.photos.length ? iPhoto : -1, fs[0]); toast('✅ Photo mise (pense à Enregistrer)'); return; }
+          let t = ''; try { t = await navigator.clipboard.readText(); } catch(e){}
+          if (!t) t = prompt('Colle ici la réponse de ChatGPT :') || '';
+          if (t.trim()) montrer(t); return;
+        }
+        // Assistant intégré (clé Gemini gratuite de la boutique)
+        R.innerHTML = `<div class="iaload"><span class="spin"></span> ${T.type === 'image' ? 'L’IA prépare la photo… (jusqu’à 1 minute)' : 'L’IA écrit…'}</div>`;
+        ov.querySelectorAll('[data-a]').forEach(z => z.disabled = true);
+        try {
+          const ph = iPhoto != null && P.photos[iPhoto] ? await iaPhoto(P.photos[iPhoto]) : null;
+          const j = await call({type: 'ia', action: 'ia', mode: T.type === 'image' ? 'image' : 'texte', consigne: demande, contexte: T.type === 'image' ? 'Nom : ' + P.nom : iaContexte(), image: ph ? {b64: ph.b64, mime: ph.mime} : null});
+          if (j.sansCle){ R.innerHTML = `<div class="iaerr"><b>L’assistant intégré n’est pas encore branché.</b><br>Il est gratuit : crée ta clé sur <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">aistudio.google.com</a> (bouton « Create API key »), puis colle-la dans <b>Mes boutiques → ⋮ → Réglages → Assistant IA</b>.<br><br>En attendant, utilise « Ouvrir dans mon ChatGPT ».</div>`; }
+          else if (T.type === 'image'){
+            const bin = atob(j.image.b64), u8 = new Uint8Array(bin.length); for (let k = 0; k < bin.length; k++) u8[k] = bin.charCodeAt(k);
+            const f = new File([u8], 'photo-ia.' + (/png/.test(j.image.mime) ? 'png' : 'jpg'), {type: j.image.mime}), url = URL.createObjectURL(f);
+            R.innerHTML = `<img class="iaimg" src="${url}" alt=""><div class="pmsheet iaacts">${P.photos.length ? '<button data-m="rem">✅ Remplacer la photo</button>' : ''}<button data-m="aj">➕ Ajouter comme nouvelle photo</button></div>`;
+            R.querySelectorAll('[data-m]').forEach(b2 => b2.onclick = () => { fermerIA(); remplacerPhoto(b2.dataset.m === 'rem' ? iPhoto : -1, f); toast('✅ Photo ajoutée (pense à Enregistrer)'); });
+          } else montrer(j.texte);
+        } catch(e){ R.innerHTML = `<div class="iaerr">${esc(e.message)}</div>`; }
+        ov.querySelectorAll('[data-a]').forEach(z => z.disabled = false);
+      });
+    }
     function lier(){
       ed.querySelector('#edX').onclick = () => fermer();
       ed.querySelectorAll('[data-st]').forEach(b => b.onclick = maj(() => P.enLigne = b.dataset.st === '1'));
@@ -2730,9 +2918,12 @@ function nettoyerHtml(h){
       ed.querySelector('#phAdd').onclick = e => ajouterImages('photos', e.currentTarget);
       ed.querySelector('#phUrl').onclick = () => { const u = prompt('Colle le lien de la photo :'); if (u && /^https?:\/\//.test(u.trim())) maj(() => P.photos.push(u.trim()))(); };
       lierDesc();
+      ed.querySelectorAll('[data-ia]').forEach(b => b.onclick = e => { e.preventDefault(); iaPanneau(b.dataset.ia, b.dataset.iai != null ? {avis: +b.dataset.iai} : {}); });
       ed.querySelectorAll('[data-pe]').forEach(b => b.onclick = async () => {
         const i = +b.dataset.pe;
-        const o = await menuListe(img(P.photos[i]), 'Photo ' + (i + 1), [['ret', '✂️ Retoucher (recadrer, tourner, effacer le fond)'], ['tel', '⬇️ Télécharger sur mon téléphone'], ['sup', '🗑 Retirer la photo', 'danger']]);
+        const o = await menuListe(img(P.photos[i]), 'Photo ' + (i + 1), [['ret', '✂️ Retoucher (recadrer, tourner, effacer le fond)'], ['ia', '✨ Modifier avec l’IA (ChatGPT ou assistant)'], ['rem', '📷 Remplacer par une photo du téléphone'], ['tel', '⬇️ Télécharger sur mon téléphone'], ['sup', '🗑 Retirer la photo', 'danger']]);
+        if (o === 'ia') return iaPanneau('photo', {photo: i});
+        if (o === 'rem'){ const fs = await choisirPhotos(false); if (fs[0]) remplacerPhoto(i, fs[0]); return; }
         if (o === 'tel') return telechargerPhoto(P.photos[i], (P.nom || 'photo') + '-' + (i + 1));
         if (o === 'sup'){ if (await confirmer({titre: 'Retirer cette photo ?', texte: 'La photo sera retirée du produit quand tu enregistreras.', ok: 'Retirer la photo'})) maj(() => P.photos.splice(i, 1))(); return; }
         if (o !== 'ret') return;
