@@ -2553,8 +2553,13 @@ function nettoyerHtml(h){
     });
   }
   async function blobDe(src){
-    if (/^data:/.test(src)) return (await fetch(src)).blob();
-    const r = await fetch(src, {mode: 'cors'}); if (!r.ok) throw new Error('photo inaccessible'); return r.blob();
+    if (/^data:|^blob:/.test(src)) return (await fetch(src)).blob();
+    try { const r = await fetch(src, {mode: 'cors'}); if (r.ok) return await r.blob(); } catch(e){}
+    // Photo Google Drive (ou site qui bloque) : le serveur la récupère pour nous
+    let j; try { j = await call({type: 'ia', action: 'photo', mode: 'photo', url: src}); } catch(e){ throw new Error('photo inaccessible'); }
+    if (!j || !j.b64) throw new Error('photo inaccessible');
+    const bin = atob(j.b64), u8 = new Uint8Array(bin.length); for (let k = 0; k < bin.length; k++) u8[k] = bin.charCodeAt(k);
+    return new Blob([u8], {type: j.mime || 'image/jpeg'});
   }
   // Menu vertical d'options (⋮) : renvoie la clé choisie, ou null
   function menuListe(image, titre, options){
@@ -2681,7 +2686,7 @@ function nettoyerHtml(h){
             <button class="ph add" id="phAdd">＋<span>Ajouter</span></button></div>
           <button class="lnk" id="phUrl">Ou coller le lien d'une photo</button></div>
 
-        <div class="card"><div class="iah"><h3>Description</h3><button class="iab" data-ia="description">✨ IA</button></div><p class="tag">Écris comme dans Shopify : gras, italique, alignement, liens, images, vidéos et tableaux. Touche une image pour la redimensionner ou la retoucher.</p>
+        <div class="card"><div class="iah"><h3>Description</h3><button class="iab" data-ia="description">✨ IA</button></div><p class="tag">Écris comme dans Shopify : gras, italique, alignement, liens, images, vidéos et tableaux. Touche une image pour la redimensionner ; touche-la 2 fois (double-clic sur ordinateur) pour la modifier avec l’IA, la remplacer ou la télécharger.</p>
           <div class="rte">
             <div class="rtebar" id="rteBar">
               <select id="rteBloc" aria-label="Style du texte"><option value="p">Paragraphe</option><option value="h2">Titre</option><option value="h3">Sous-titre</option></select>
@@ -2695,7 +2700,7 @@ function nettoyerHtml(h){
               <button data-c="undo" aria-label="Annuler">↶</button><button data-c="redo" aria-label="Rétablir">↷</button>
             </div>
             <div class="rteimg hidden" id="rteImgBar"><span>Image :</span><button data-iw="100%">100 %</button><button data-iw="75%">75 %</button><button data-iw="50%">50 %</button><button data-iw="33%">33 %</button>
-              <button data-ia="left">⇤</button><button data-ia="center">≡</button><button data-ia="right">⇥</button><button id="rteRet">✏️ Retoucher</button><button id="rteDel">🗑</button></div>
+              <button data-ia="left">⇤</button><button data-ia="center">≡</button><button data-ia="right">⇥</button><button id="rteOpt">⋮ Options</button><button id="rteRet">✏️ Retoucher</button><button id="rteDel">🗑</button></div>
             <div class="rtetab hidden" id="rteTabBar"><span>Tableau :</span><button id="tbL">+ Ligne</button><button id="tbC">+ Colonne</button><button id="tbX">Supprimer le tableau</button></div>
             <div class="rtezone" id="eDesc" contenteditable="true" spellcheck="true"></div>
           </div></div>
@@ -2825,6 +2830,24 @@ function nettoyerHtml(h){
         return {b64: d.split(',')[1], mime: 'image/jpeg', file: new File([blob], 'photo-produit.jpg', {type: 'image/jpeg'})};
       } catch(e){ return null; }
     }
+    async function remplacerImgDesc(cible, file){
+      const ancien = cible.dataset.src || cible.getAttribute('src') || '';
+      const tok = await photoInstantanee(file, P.nom || 'produit');
+      if (cible.isConnected){ cible.src = apercus[tok]; cible.dataset.src = tok; }
+      else { lire(); descHtml = descHtml.split(ancien).join(tok); dessiner(); }
+      sale = true;
+      uploads[tok].then(url => { ed.querySelectorAll(`img[data-src="${tok}"]`).forEach(i => i.dataset.src = url); descHtml = descHtml.split(tok).join(url); }).catch(() => {});
+    }
+    // Options d'une image de la description (double-clic / double appui, ou bouton ⋮ Options)
+    async function optionsImgDesc(cible){
+      const src = cible.dataset.src || cible.getAttribute('src') || '';
+      const o = await menuListe(cible.src, 'Image de la description', [['ret', '✂️ Retoucher (recadrer, tourner, effacer le fond)'], ['ia', '✨ Modifier avec l’IA (ChatGPT ou assistant)'], ['rem', '📷 Remplacer par une photo du téléphone'], ['tel', '⬇️ Télécharger sur mon téléphone'], ['sup', '🗑 Retirer l’image', 'danger']]);
+      if (o === 'ia') return iaPanneau('photo', {el: cible});
+      if (o === 'rem'){ const fs = await choisirPhotos(false); if (fs[0]){ await remplacerImgDesc(cible, fs[0]); toast('✅ Image remplacée (pense à Enregistrer)'); } return; }
+      if (o === 'tel') return telechargerPhoto(src, (P.nom || 'image') + '-description');
+      if (o === 'sup'){ if (!(await confirmer({titre: 'Retirer cette image ?', texte: 'Elle sera retirée de la description quand tu enregistreras.', ok: 'Retirer l’image'}))) return; const p = cible.parentNode; cible.remove(); if (p && p.tagName === 'P' && !p.textContent.trim() && !p.querySelector('img')) p.remove(); sale = true; return; }
+      if (o === 'ret'){ const f = await retoucher(cible.src); if (f){ await remplacerImgDesc(cible, f); toast('✅ Image retouchée (pense à Enregistrer)'); } }
+    }
     async function remplacerPhoto(i, file){
       lire(); const tok = await photoInstantanee(file, P.nom || 'produit');
       if (i == null || i < 0) P.photos.push(tok); else P.photos[i] = tok; sale = true;
@@ -2869,13 +2892,19 @@ function nettoyerHtml(h){
       let consigne = T.consigne;
       if (cle === 'avis'){ const a = P.avis[x.avis] || {}; if (!String(a.texte || '').trim()) return alert('Écris d’abord le texte de cet avis (ce que le client a dit), puis l’IA le rendra plus clair.'); consigne += '\n\nAvis du client :\n' + a.texte; }
       const iPhoto = cle === 'photo' ? (x.photo != null ? x.photo : 0) : T.photo;
+      // Image de la description (double-clic dans l'éditeur) : on la modifie et on la remplace à sa place
+      const el = x.el || null;
+      const srcPh = el ? (el.dataset.src || el.getAttribute('src')) : (iPhoto != null ? P.photos[iPhoto] : null);
+      const aPhotos = el ? true : P.photos.length > 0;
+      const poser = (f, ajout) => el && !ajout ? remplacerImgDesc(el, f) : remplacerPhoto(ajout ? -1 : iPhoto, f);
+      if (el) consigne = 'Modifie cette image de ma page produit pour qu’elle soit plus belle et plus professionnelle. Garde le même sujet, le même style et les mêmes couleurs. Si l’image contient du texte, garde exactement le même texte en français (corrige seulement les fautes) et rends-le bien lisible. Améliore la netteté et la lumière. Format carré 1080 × 1080. Ne mets aucun pays, aucune ville, aucun logo de marque.';
       const ov = document.createElement('div'); ov.className = 'overlay'; ov.style.zIndex = 280;
       ov.innerHTML = `<div class="detail bqsheet iasheet" role="dialog" aria-modal="true"><div class="grab"></div>
-        <h2>✨ ${esc(T.lib)}</h2>
-        ${cle === 'photo' && P.photos[iPhoto] ? `<img class="iaimg" src="${esc(img(P.photos[iPhoto]))}" alt="">` : ''}
-        ${cle === 'photo' && !P.photos.length ? '<p class="sub">Pas encore de photo : décris l’image que tu veux, l’IA la crée.</p>' : ''}
+        <h2>✨ ${esc(el ? 'Image de la description' : T.lib)}</h2>
+        ${cle === 'photo' && srcPh ? `<img class="iaimg" src="${esc(el ? el.src : img(srcPh))}" alt="">` : ''}
+        ${cle === 'photo' && !aPhotos ? '<p class="sub">Pas encore de photo : décris l’image que tu veux, l’IA la crée.</p>' : ''}
         <label class="lbl" for="iaQ">Ta demande <small>(tu peux la changer ou ajouter des détails)</small></label>
-        <textarea class="field" id="iaQ" rows="5">${esc(cle === 'photo' && !P.photos.length ? 'Crée une belle photo de ce produit pour une boutique en ligne, sur fond clair, sans texte.' : consigne)}</textarea>
+        <textarea class="field" id="iaQ" rows="5">${esc(cle === 'photo' && !aPhotos ? 'Crée une belle photo de ce produit pour une boutique en ligne, sur fond clair, sans texte.' : consigne)}</textarea>
         <div class="pmsheet iaacts">
           <button data-a="ici">✨ Générer ici, dans l’application</button>
           <button data-a="gpt">🤖 Ouvrir dans mon ChatGPT</button>
@@ -2921,14 +2950,14 @@ function nettoyerHtml(h){
       ov.querySelectorAll('[data-a]').forEach(b => b.onclick = async () => {
         const a = b.dataset.a, demande = Q.value.trim(); if (!demande && a !== 'coller') return Q.focus();
         if (a === 'gpt'){
-          const ph = iPhoto != null && P.photos[iPhoto] ? await iaPhoto(P.photos[iPhoto]) : null;
+          const ph = srcPh ? await iaPhoto(srcPh) : null;
           const dem = T.type === 'html' ? demande.replace(/Format : HTML simple avec seulement <h3>, <p>, <b>, <ul> et <li>\./, 'Format : petits titres qui commencent par ##, listes avec des tirets, mots importants en **gras**.') : demande;
           const texte = T.type === 'image' ? demande + (P.nom ? '\n\nProduit : ' + P.nom : '') : IA_REGLES + '\n\n=== LE PRODUIT ===\n' + iaContexte() + '\n\n=== CE QUE JE VEUX ===\n' + dem + (ph ? '\n\n(La photo principale du produit est jointe.)' : '');
           await versChatGPT(texte, ph && ph.file);
           return;
         }
         if (a === 'coller'){
-          if (T.type === 'image'){ const fs = await choisirPhotos(false); if (!fs[0]) return; fermerIA(); remplacerPhoto(cle === 'photo' && P.photos.length ? iPhoto : -1, fs[0]); toast('✅ Photo mise (pense à Enregistrer)'); return; }
+          if (T.type === 'image'){ const fs = await choisirPhotos(false); if (!fs[0]) return; fermerIA(); poser(fs[0], !aPhotos); toast('✅ Photo mise (pense à Enregistrer)'); return; }
           let t = ''; try { t = await navigator.clipboard.readText(); } catch(e){}
           if (!t) t = prompt('Colle ici la réponse de ChatGPT :') || '';
           if (t.trim()) montrer(t); return;
@@ -2937,14 +2966,14 @@ function nettoyerHtml(h){
         R.innerHTML = `<div class="iaload"><span class="spin"></span> ${T.type === 'image' ? 'L’IA prépare la photo… (jusqu’à 1 minute)' : 'L’IA écrit…'}</div>`;
         ov.querySelectorAll('[data-a]').forEach(z => z.disabled = true);
         try {
-          const ph = iPhoto != null && P.photos[iPhoto] ? await iaPhoto(P.photos[iPhoto]) : null;
+          const ph = srcPh ? await iaPhoto(srcPh) : null;
           const j = await call({type: 'ia', action: 'ia', mode: T.type === 'image' ? 'image' : 'texte', consigne: demande, contexte: T.type === 'image' ? 'Nom : ' + P.nom : iaContexte(), image: ph ? {b64: ph.b64, mime: ph.mime} : null});
           if (j.sansCle){ R.innerHTML = `<div class="iaerr"><b>L’assistant intégré n’est pas encore branché.</b><br>Il est gratuit : crée ta clé sur <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">aistudio.google.com</a> (bouton « Create API key »), puis colle-la dans <b>Réglages (⚙️ en bas) → 🤖 Assistant IA → Brancher</b>.<br><br>En attendant, utilise « Ouvrir dans mon ChatGPT ».</div>`; }
           else if (T.type === 'image'){
             const bin = atob(j.image.b64), u8 = new Uint8Array(bin.length); for (let k = 0; k < bin.length; k++) u8[k] = bin.charCodeAt(k);
             const f = new File([u8], 'photo-ia.' + (/png/.test(j.image.mime) ? 'png' : 'jpg'), {type: j.image.mime}), url = URL.createObjectURL(f);
-            R.innerHTML = `<img class="iaimg" src="${url}" alt=""><div class="pmsheet iaacts">${P.photos.length ? '<button data-m="rem">✅ Remplacer la photo</button>' : ''}<button data-m="aj">➕ Ajouter comme nouvelle photo</button></div>`;
-            R.querySelectorAll('[data-m]').forEach(b2 => b2.onclick = () => { fermerIA(); remplacerPhoto(b2.dataset.m === 'rem' ? iPhoto : -1, f); toast('✅ Photo ajoutée (pense à Enregistrer)'); });
+            R.innerHTML = `<img class="iaimg" src="${url}" alt=""><div class="pmsheet iaacts">${aPhotos ? `<button data-m="rem">✅ Remplacer ${el ? 'l’image de la description' : 'la photo'}</button>` : ''}${el ? '' : '<button data-m="aj">➕ Ajouter comme nouvelle photo</button>'}</div>`;
+            R.querySelectorAll('[data-m]').forEach(b2 => b2.onclick = () => { fermerIA(); poser(f, b2.dataset.m !== 'rem'); toast('✅ Image mise (pense à Enregistrer)'); });
           } else montrer(j.texte);
         } catch(e){ R.innerHTML = `<div class="iaerr">${esc(e.message)}</div>`; }
         ov.querySelectorAll('[data-a]').forEach(z => z.disabled = false);
@@ -3033,6 +3062,10 @@ function nettoyerHtml(h){
       };
       z.addEventListener('click', e => { z.querySelectorAll('img.sel').forEach(i => i.classList.remove('sel')); selImg = e.target.tagName === 'IMG' ? e.target : null; if (selImg) selImg.classList.add('sel'); majBarres(); });
       z.addEventListener('keyup', majBarres);
+      // Double-clic (ordinateur) ou double appui (téléphone) sur une image : ses options
+      z.addEventListener('dblclick', e => { if (e.target.tagName === 'IMG'){ e.preventDefault(); optionsImgDesc(e.target); } });
+      let dernierAppui = 0, dernierImg = null;
+      z.addEventListener('touchend', e => { const t = e.target; if (t.tagName !== 'IMG') return; const n = Date.now(); if (t === dernierImg && n - dernierAppui < 350){ e.preventDefault(); dernierAppui = 0; optionsImgDesc(t); } else { dernierAppui = n; dernierImg = t; } });
       ed.querySelectorAll('#rteBar [data-c]').forEach(b => { b.onmousedown = e => e.preventDefault(); b.onclick = () => { remettre(); document.execCommand(b.dataset.c); sale = true; garder(); }; });
       ed.querySelector('#rteBloc').onchange = e => { remettre(); document.execCommand('formatBlock', false, e.target.value); e.target.value = 'p'; sale = true; };
       const inserer = html => { remettre(); document.execCommand('insertHTML', false, html); sale = true; garder(); };
@@ -3068,6 +3101,7 @@ function nettoyerHtml(h){
       ed.querySelectorAll('[data-iw]').forEach(b => b.onclick = () => { if (selImg){ selImg.style.width = b.dataset.iw; sale = true; } });
       ed.querySelectorAll('[data-ia]').forEach(b => b.onclick = () => { if (!selImg) return; let p = selImg.parentNode; if (p === z || p.tagName !== 'P'){ const np = document.createElement('p'); selImg.replaceWith(np); np.appendChild(selImg); p = np; } p.style.textAlign = b.dataset.ia; sale = true; });
       ed.querySelector('#rteDel').onclick = () => { if (selImg){ selImg.remove(); selImg = null; majBarres(); sale = true; } };
+      ed.querySelector('#rteOpt').onclick = () => { if (selImg) optionsImgDesc(selImg); };
       ed.querySelector('#rteRet').onclick = async () => {
         if (!selImg) return; const cible = selImg, f = await retoucher(cible.src); if (!f) return;
         const tok = await photoInstantanee(f, P.nom || 'produit'); cible.src = apercus[tok]; cible.dataset.src = tok; sale = true;
