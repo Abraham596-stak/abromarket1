@@ -549,7 +549,10 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
 
   /* ---------- Stock en direct : 3 → 2 → 1 (une pièce de moins à chaque vente affichée), retour à 3 chaque minute ---------- */
   const STK = {n: 3, dec: Date.now() - 3000, alerte: 0, on: false};
+  try { const g = JSON.parse(sessionStorage.getItem('stk') || 'null'); if (g && g.n >= 1 && g.n <= 3 && Date.now() - g.dec < 6 * 6e4){ STK.n = g.n; STK.dec = g.dec; STK.alerte = g.alerte || 0; } } catch(e){}
+  const stkGarder = () => { try { sessionStorage.setItem('stk', JSON.stringify({n: STK.n, dec: STK.dec, alerte: STK.alerte})); } catch(e){} };
   function stkPeindre(){
+    stkGarder();
     const el = $('stk'); if (!el) return;
     const n = STK.n;
     $('stkBar').style.width = (n / 3 * 100) + '%';
@@ -601,7 +604,7 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
     if (px){
       const off = o1.ancien > o1.prix ? Math.round((1 - o1.prix/o1.ancien)*100) : 0;
       priceBlock = `<div class="pricetag"><div><div class="now">${money(o1.prix, dev)}</div>${off?`<div class="old">${money(o1.ancien, dev)}</div>`:''}</div>${off?`<div class="off">−${off} %</div>`:''}</div>
-        <div class="stk" id="stk" aria-live="polite"><div class="sl"><span class="st">🔥 Forte demande</span><span class="sn"><span id="stkTxt">Plus que <b id="stkN">${STK.n}</b> en stock</span></span></div><div class="bar"><i id="stkBar" style="width:${STK.n / 3 * 100}%"></i></div><small id="stkSub">Stock très limité : ${esc(P.nom.length > 40 ? P.nom.slice(0, 38).trim() + '…' : P.nom)} part très vite.</small></div>`;
+        ${P.stock === 'non' ? '' : `<div class="stk" id="stk" aria-live="polite"><div class="sl"><span class="st">🔥 Forte demande</span><span class="sn"><span id="stkTxt">Plus que <b id="stkN">${STK.n}</b> en stock</span></span></div><div class="bar"><i id="stkBar" style="width:${STK.n / 3 * 100}%"></i></div><small id="stkSub">Stock très limité : ${esc(P.nom.length > 40 ? P.nom.slice(0, 38).trim() + '…' : P.nom)} part très vite.</small></div>`}`;
       const promo = Number(px.promoJour) || 0;
       form = `<section id="commande"><h2>Passer ma commande</h2><p class="sub">Remplissez ce formulaire, ça prend moins d'une minute.</p>
         <form id="form" novalidate>

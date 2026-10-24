@@ -2718,7 +2718,7 @@ function nettoyerHtml(h){
 
         <div class="card"><div class="iah"><h3>Avantages</h3><button class="iab" data-ia="avantages">✨ IA</button></div><textarea class="field" id="eAv" rows="4" placeholder="Un avantage par ligne">${esc(P.avantages)}</textarea>
           <div class="iah"><label class="lbl" for="eBo">Dans la boîte</label><button class="iab" data-ia="boite">✨ IA</button></div><textarea class="field" id="eBo" rows="2" placeholder="Un élément par ligne">${esc(P.boite)}</textarea>
-          <label class="lbl" for="eSt">Stock affiché (vide = caché)</label><input class="field" id="eSt" inputmode="numeric" value="${esc(P.stock)}"></div>
+          <label class="lbl" for="eSt">Compteur « Plus que 3 → 2 → 1 en stock »</label><select class="field" id="eSt">${/^(non|0|cach)/i.test(String(P.stock || '').trim()) ? '<option value="">Afficher sur ce produit</option><option value="NON" selected>Cacher sur ce produit</option>' : `<option value="${esc(P.stock || '')}" selected>Afficher sur ce produit</option><option value="NON">Cacher sur ce produit</option>`}</select></div>
 
         <div class="card"><div class="iah"><h3>Questions fréquentes</h3><button class="iab" data-ia="faq">✨ IA</button></div>
           ${faq.map((f, i) => `<div class="blk"><div class="blkh"><span>Question ${i + 1}</span><button data-fx="${i}" aria-label="Supprimer">✕</button></div><input class="field" data-fq="${i}" value="${esc(f.q)}" placeholder="Question"><textarea class="field" data-fr="${i}" rows="2" placeholder="Réponse" style="margin-top:6px">${esc(f.r)}</textarea></div>`).join('')}
@@ -3167,6 +3167,8 @@ function nettoyerHtml(h){
     }
     dessiner();
     base = signature(); sigCourante = base;
+    const avantQuitter = e => { if (ed.isConnected && sale){ e.preventDefault(); e.returnValue = ''; } else if (!ed.isConnected) window.removeEventListener('beforeunload', avantQuitter); };
+    window.addEventListener('beforeunload', avantQuitter);
     const suivi = setInterval(majActions, 600);
     ed.addEventListener('input', () => setTimeout(majActions, 0));
     ed.addEventListener('change', () => setTimeout(majActions, 0));
