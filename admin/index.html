@@ -374,6 +374,9 @@ html.ordi .dvgrid{grid-template-columns:repeat(4,minmax(0,1fr))}
 .rtezone .vid{background:#111;color:#fff;border-radius:10px;padding:18px;text-align:center;font-weight:700;margin:6px 0 10px;word-break:break-all}
 .rtezone ul{padding-left:22px;margin:0 0 10px}
 .rtebar .gifbtn{font-size:11px;font-weight:800;letter-spacing:.03em;border:1.5px solid currentColor;border-radius:6px;padding:1px 4px;line-height:1.2}
+.skpages{display:flex;flex-direction:column;gap:6px;max-height:240px;overflow:auto;border:1px solid var(--line);border-radius:12px;padding:8px}
+.skpage{display:flex;gap:10px;align-items:center;padding:8px;border-radius:10px;font-size:14.5px;cursor:pointer}.skpage:has(input:checked){background:var(--surface);font-weight:700}
+.skpage input{width:20px;height:20px;flex:0 0 20px;accent-color:var(--main)}
 .ptstk{margin-top:12px;background:var(--surface);border-radius:14px;padding:12px 12px 4px}
 .ptstk>b{display:block}.ptstk>small{display:block;color:var(--soft);font-size:13px;margin:2px 0 4px}
 .field.auto{background:var(--surface);color:var(--main);font-weight:800}
@@ -1613,7 +1616,9 @@ function nettoyerHtml(h){
         <button class="lnk ptback" id="stBack">← Mes stocks</button>
         <h2>${x.id ? '✏️ Modifier le stock' : '📦 Nouveau stock'}</h2><p class="sub">${esc(nomB)} · en ${esc(dev)}</p>
         <div class="ptcard" style="margin-top:6px"><h3>La commande</h3>
-          <label class="lbl" for="sk_prod">Produit</label><select class="field" id="sk_prod"><option value="">${PRD ? 'Choisis le produit' : 'Chargement des produits…'}</option>${(PRD ? PRD.produits : []).map(p => `<option value="${esc(p.id)}" ${p.id === x.produitId || (!x.produitId && p.nom === x.produit) ? 'selected' : ''}>${esc(p.nom)}</option>`).join('')}</select>
+          <label class="lbl" for="sk_prod">Nom du produit<small style="display:block;font-weight:500;color:var(--soft)">Écris-le comme tu veux (ex : Calcium Premium)</small></label><input class="field" id="sk_prod" value="${esc(x.produit || '')}" placeholder="Ex : Calcium Premium">
+          <label class="lbl">Pages produits de ce stock <small style="font-weight:500;color:var(--soft)">(facultatif, coche toutes celles qui vendent ce produit)</small></label>
+          <div class="skpages">${PRD ? PRD.produits.map(p => `<label class="skpage"><input type="checkbox" data-pp="${esc(p.id)}" ${String(x.produitId || '').split(',').includes(p.id) ? 'checked' : ''}><span>${esc(p.nom)}</span></label>`).join('') || '<small>Aucune page produit.</small>' : '<small>Chargement des pages produits…</small>'}</div>
           <label class="lbl" for="sk_cd">Jour où tu as passé la commande</label><input class="field" type="date" id="sk_cd" value="${esc(x.commandeLe || isoJ(new Date()))}" max="${esc(isoJ(new Date()))}">
           <div class="ptin"><label for="sk_qc">Nombre de produits commandés</label><input class="field" id="sk_qc" inputmode="numeric" placeholder="0" value="${x.commande || ''}"></div>
           <div class="ptin"><label for="sk_mt">Montant de la commande<small>Ce que tu as payé au fournisseur</small></label><input class="field" id="sk_mt" inputmode="numeric" placeholder="0" value="${x.montant || ''}"></div>
@@ -1633,17 +1638,17 @@ function nettoyerHtml(h){
       ov.querySelector('#ptX').onclick = () => ov.remove();
       ov.querySelector('#stBack').onclick = () => { vue = 'stocks'; dess(); };
       ov.querySelector('#skSave').onclick = async e => {
-        const b = e.currentTarget, sel = ov.querySelector('#sk_prod'), prod = sel.value ? sel.options[sel.selectedIndex].text : x.produit;
-        if (!prod) return alert('Choisis le produit.');
+        const b = e.currentTarget, prod = ov.querySelector('#sk_prod').value.trim(), pages = [...ov.querySelectorAll('[data-pp]:checked')].map(i => i.dataset.pp).join(',');
+        if (!prod) return alert('Écris le nom du produit.');
         if (!n('sk_qc')) return alert('Mets le nombre de produits commandés.');
         if (n('sk_qr') && !ov.querySelector('#sk_ad').value) return alert('Mets aussi le jour où le stock est arrivé.');
         b.disabled = true; b.textContent = 'Enregistrement…';
-        try { await appel({action: 'stockSauver', stock: {id: x.id || '', produit: prod, produitId: sel.value || x.produitId || '', pays: x.pays || '', commandeLe: ov.querySelector('#sk_cd').value,
+        try { await appel({action: 'stockSauver', stock: {id: x.id || '', produit: prod, produitId: pages, pays: x.pays || '', commandeLe: ov.querySelector('#sk_cd').value,
             commande: n('sk_qc'), montant: n('sk_mt'), frais: n('sk_fr'), arriveLe: ov.querySelector('#sk_ad').value, recu: n('sk_qr'), note: ov.querySelector('#sk_note').value}});
           msg = x.id ? '✅ Stock modifié' : '✅ Stock enregistré'; vue = 'stocks'; dess(); }
         catch(err2){ b.disabled = false; b.textContent = x.id ? 'Enregistrer les modifications' : 'Enregistrer le stock'; alert(/inconnu|introuvable/i.test(err2.message) ? 'Mets à jour le code Apps Script (Code.gs).' : err2.message); }
       };
-      if (!PRD) call({type: 'produits'}).then(j => { PRD = {produits: j.produits || [], pays: j.pays || []}; if (ov.isConnected && vue === 'stockForm'){ const g = {}; ['sk_cd', 'sk_qc', 'sk_mt', 'sk_fr', 'sk_ad', 'sk_qr', 'sk_note'].forEach(k => g[k] = ov.querySelector('#' + k).value); dess(); Object.keys(g).forEach(k => ov.querySelector('#' + k).value = g[k]); ov.querySelector('#sk_qc').dispatchEvent(new Event('input')); } }).catch(() => {});
+      if (!PRD) call({type: 'produits'}).then(j => { PRD = {produits: j.produits || [], pays: j.pays || []}; if (ov.isConnected && vue === 'stockForm'){ const g = {}; ['sk_prod', 'sk_cd', 'sk_qc', 'sk_mt', 'sk_fr', 'sk_ad', 'sk_qr', 'sk_note'].forEach(k => g[k] = ov.querySelector('#' + k).value); dess(); Object.keys(g).forEach(k => ov.querySelector('#' + k).value = g[k]); ov.querySelector('#sk_qc').dispatchEvent(new Event('input')); } }).catch(() => {});
     };
     const dess = () => vue === 'dash' ? dessDash() : vue === 'jour' ? dessJour() : vue === 'stocks' ? dessStocks() : vue === 'stockForm' ? dessStockForm() : dessForm();
     ov.onclick = e => { if (e.target === ov) ov.remove(); };
