@@ -1347,10 +1347,10 @@ function nettoyerHtml(h){
     const semaines = []; let l0 = lundi(new Date()); for (let k = 0; k < 12; k++){ const x = new Date(l0); x.setDate(x.getDate() - 7 * k); semaines.push(isoJ(x)); }
     let sem = semaines[new Date().getDay() === 1 ? 1 : 0], P = null, J = null, aide = null, msg = '', err = '', vue = 'dash', per = 4, choix = null, jsel = null, jchoix = null, jfin = null, jmode = 'jour', jedit = null;
     if (opts && opts.jour && /^\d{4}-\d{2}-\d{2}$/.test(opts.jour)){ vue = 'jour'; jsel = opts.jour; }
-    let S = null, sedit = null, sfocus = (opts && opts.stock) || null, PRD = null;
+    let STK = null, sedit = null, sfocus = (opts && opts.stock) || null, PRD = null;
     if (sfocus) vue = 'stocks';
     const ov = document.createElement('div'); ov.className = 'overlay';
-    const appel = async o => { const j = await call(Object.assign({type: 'point', semaine: sem}, o)); P = j.points; J = j.jours || []; S = j.stocks || []; aide = j.aide; err = ''; return j; };
+    const appel = async o => { const j = await call(Object.assign({type: 'point', semaine: sem}, o)); P = j.points; J = j.jours || []; STK = j.stocks || []; aide = j.aide; err = ''; return j; };
     const charger = async () => { err = ''; try { await appel({}); } catch(e){ err = esc(/inconnu|introuvable/i.test(e.message) ? 'Mets à jour le code Apps Script (Code.gs).' : e.message); } if (ov.isConnected) dess(); };
     const errBloc = () => err ? `<div class="pterr" style="margin-bottom:10px">Impossible de charger : ${err}<button class="btn ghost" id="ptRe" style="margin-top:8px">↻ Réessayer</button></div>` : '';
     const brancherRe = () => { const b = ov.querySelector('#ptRe'); if (b) b.onclick = () => { err = ''; dess(); charger(); }; };
@@ -1379,7 +1379,7 @@ function nettoyerHtml(h){
       const per = jmode === 'periode';
       const pt = Object.assign({}, (jedit ? (J || []).find(x => x.date === jedit) : (J || []).find(x => x.date === jsel && !x.fin)) || {});
       // Stocks reçus encore en vente (ou déjà utilisés dans ce point) : on dit combien de produits de chacun ont été livrés
-      const stJ = (S || []).filter(x => x.recu > 0 && ((x.reste || 0) + ((pt.stocks || {})[x.id] || 0) > 0 || (pt.stocks || {})[x.id]));
+      const stJ = (STK || []).filter(x => x.recu > 0 && ((x.reste || 0) + ((pt.stocks || {})[x.id] || 0) > 0 || (pt.stocks || {})[x.id]));
       if (per && !jfin){ const x = isoJ2(jsel); x.setDate(x.getDate() + 2); jfin = isoJ(x) > isoJ(new Date()) ? isoJ(new Date()) : isoJ(x); }
       const nbJ = per ? joursTravail(jsel, jfin).length : 1;
       // Abonnements : saisis PAR JOUR (on reprend le dernier montant) ; pour une période, multipliés par ses jours de travail
@@ -1412,7 +1412,7 @@ function nettoyerHtml(h){
       const aboTot = () => Math.round(nb('abonnements') * nbJ);
       const parStock = () => { const o = {}; ov.querySelectorAll('[data-sk]').forEach(i => { const n = Math.round(Number(String(i.value).replace(/[^\d]/g, '')) || 0); if (n > 0) o[i.dataset.sk] = n; }); return o; };
       const majStocks = () => { const o = parStock(), n = Object.values(o).reduce((t, x) => t + x, 0), L = ov.querySelector('#pj_livres'), A = ov.querySelector('#pj_achat');
-        if (n){ L.value = n; A.value = Math.round(Object.keys(o).reduce((t, k) => t + o[k] * ((S || []).find(x => x.id === k) || {}).cout, 0)); }
+        if (n){ L.value = n; A.value = Math.round(Object.keys(o).reduce((t, k) => t + o[k] * ((STK || []).find(x => x.id === k) || {}).cout, 0)); }
         L.readOnly = A.readOnly = !!n; L.classList.toggle('auto', !!n); A.classList.toggle('auto', !!n); };
       ov.querySelectorAll('[data-sk]').forEach(i => i.addEventListener('input', () => { majStocks(); calc(); }));
       const calc = () => { const b = nb('ca') - nb('achat') - nb('pub') - aboTot(); ov.querySelector('#pjBen').textContent = fmt(b, dev); ov.querySelector('#pjRes').classList.toggle('neg', b < 0); const t = ov.querySelector('#pjAboT'); if (t) t.textContent = fmt(aboTot(), dev); };
@@ -1523,7 +1523,7 @@ function nettoyerHtml(h){
         ${msg ? `<div class="okmsg">${msg}</div>` : ''}${errBloc()}
         <div class="ptacts"><button class="btn blue" id="pjFaire">🗓️ Faire le point du jour</button>
         <button class="btn blue2" id="pjPer">📅 Point sur plusieurs jours (du … au …)</button>
-        <button class="btn blue2" id="stOuv">📦 Mes stocks${S && S.filter(x => x.statut === 'vente').length ? ' (' + S.filter(x => x.statut === 'vente').length + ' en vente)' : ''}</button>
+        <button class="btn blue2" id="stOuv">📦 Mes stocks${STK && STK.filter(x => x.statut === 'vente').length ? ' (' + STK.filter(x => x.statut === 'vente').length + ' en vente)' : ''}</button>
         <button class="btn ghost" id="ptFaire">📝 Point de la semaine (saisie à la main)</button></div>
         ${!P ? (err ? '' : '<div class="empty">Chargement…</div>') : `<div class="ptcols"><div class="ptcolA">
         <div class="ptcard" style="margin-top:0"><h3>🗓️ Revenus réels par jour</h3>
@@ -1588,20 +1588,20 @@ function nettoyerHtml(h){
       </div>`;
     };
     const dessStocks = () => {
-      const L = (S || []).slice().sort((a, b) => ({vente: 0, route: 1, epuise: 2}[a.statut] - {vente: 0, route: 1, epuise: 2}[b.statut]) || (a.commandeLe < b.commandeLe ? 1 : -1));
+      const L = (STK || []).slice().sort((a, b) => ({vente: 0, route: 1, epuise: 2}[a.statut] - {vente: 0, route: 1, epuise: 2}[b.statut]) || (a.commandeLe < b.commandeLe ? 1 : -1));
       ov.innerHTML = `<div class="detail bqsheet" role="dialog" aria-modal="true" aria-label="Stocks"><div class="grab"></div>
         <button class="lnk ptback" id="ptDash">← Tableau de bord</button>
         <h2>📦 Mes stocks</h2><p class="sub">${esc(nomB)} · chaque commande chez ton fournisseur, pour cette boutique</p>
         ${msg ? `<div class="okmsg">${msg}</div>` : ''}${errBloc()}
         <button class="btn blue" id="stNew">＋ Nouveau stock</button>
-        ${!S ? '<div class="empty">Chargement…</div>' : L.length ? L.map(carteStock).join('') : '<div class="empty">Aucun stock pour le moment.<br>Ajoute ta dernière commande chez ton fournisseur : l’appli calcule ce que te coûte chaque produit.</div>'}
+        ${!STK ? '<div class="empty">Chargement…</div>' : L.length ? L.map(carteStock).join('') : '<div class="empty">Aucun stock pour le moment.<br>Ajoute ta dernière commande chez ton fournisseur : l’appli calcule ce que te coûte chaque produit.</div>'}
         <p class="sub" style="margin-top:12px">Dans chaque point (du jour ou d’une période), indique combien de produits de chaque stock ont été livrés : le stock baisse tout seul, tu reçois une notification quand la moitié est vendue, puis le bilan quand il est épuisé.</p>
         <button class="btn ghost" id="ptX" style="margin-top:12px">Fermer</button></div>`;
       ov.querySelector('#ptX').onclick = () => ov.remove();
       ov.querySelector('#ptDash').onclick = () => { vue = 'dash'; msg = ''; dess(); };
       ov.querySelector('#stNew').onclick = () => { sedit = null; vue = 'stockForm'; msg = ''; dess(); };
       ov.querySelectorAll('[data-sm]').forEach(b => b.onclick = async () => {
-        const x = S.find(y => y.id === b.dataset.sm); if (!x) return;
+        const x = STK.find(y => y.id === b.dataset.sm); if (!x) return;
         const o = await menuListe('', x.produit + (x.pays ? ' · ' + x.pays : ''), [['mod', x.recu ? '✏️ Modifier' : '📥 Le stock est arrivé / Modifier'], ['sup', '🗑 Supprimer ce stock', 'danger']]);
         if (o === 'mod'){ sedit = x.id; vue = 'stockForm'; msg = ''; dess(); }
         if (o === 'sup'){ if (!(await confirmer({titre: 'Supprimer ce stock ?', texte: 'Le stock « ' + esc(x.produit) + ' » sera supprimé. Tes points restent, mais ne seront plus rattachés à ce stock.', ok: 'Supprimer'}))) return;
@@ -1611,7 +1611,7 @@ function nettoyerHtml(h){
       if (sfocus){ const el = ov.querySelector('#st_' + sfocus); if (el) setTimeout(() => el.scrollIntoView({block: 'center', behavior: 'smooth'}), 150); }
     };
     const dessStockForm = () => {
-      const x = Object.assign({}, (S || []).find(y => y.id === sedit) || {});
+      const x = Object.assign({}, (STK || []).find(y => y.id === sedit) || {});
       ov.innerHTML = `<div class="detail bqsheet" role="dialog" aria-modal="true" aria-label="Stock"><div class="grab"></div>
         <button class="lnk ptback" id="stBack">← Mes stocks</button>
         <h2>${x.id ? '✏️ Modifier le stock' : '📦 Nouveau stock'}</h2><p class="sub">${esc(nomB)} · en ${esc(dev)}</p>
@@ -3341,8 +3341,12 @@ function nettoyerHtml(h){
 
   /* ---------- Promotions TikTok ---------- */
   let TT = null, ttPer = S.get('adm_ttper') || '7j', ttBusy = false;
-  const F = n => fmt(Math.round(Number(n) || 0), 'FCFA');
-  const K = n => (n = Math.round(Number(n) || 0)) >= 1e5 ? short(n) : fmt(n);
+  // Devise d'affichage des promotions (les montants sont gardés en FCFA, convertis au taux du jour)
+  let ttDev = S.get('adm_ttdev') || 'FCFA';
+  const ttConv = n => { n = Number(n) || 0; return ttDev === 'USD' ? n / ((TT && TT.usd) || 600) : ttDev === 'EUR' ? n / 655.957 : n; };
+  const ttMoney = v => (Math.abs(v) >= 100 ? Math.round(v).toLocaleString('fr-FR') : v.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})).replace(/[\u202f\u00a0]/g, ' ') + (ttDev === 'USD' ? ' $' : ' €');
+  const F = n => ttDev === 'FCFA' ? fmt(Math.round(Number(n) || 0), 'FCFA') : ttMoney(ttConv(n));
+  const K = n => ttDev !== 'FCFA' ? F(n) : (n = Math.round(Number(n) || 0)) >= 1e5 ? short(n) : fmt(n);
   const ratio = (a, b) => b ? a / b : 0;
   const nomsPays = p => { const l = p.pays || []; if (!l.length) return ''; const n = l.map(c => { const x = pubData && pubData.pays.find(q => q.code === c); return x ? x.nom : c; }); return ' · ' + esc(n.length > 3 ? n.slice(0, 3).join(', ') + ' +' + (n.length - 3) : n.join(', ')); };
   function verdict(p){
@@ -3362,7 +3366,7 @@ function nettoyerHtml(h){
     return `<div class="tt-top">
       <h1><span class="tt-logo"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M14 3v11.5a3.5 3.5 0 1 1-3.5-3.5"/><path d="M14 3c.4 2.6 2.4 4.6 5 4.8"/></svg></span>Promotions TikTok</h1>
       <p class="sub">Combien chaque promotion t'a rapporté de commandes.</p>
-      <div class="periods"><button class="chip on" id="ttPd">${CAL} ${esc(libelle(ttPer))} ▾</button></div>
+      <div class="periods"><button class="chip on" id="ttPd">${CAL} ${esc(libelle(ttPer))} ▾</button><button class="chip on" id="ttDv">💱 ${ttDev === 'USD' ? 'Dollar $' : ttDev === 'EUR' ? 'Euro €' : 'FCFA'} ▾</button></div>
       <div class="ttsum">
         <div><small>Dépensé</small><b>${F(dep)}</b></div>
         <div><small>Commandes</small><b>${cmd}</b></div>
@@ -3398,7 +3402,7 @@ function nettoyerHtml(h){
       ${TT.autres.length ? `<div class="block"><h3>Autres commandes venues de TikTok</h3>${TT.autres.map((p, i) => promoCard(p, i, true)).join('')}</div>` : ''}
       ${finies.length ? `<div class="block"><h3>Promotions terminées</h3>${finies.map(p => promoCard(p, TT.promos.indexOf(p))).join('')}</div>` : ''}
       <div class="block"><h3>Réglages TikTok</h3>
-        <div class="usdbox"><span>💱</span><div><b>1 $ = ${esc(String(TT.usd).replace('.', ','))} FCFA</b><small>${TT.usdAuto ? 'Taux du jour, mis à jour automatiquement' + (TT.usdHeure ? ' · ' + esc(TT.usdHeure) : '') : 'Taux automatique indisponible pour le moment, nouvel essai dans 1 heure'}</small></div></div>
+        <div class="usdbox"><span>💱</span><div><b>1 $ = ${esc(String(TT.usd).replace('.', ','))} FCFA · 1 € = 655,957 FCFA</b><small>${TT.usdAuto ? 'Taux du jour, mis à jour automatiquement' + (TT.usdHeure ? ' · ' + esc(TT.usdHeure) : '') : 'Taux automatique indisponible pour le moment, nouvel essai dans 1 heure'}</small></div></div>
         <label class="lbl" for="ttCible">Coût maximum accepté par commande</label>
         <div class="frow"><input class="field" id="ttCible" type="number" inputmode="decimal" placeholder="Ex : 2500" value="${TT.cibleBrut || TT.cible ? esc(TT.cibleBrut || TT.cible) : ''}"><select class="field" id="ttCibleDev" aria-label="Devise">${['FCFA','USD','EUR'].map(d => `<option ${d === (TT.cibleDevise || 'FCFA') ? 'selected' : ''}>${d}</option>`).join('')}</select></div>
         ${TT.cible && TT.cibleDevise && TT.cibleDevise !== 'FCFA' ? `<p class="tag" style="margin-top:6px">Soit environ ${esc(F(TT.cible))} au taux du jour.</p>` : ''}
@@ -3408,6 +3412,9 @@ function nettoyerHtml(h){
     bindTT();
   }
   function bindTT(){
+    const tdv = document.getElementById('ttDv'); if (tdv) tdv.onclick = async () => {
+      const o = await menuListe('', 'Afficher les montants en', [['FCFA', 'FCFA (franc CFA)'], ['USD', '$ Dollar américain'], ['EUR', '€ Euro']]);
+      if (!o) return; ttDev = o; S.set('adm_ttdev', o); drawTT(); };
     const tpd = document.getElementById('ttPd'); if (tpd) tpd.onclick = () => choisirPeriode(ttPer, true, k => { ttPer = k; S.set('adm_ttper', ttPer); TT = ttCache(); drawTT(); loadTT(true); });
     const n = document.getElementById('ttNew'); if (n) n.onclick = newPromo;
     app.querySelectorAll('[data-tt]').forEach(b => b.onclick = () => promoDetail(b.dataset.autre ? TT.autres[b.dataset.tt] : TT.promos[b.dataset.tt], !!b.dataset.autre));
@@ -3428,6 +3435,9 @@ function nettoyerHtml(h){
       if (per !== ttPer) return;
       const pareil = TT && JSON.stringify(TT) === JSON.stringify(j);
       TT = j; S.set('adm_tt_' + per, JSON.stringify(j));
+      // Lien d'une notification « va relever le coût » : on ouvre directement la promotion
+      const pq = new URLSearchParams(location.search).get('promo');
+      if (pq && !window.__ttp && view === 'tiktok'){ window.__ttp = 1; const pr = TT.promos.find(x => String(x.code) === pq); if (pr){ drawTT(); setTimeout(() => promoDetail(pr), 50); return; } }
       if (!pareil && view === 'tiktok' && !document.querySelector('.overlay') && !(document.activeElement && /^tt/.test(document.activeElement.id))) drawTT();
     } catch(e){
       if (!TT && view === 'tiktok') app.innerHTML = ttTop() + `<div class="sheet"><div class="empty">${/mot de passe/i.test(e.message) ? 'Mot de passe incorrect.' : /inconnu|Produit introuvable|tiktok/i.test(e.message) ? 'Mets à jour le code Apps Script (Code.gs) puis crée une nouvelle version.' : 'Connexion impossible. Réessaie.'}</div></div>`;
