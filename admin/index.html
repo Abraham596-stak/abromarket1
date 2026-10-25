@@ -374,6 +374,19 @@ html.ordi .dvgrid{grid-template-columns:repeat(4,minmax(0,1fr))}
 .rtezone .vid{background:#111;color:#fff;border-radius:10px;padding:18px;text-align:center;font-weight:700;margin:6px 0 10px;word-break:break-all}
 .rtezone ul{padding-left:22px;margin:0 0 10px}
 .rtebar .gifbtn{font-size:11px;font-weight:800;letter-spacing:.03em;border:1.5px solid currentColor;border-radius:6px;padding:1px 4px;line-height:1.2}
+.ptstk{margin-top:12px;background:var(--surface);border-radius:14px;padding:12px 12px 4px}
+.ptstk>b{display:block}.ptstk>small{display:block;color:var(--soft);font-size:13px;margin:2px 0 4px}
+.field.auto{background:var(--surface);color:var(--main);font-weight:800}
+.stcard{border:1px solid var(--line);border-radius:16px;padding:14px;margin-top:12px;background:#fff}
+.stcard.focus{border-color:var(--main);box-shadow:0 0 0 3px rgba(35,80,216,.15)}
+.sthead{display:flex;gap:8px;align-items:flex-start}.sthead>div{flex:1;min-width:0}.sthead b{display:block;font-size:16px}.sthead small{color:var(--soft);font-size:13px}
+.stchip{font-size:12px;font-weight:800;border-radius:999px;padding:4px 9px;white-space:nowrap;background:var(--surface)}
+.stchip.vente{background:var(--okbg);color:#0B6B35}.stchip.route{background:#FFF3CD;color:#7A5A00}.stchip.epuise{background:var(--surface);color:var(--soft)}
+.stbar{height:9px;border-radius:999px;background:var(--line);overflow:hidden;margin-top:12px}.stbar i{display:block;height:100%;background:var(--main);border-radius:999px}
+.stl{font-size:14px;color:var(--ink);margin-top:8px;line-height:1.45}
+.stk2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.stk2>div{background:var(--surface);border-radius:12px;padding:9px 11px}.stk2 small{display:block;color:var(--soft);font-size:12px}.stk2 b{font-size:16px}
+.stbilan{margin-top:12px;border-radius:12px;padding:12px 14px;font-size:14px;line-height:1.5}.stbilan p{margin-top:6px}
+.stbilan.ok{background:var(--okbg)}.stbilan.ko{background:var(--errbg)}.stbilan>b{font-size:16px}.stgain{font-size:15px}
 .ptmode{margin-top:4px}.ptdates{margin-top:6px}.ptdates .lbl{margin:8px 0 0}
 .btn.blue2{background:var(--surface);color:var(--main);border:1.5px solid var(--main)}
 .iah{display:flex;align-items:center;gap:8px;justify-content:space-between}
@@ -1331,8 +1344,10 @@ function nettoyerHtml(h){
     const semaines = []; let l0 = lundi(new Date()); for (let k = 0; k < 12; k++){ const x = new Date(l0); x.setDate(x.getDate() - 7 * k); semaines.push(isoJ(x)); }
     let sem = semaines[new Date().getDay() === 1 ? 1 : 0], P = null, J = null, aide = null, msg = '', err = '', vue = 'dash', per = 4, choix = null, jsel = null, jchoix = null, jfin = null, jmode = 'jour', jedit = null;
     if (opts && opts.jour && /^\d{4}-\d{2}-\d{2}$/.test(opts.jour)){ vue = 'jour'; jsel = opts.jour; }
+    let S = null, sedit = null, sfocus = (opts && opts.stock) || null, PRD = null;
+    if (sfocus) vue = 'stocks';
     const ov = document.createElement('div'); ov.className = 'overlay';
-    const appel = async o => { const j = await call(Object.assign({type: 'point', semaine: sem}, o)); P = j.points; J = j.jours || []; aide = j.aide; err = ''; return j; };
+    const appel = async o => { const j = await call(Object.assign({type: 'point', semaine: sem}, o)); P = j.points; J = j.jours || []; S = j.stocks || []; aide = j.aide; err = ''; return j; };
     const charger = async () => { err = ''; try { await appel({}); } catch(e){ err = esc(/inconnu|introuvable/i.test(e.message) ? 'Mets à jour le code Apps Script (Code.gs).' : e.message); } if (ov.isConnected) dess(); };
     const errBloc = () => err ? `<div class="pterr" style="margin-bottom:10px">Impossible de charger : ${err}<button class="btn ghost" id="ptRe" style="margin-top:8px">↻ Réessayer</button></div>` : '';
     const brancherRe = () => { const b = ov.querySelector('#ptRe'); if (b) b.onclick = () => { err = ''; dess(); charger(); }; };
@@ -1360,6 +1375,8 @@ function nettoyerHtml(h){
     const dessJour = () => {
       const per = jmode === 'periode';
       const pt = Object.assign({}, (jedit ? (J || []).find(x => x.date === jedit) : (J || []).find(x => x.date === jsel && !x.fin)) || {});
+      // Stocks reçus encore en vente (ou déjà utilisés dans ce point) : on dit combien de produits de chacun ont été livrés
+      const stJ = (S || []).filter(x => x.recu > 0 && ((x.reste || 0) + ((pt.stocks || {})[x.id] || 0) > 0 || (pt.stocks || {})[x.id]));
       if (per && !jfin){ const x = isoJ2(jsel); x.setDate(x.getDate() + 2); jfin = isoJ(x) > isoJ(new Date()) ? isoJ(new Date()) : isoJ(x); }
       const nbJ = per ? joursTravail(jsel, jfin).length : 1;
       // Abonnements : saisis PAR JOUR (on reprend le dernier montant) ; pour une période, multipliés par ses jours de travail
@@ -1380,6 +1397,8 @@ function nettoyerHtml(h){
         <input class="field" type="date" id="pj_date" value="${esc(jsel)}" max="${esc(isoJ(new Date()))}">
         <p class="sub" style="margin:6px 0 0">${esc(libJour(jsel))}${dim ? ' · <b style="color:var(--err)">dimanche : jour sans travail</b>' : ''}</p>`}
         ${pt.date ? '<div class="ptaide" style="margin-top:10px">✏️ Ce point est déjà enregistré. Change les montants puis « Enregistrer les modifications ».</div>' : ''}
+        ${stJ.length ? `<div class="ptstk"><b>📦 Produits livrés par stock</b><small>Mets combien de produits de chaque stock ont été livrés : le nombre livré et le coût d’achat se calculent tout seuls.</small>
+          ${stJ.map(x => `<div class="ptin"><label for="pk_${x.id}">${esc(x.produit)}${x.pays ? ' · ' + esc(x.pays) : ''}<small>Reste ${x.reste != null ? x.reste + ((pt.stocks || {})[x.id] || 0) : '?'} · ${esc(fmt(x.cout, dev))} par produit</small></label><input class="field" id="pk_${x.id}" data-sk="${x.id}" inputmode="numeric" placeholder="0" value="${(pt.stocks || {})[x.id] || ''}"></div>`).join('')}</div>` : ''}
         ${champsP.map(([k, l, a]) => `<div class="ptin"><label for="pj_${k}">${l}<small>${a}</small></label><input class="field" id="pj_${k}" inputmode="numeric" placeholder="0" value="${pt[k] ? esc(String(pt[k])) : ''}"></div>`).join('')}
         <input class="field" id="pj_note" placeholder="Note (facultatif)" value="${esc(pt.note || '')}" style="margin-top:10px">
         <div class="ptres" id="pjRes"><small>Bénéfice net ${per ? 'de la période' : 'du jour'}</small><b id="pjBen">0</b></div>
@@ -1388,14 +1407,21 @@ function nettoyerHtml(h){
         <button class="btn ghost" id="ptX" style="margin-top:12px">Fermer</button></div>`;
       const nb = id => Number(String(ov.querySelector('#pj_' + id).value).replace(/[^\d.-]/g, '')) || 0;
       const aboTot = () => Math.round(nb('abonnements') * nbJ);
+      const parStock = () => { const o = {}; ov.querySelectorAll('[data-sk]').forEach(i => { const n = Math.round(Number(String(i.value).replace(/[^\d]/g, '')) || 0); if (n > 0) o[i.dataset.sk] = n; }); return o; };
+      const majStocks = () => { const o = parStock(), n = Object.values(o).reduce((t, x) => t + x, 0), L = ov.querySelector('#pj_livres'), A = ov.querySelector('#pj_achat');
+        if (n){ L.value = n; A.value = Math.round(Object.keys(o).reduce((t, k) => t + o[k] * ((S || []).find(x => x.id === k) || {}).cout, 0)); }
+        L.readOnly = A.readOnly = !!n; L.classList.toggle('auto', !!n); A.classList.toggle('auto', !!n); };
+      ov.querySelectorAll('[data-sk]').forEach(i => i.addEventListener('input', () => { majStocks(); calc(); }));
       const calc = () => { const b = nb('ca') - nb('achat') - nb('pub') - aboTot(); ov.querySelector('#pjBen').textContent = fmt(b, dev); ov.querySelector('#pjRes').classList.toggle('neg', b < 0); const t = ov.querySelector('#pjAboT'); if (t) t.textContent = fmt(aboTot(), dev); };
-      ov.querySelectorAll('.ptin input').forEach(i => i.oninput = calc); calc();
+      ov.querySelectorAll('.ptin input:not([data-sk])').forEach(i => i.oninput = calc); majStocks(); calc();
       ov.querySelector('#ptX').onclick = () => ov.remove();
       ov.querySelector('#ptDash').onclick = () => { vue = 'dash'; msg = ''; dess(); };
       // Garder ce qui est déjà tapé quand on change de date ou de type de point
-      const garder = () => { const g = {}; champsJ.forEach(([k]) => g[k] = ov.querySelector('#pj_' + k).value); g.note = ov.querySelector('#pj_note').value; return g; };
-      const remettre = g => { if (!g) return; champsJ.forEach(([k]) => { const i = ov.querySelector('#pj_' + k); if (i && g[k] !== '') i.value = g[k]; }); ov.querySelector('#pj_note').value = g.note; calc(); };
-      ov.querySelectorAll('[data-jm]').forEach(b => b.onclick = () => { if (jedit) return alert('Pour changer le type de ce point, efface-le puis refais-le.'); const g = garder(); jmode = b.dataset.jm; jfin = null; dess(); remettre(g); });
+      const garder = () => { const g = {sk: parStock()}; champsJ.forEach(([k]) => g[k] = ov.querySelector('#pj_' + k).value); g.note = ov.querySelector('#pj_note').value; return g; };
+      const remettre = g => { if (!g) return; champsJ.forEach(([k]) => { const i = ov.querySelector('#pj_' + k); if (i && g[k] !== '') i.value = g[k]; }); ov.querySelector('#pj_note').value = g.note;
+        Object.keys(g.sk || {}).forEach(k => { const i = ov.querySelector('#pk_' + k); if (i) i.value = g.sk[k]; }); majStocks(); calc(); };
+      // Un point déjà enregistré peut passer d'« un seul jour » à « plusieurs jours » (et l'inverse) : c'est le même point qui est corrigé
+      ov.querySelectorAll('[data-jm]').forEach(b => b.onclick = () => { if (b.dataset.jm === jmode) return; const g = garder(); if (jedit == null && pt.date) jedit = pt.date; jmode = b.dataset.jm; jfin = null; dess(); remettre(g); });
       ov.querySelector('#pj_date').onchange = e => { if (!e.target.value) return; const v = e.target.value;
         // Date déjà dans un point enregistré : on ouvre ce point (pas de double saisie)
         const ex = (J || []).find(x => contient(x, v)); if (ex && ex.date !== (jedit || '')){ ouvrirJour(v); return; }
@@ -1404,7 +1430,7 @@ function nettoyerHtml(h){
       ov.querySelector('#pjSave').onclick = async e => {
         const b = e.currentTarget, modif = !!pt.date, lib = per ? libPer({date: jsel, fin: jfin}) : libJour(jsel); b.disabled = true; b.textContent = 'Enregistrement…';
         if (per && jfin <= jsel){ b.disabled = false; b.textContent = 'Enregistrer'; return alert('Choisis une date « Au » après la date « Du » (sinon, prends « Un seul jour »).'); }
-        try { await appel({action: 'jourSauver', date: jsel, fin: per ? jfin : '', ancien: pt.date || '', ca: nb('ca'), livres: nb('livres'), achat: nb('achat'), pub: nb('pub'), abonnements: aboTot(), note: ov.querySelector('#pj_note').value});
+        try { await appel({action: 'jourSauver', date: jsel, fin: per ? jfin : '', ancien: pt.date || '', stocks: parStock(), ca: nb('ca'), livres: nb('livres'), achat: nb('achat'), pub: nb('pub'), abonnements: aboTot(), note: ov.querySelector('#pj_note').value});
           msg = (modif ? '✅ Point ' + esc(lib) + ' modifié' : '✅ Point ' + esc(lib) + ' enregistré · ta semaine est calculée toute seule'); vue = 'dash'; jchoix = jsel; jedit = null; dess(); try { refresh(); } catch(x){} }
         catch(x){ b.disabled = false; b.textContent = modif ? 'Enregistrer les modifications' : 'Enregistrer'; alert(/inconnu|introuvable/i.test(x.message) ? 'Mets à jour le code Apps Script (Code.gs).' : x.message); }
       };
@@ -1494,6 +1520,7 @@ function nettoyerHtml(h){
         ${msg ? `<div class="okmsg">${msg}</div>` : ''}${errBloc()}
         <div class="ptacts"><button class="btn blue" id="pjFaire">🗓️ Faire le point du jour</button>
         <button class="btn blue2" id="pjPer">📅 Point sur plusieurs jours (du … au …)</button>
+        <button class="btn blue2" id="stOuv">📦 Mes stocks${S && S.filter(x => x.statut === 'vente').length ? ' (' + S.filter(x => x.statut === 'vente').length + ' en vente)' : ''}</button>
         <button class="btn ghost" id="ptFaire">📝 Point de la semaine (saisie à la main)</button></div>
         ${!P ? (err ? '' : '<div class="empty">Chargement…</div>') : `<div class="ptcols"><div class="ptcolA">
         <div class="ptcard" style="margin-top:0"><h3>🗓️ Revenus réels par jour</h3>
@@ -1526,6 +1553,7 @@ function nettoyerHtml(h){
       ov.querySelector('#ptX').onclick = () => ov.remove();
       const ouvrirForm = w => { vue = 'form'; msg = ''; sem = w; aide = null; dess(); charger(); };
       ov.querySelector('#pjFaire').onclick = () => ouvrirJour();
+      ov.querySelector('#stOuv').onclick = () => { vue = 'stocks'; msg = ''; sfocus = null; dess(); };
       ov.querySelector('#pjPer').onclick = () => { const x = new Date(); x.setDate(x.getDate() - 3); ouvrirJour(isoJ(x), 'periode'); };
       ov.querySelector('#ptFaire').onclick = () => ouvrirForm(semaines[new Date().getDay() === 1 ? 1 : 0]);
       ov.querySelectorAll('[data-per]').forEach(b => b.onclick = () => { per = +b.dataset.per; choix = null; dess(); });
@@ -1538,7 +1566,87 @@ function nettoyerHtml(h){
         PART = n; try { localStorage.setItem('adm_partage', JSON.stringify(n)); } catch(e){} partEdit = false; dess(); };
       ov.querySelectorAll('.pthist [data-ouv], .ptedit[data-ouv]').forEach(b => b.onclick = () => ouvrirForm(b.dataset.ouv)); brancherRe();
     };
-    const dess = () => vue === 'dash' ? dessDash() : vue === 'jour' ? dessJour() : dessForm();
+    // ---------- 📦 Stocks ----------
+    const STATUT = {route: ['🚚 En route', 'route'], vente: ['🟢 En vente', 'vente'], epuise: ['✅ Épuisé', 'epuise']};
+    const libD = iso => iso ? libJour(iso) : '–';
+    const carteStock = x => {
+      const pc = x.recu ? Math.min(100, Math.round(x.vendus / x.recu * 100)) : 0, ok = x.gainReel > 0;
+      return `<div class="stcard ${x.id === sfocus ? 'focus' : ''}" id="st_${x.id}"><div class="sthead"><div><b>${esc(x.produit)}</b><small>${x.pays ? esc(x.pays) + ' · ' : ''}commandé le ${esc(libD(x.commandeLe))}</small></div>
+        <span class="stchip ${STATUT[x.statut][1]}">${STATUT[x.statut][0]}</span><button class="pmenu" data-sm="${x.id}" aria-label="Options du stock">⋮</button></div>
+        ${x.recu ? `<div class="stbar"><i style="width:${pc}%"></i></div><p class="stl"><b>${x.vendus}</b> vendu${x.vendus > 1 ? 's' : ''} sur ${x.recu} reçus · reste <b>${Math.max(0, x.reste)}</b></p>`
+          : `<p class="stl">${x.commande} commandé${x.commande > 1 ? 's' : ''} · pas encore arrivé. Touche ⋮ → Modifier quand il arrive.</p>`}
+        <div class="stk2"><div><small>Coût par produit${x.coutProvisoire ? ' (provisoire)' : ''}</small><b>${esc(fmt(x.cout, dev))}</b></div><div><small>Stock payé</small><b>${esc(fmt(x.coutTotal, dev))}</b></div></div>
+        ${x.statut === 'epuise' ? `<div class="stbilan ${ok ? 'ok' : 'ko'}"><b>${ok ? '✅ Rentable' : '❌ Pas rentable'}</b>
+            <p>Écoulé en <b>${x.jours} jour${x.jours > 1 ? 's' : ''}</b> (${esc(libD(x.arriveLe))} → ${esc(libD(x.dernier))})</p>
+            <p>Chiffre d’affaires réel <b>${esc(fmt(x.ca, dev))}</b><br>− stock payé ${esc(fmt(x.coutTotal, dev))}<br>− pub ${esc(fmt(x.pub, dev))}<br>− abonnements ${esc(fmt(x.abonnements, dev))}</p>
+            <p class="stgain">Gain réel : <b>${esc(fmt(x.gainReel, dev))}</b>${x.ca ? ' (' + Math.round(x.gainReel / x.ca * 100) + ' %)' : ''}</p></div>`
+        : x.vendus ? `<p class="stl">CA ${esc(fmt(x.ca, dev))} · pub ${esc(fmt(x.pub, dev))} · gain sur les vendus <b class="${x.gainVendus < 0 ? 'n' : 'p'}">${esc(fmt(x.gainVendus, dev))}</b> (${esc(fmt(x.gainParProduit, dev))} / produit)</p>
+            ${x.rythme ? `<p class="stl">Rythme : <b>${x.rythme}</b> par jour${x.joursRestants != null ? ' · fini dans environ <b>' + x.joursRestants + ' jour' + (x.joursRestants > 1 ? 's' : '') + '</b>' : ''}${x.delai != null ? ' · une commande met ' + x.delai + ' j à arriver' : ''}</p>` : ''}` : ''}
+      </div>`;
+    };
+    const dessStocks = () => {
+      const L = (S || []).slice().sort((a, b) => ({vente: 0, route: 1, epuise: 2}[a.statut] - {vente: 0, route: 1, epuise: 2}[b.statut]) || (a.commandeLe < b.commandeLe ? 1 : -1));
+      ov.innerHTML = `<div class="detail bqsheet" role="dialog" aria-modal="true" aria-label="Stocks"><div class="grab"></div>
+        <button class="lnk ptback" id="ptDash">← Tableau de bord</button>
+        <h2>📦 Mes stocks</h2><p class="sub">${esc(nomB)} · chaque commande chez ton fournisseur, par produit et par pays</p>
+        ${msg ? `<div class="okmsg">${msg}</div>` : ''}${errBloc()}
+        <button class="btn blue" id="stNew">＋ Nouveau stock</button>
+        ${!S ? '<div class="empty">Chargement…</div>' : L.length ? L.map(carteStock).join('') : '<div class="empty">Aucun stock pour le moment.<br>Ajoute ta dernière commande chez ton fournisseur : l’appli calcule ce que te coûte chaque produit.</div>'}
+        <p class="sub" style="margin-top:12px">Dans chaque point (du jour ou d’une période), indique combien de produits de chaque stock ont été livrés : le stock baisse tout seul, tu reçois une notification quand la moitié est vendue, puis le bilan quand il est épuisé.</p>
+        <button class="btn ghost" id="ptX" style="margin-top:12px">Fermer</button></div>`;
+      ov.querySelector('#ptX').onclick = () => ov.remove();
+      ov.querySelector('#ptDash').onclick = () => { vue = 'dash'; msg = ''; dess(); };
+      ov.querySelector('#stNew').onclick = () => { sedit = null; vue = 'stockForm'; msg = ''; dess(); };
+      ov.querySelectorAll('[data-sm]').forEach(b => b.onclick = async () => {
+        const x = S.find(y => y.id === b.dataset.sm); if (!x) return;
+        const o = await menuListe('', x.produit + (x.pays ? ' · ' + x.pays : ''), [['mod', x.recu ? '✏️ Modifier' : '📥 Le stock est arrivé / Modifier'], ['sup', '🗑 Supprimer ce stock', 'danger']]);
+        if (o === 'mod'){ sedit = x.id; vue = 'stockForm'; msg = ''; dess(); }
+        if (o === 'sup'){ if (!(await confirmer({titre: 'Supprimer ce stock ?', texte: 'Le stock « ' + esc(x.produit) + ' » sera supprimé. Tes points restent, mais ne seront plus rattachés à ce stock.', ok: 'Supprimer'}))) return;
+          try { await appel({action: 'stockSupprimer', id: x.id}); msg = 'Stock supprimé.'; dess(); } catch(e){ alert(e.message); } }
+      });
+      brancherRe();
+      if (sfocus){ const el = ov.querySelector('#st_' + sfocus); if (el) setTimeout(() => el.scrollIntoView({block: 'center', behavior: 'smooth'}), 150); }
+    };
+    const dessStockForm = () => {
+      const x = Object.assign({}, (S || []).find(y => y.id === sedit) || {});
+      ov.innerHTML = `<div class="detail bqsheet" role="dialog" aria-modal="true" aria-label="Stock"><div class="grab"></div>
+        <button class="lnk ptback" id="stBack">← Mes stocks</button>
+        <h2>${x.id ? '✏️ Modifier le stock' : '📦 Nouveau stock'}</h2><p class="sub">${esc(nomB)} · en ${esc(dev)}</p>
+        <div class="ptcard" style="margin-top:6px"><h3>La commande</h3>
+          <label class="lbl" for="sk_prod">Produit</label><select class="field" id="sk_prod"><option value="">${PRD ? 'Choisis le produit' : 'Chargement des produits…'}</option>${(PRD ? PRD.produits : []).map(p => `<option value="${esc(p.id)}" ${p.id === x.produitId || (!x.produitId && p.nom === x.produit) ? 'selected' : ''}>${esc(p.nom)}</option>`).join('')}</select>
+          <label class="lbl" for="sk_pays">Pays</label><select class="field" id="sk_pays">${(PRD ? PRD.pays.filter(p => p.actif || p.nom === x.pays) : x.pays ? [{nom: x.pays}] : []).map(p => `<option ${p.nom === x.pays ? 'selected' : ''}>${esc(p.nom)}</option>`).join('')}</select>
+          <label class="lbl" for="sk_cd">Jour où tu as passé la commande</label><input class="field" type="date" id="sk_cd" value="${esc(x.commandeLe || isoJ(new Date()))}" max="${esc(isoJ(new Date()))}">
+          <div class="ptin"><label for="sk_qc">Nombre de produits commandés</label><input class="field" id="sk_qc" inputmode="numeric" placeholder="0" value="${x.commande || ''}"></div>
+          <div class="ptin"><label for="sk_mt">Montant de la commande<small>Ce que tu as payé au fournisseur</small></label><input class="field" id="sk_mt" inputmode="numeric" placeholder="0" value="${x.montant || ''}"></div>
+          <div class="ptin"><label for="sk_fr">Voyage, dédouanement, frais<small>Tout ce que l’arrivée du stock t’a coûté en plus</small></label><input class="field" id="sk_fr" inputmode="numeric" placeholder="0" value="${x.frais || ''}"></div></div>
+        <div class="ptcard"><h3>L’arrivée du stock</h3><p class="sub">À remplir quand le stock arrive (tu peux revenir le faire plus tard).</p>
+          <label class="lbl" for="sk_ad">Jour où le stock est arrivé</label><input class="field" type="date" id="sk_ad" value="${esc(x.arriveLe || '')}" max="${esc(isoJ(new Date()))}">
+          <div class="ptin"><label for="sk_qr">Nombre de produits reçus<small>Parfois ce n’est pas ce que tu as commandé</small></label><input class="field" id="sk_qr" inputmode="numeric" placeholder="0" value="${x.recu || ''}"></div></div>
+        <input class="field" id="sk_note" placeholder="Note (facultatif : fournisseur, transporteur…)" value="${esc(x.note || '')}" style="margin-top:10px">
+        <div class="ptres" id="skRes"><small id="skLib">Coût par produit</small><b id="skCout">–</b></div>
+        <button class="btn blue" id="skSave">${x.id ? 'Enregistrer les modifications' : 'Enregistrer le stock'}</button>
+        <button class="btn ghost" id="ptX" style="margin-top:12px">Fermer</button></div>`;
+      const n = id => Number(String(ov.querySelector('#' + id).value).replace(/[^\d.]/g, '')) || 0;
+      const calcS = () => { const q = n('sk_qr') || n('sk_qc'), c = q ? Math.round((n('sk_mt') + n('sk_fr')) / q) : 0;
+        ov.querySelector('#skCout').textContent = q ? fmt(c, dev) : '–';
+        ov.querySelector('#skLib').textContent = n('sk_qr') ? 'Coût par produit = (commande + frais) ÷ ' + n('sk_qr') + ' reçus' : 'Coût par produit (provisoire, sur les ' + (n('sk_qc') || 0) + ' commandés)'; };
+      ov.querySelectorAll('#sk_qc,#sk_mt,#sk_fr,#sk_qr').forEach(i => i.oninput = calcS); calcS();
+      ov.querySelector('#ptX').onclick = () => ov.remove();
+      ov.querySelector('#stBack').onclick = () => { vue = 'stocks'; dess(); };
+      ov.querySelector('#skSave').onclick = async e => {
+        const b = e.currentTarget, sel = ov.querySelector('#sk_prod'), prod = sel.value ? sel.options[sel.selectedIndex].text : x.produit;
+        if (!prod) return alert('Choisis le produit.');
+        if (!n('sk_qc')) return alert('Mets le nombre de produits commandés.');
+        if (n('sk_qr') && !ov.querySelector('#sk_ad').value) return alert('Mets aussi le jour où le stock est arrivé.');
+        b.disabled = true; b.textContent = 'Enregistrement…';
+        try { await appel({action: 'stockSauver', stock: {id: x.id || '', produit: prod, produitId: sel.value || x.produitId || '', pays: ov.querySelector('#sk_pays').value || '', commandeLe: ov.querySelector('#sk_cd').value,
+            commande: n('sk_qc'), montant: n('sk_mt'), frais: n('sk_fr'), arriveLe: ov.querySelector('#sk_ad').value, recu: n('sk_qr'), note: ov.querySelector('#sk_note').value}});
+          msg = x.id ? '✅ Stock modifié' : '✅ Stock enregistré'; vue = 'stocks'; dess(); }
+        catch(err2){ b.disabled = false; b.textContent = x.id ? 'Enregistrer les modifications' : 'Enregistrer le stock'; alert(/inconnu|introuvable/i.test(err2.message) ? 'Mets à jour le code Apps Script (Code.gs).' : err2.message); }
+      };
+      if (!PRD) call({type: 'produits'}).then(j => { PRD = {produits: j.produits || [], pays: j.pays || []}; if (ov.isConnected && vue === 'stockForm'){ const g = {}; ['sk_cd', 'sk_qc', 'sk_mt', 'sk_fr', 'sk_ad', 'sk_qr', 'sk_note'].forEach(k => g[k] = ov.querySelector('#' + k).value); dess(); Object.keys(g).forEach(k => ov.querySelector('#' + k).value = g[k]); ov.querySelector('#sk_qc').dispatchEvent(new Event('input')); } }).catch(() => {});
+    };
+    const dess = () => vue === 'dash' ? dessDash() : vue === 'jour' ? dessJour() : vue === 'stocks' ? dessStocks() : vue === 'stockForm' ? dessStockForm() : dessForm();
     ov.onclick = e => { if (e.target === ov) ov.remove(); };
     document.body.appendChild(ov); dess();
 
@@ -1606,7 +1714,7 @@ function nettoyerHtml(h){
       openFromLink();
       if (vueDemandee === 'vendoo' && j.vendoo && j.vendoo.statut === 'proprietaire' && !window.__vAdm){ window.__vAdm = 1; vendooAdmin(); }
       // Notification « point du jour à faire » / « résumé de la semaine » : ouvre directement le point
-      if (vueDemandee === 'point' && !window.__vPt){ window.__vPt = 1; pointHebdo({jour: new URLSearchParams(location.search).get('jour')}); }
+      if (vueDemandee === 'point' && !window.__vPt){ window.__vPt = 1; pointHebdo({jour: new URLSearchParams(location.search).get('jour'), stock: new URLSearchParams(location.search).get('stock')}); }
       if (!precharge){ precharge = true; setTimeout(() => { traiterFile(); loadPub(); loadPR(); loadTT(); }, 400); }
     } catch(e){
       if (e.message === 'VENDOO_BLOQUE'){ /* écran de coupure déjà affiché */ }
