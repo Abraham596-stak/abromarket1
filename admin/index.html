@@ -1588,7 +1588,7 @@ function nettoyerHtml(h){
       const L = (S || []).slice().sort((a, b) => ({vente: 0, route: 1, epuise: 2}[a.statut] - {vente: 0, route: 1, epuise: 2}[b.statut]) || (a.commandeLe < b.commandeLe ? 1 : -1));
       ov.innerHTML = `<div class="detail bqsheet" role="dialog" aria-modal="true" aria-label="Stocks"><div class="grab"></div>
         <button class="lnk ptback" id="ptDash">← Tableau de bord</button>
-        <h2>📦 Mes stocks</h2><p class="sub">${esc(nomB)} · chaque commande chez ton fournisseur, par produit et par pays</p>
+        <h2>📦 Mes stocks</h2><p class="sub">${esc(nomB)} · chaque commande chez ton fournisseur, pour cette boutique</p>
         ${msg ? `<div class="okmsg">${msg}</div>` : ''}${errBloc()}
         <button class="btn blue" id="stNew">＋ Nouveau stock</button>
         ${!S ? '<div class="empty">Chargement…</div>' : L.length ? L.map(carteStock).join('') : '<div class="empty">Aucun stock pour le moment.<br>Ajoute ta dernière commande chez ton fournisseur : l’appli calcule ce que te coûte chaque produit.</div>'}
@@ -1614,7 +1614,6 @@ function nettoyerHtml(h){
         <h2>${x.id ? '✏️ Modifier le stock' : '📦 Nouveau stock'}</h2><p class="sub">${esc(nomB)} · en ${esc(dev)}</p>
         <div class="ptcard" style="margin-top:6px"><h3>La commande</h3>
           <label class="lbl" for="sk_prod">Produit</label><select class="field" id="sk_prod"><option value="">${PRD ? 'Choisis le produit' : 'Chargement des produits…'}</option>${(PRD ? PRD.produits : []).map(p => `<option value="${esc(p.id)}" ${p.id === x.produitId || (!x.produitId && p.nom === x.produit) ? 'selected' : ''}>${esc(p.nom)}</option>`).join('')}</select>
-          <label class="lbl" for="sk_pays">Pays</label><select class="field" id="sk_pays">${(PRD ? PRD.pays.filter(p => p.actif || p.nom === x.pays) : x.pays ? [{nom: x.pays}] : []).map(p => `<option ${p.nom === x.pays ? 'selected' : ''}>${esc(p.nom)}</option>`).join('')}</select>
           <label class="lbl" for="sk_cd">Jour où tu as passé la commande</label><input class="field" type="date" id="sk_cd" value="${esc(x.commandeLe || isoJ(new Date()))}" max="${esc(isoJ(new Date()))}">
           <div class="ptin"><label for="sk_qc">Nombre de produits commandés</label><input class="field" id="sk_qc" inputmode="numeric" placeholder="0" value="${x.commande || ''}"></div>
           <div class="ptin"><label for="sk_mt">Montant de la commande<small>Ce que tu as payé au fournisseur</small></label><input class="field" id="sk_mt" inputmode="numeric" placeholder="0" value="${x.montant || ''}"></div>
@@ -1639,7 +1638,7 @@ function nettoyerHtml(h){
         if (!n('sk_qc')) return alert('Mets le nombre de produits commandés.');
         if (n('sk_qr') && !ov.querySelector('#sk_ad').value) return alert('Mets aussi le jour où le stock est arrivé.');
         b.disabled = true; b.textContent = 'Enregistrement…';
-        try { await appel({action: 'stockSauver', stock: {id: x.id || '', produit: prod, produitId: sel.value || x.produitId || '', pays: ov.querySelector('#sk_pays').value || '', commandeLe: ov.querySelector('#sk_cd').value,
+        try { await appel({action: 'stockSauver', stock: {id: x.id || '', produit: prod, produitId: sel.value || x.produitId || '', pays: x.pays || '', commandeLe: ov.querySelector('#sk_cd').value,
             commande: n('sk_qc'), montant: n('sk_mt'), frais: n('sk_fr'), arriveLe: ov.querySelector('#sk_ad').value, recu: n('sk_qr'), note: ov.querySelector('#sk_note').value}});
           msg = x.id ? '✅ Stock modifié' : '✅ Stock enregistré'; vue = 'stocks'; dess(); }
         catch(err2){ b.disabled = false; b.textContent = x.id ? 'Enregistrer les modifications' : 'Enregistrer le stock'; alert(/inconnu|introuvable/i.test(err2.message) ? 'Mets à jour le code Apps Script (Code.gs).' : err2.message); }
