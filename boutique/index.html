@@ -981,6 +981,9 @@ Heure de la livraison : ${r.livraison}`;
     let ttCode = ttUrl;
     if (!ttCode){ try { const a = JSON.parse(store.get('attrib') || '{}') || {}; if (a.tt && a.t && Date.now() - a.t < 7*864e5) ttCode = a.tt; } catch(e){} }
     const o = {type, sid, produit: pid, pays: country || '', tt: ttCode.slice(0, 20), ttNew: type === 'visite' && ttUrl ? 1 : 0, et: etape || (pid ? 'produit' : '')};
+    // Analyse publicitaire : la visite qui arrive d'une pub dit de quelle campagne / quel ensemble / quelle publicité elle vient
+    if (type === 'visite'){ const c = params.get('utm_campaign') || '', e = params.get('utm_term') || '', a = params.get('utm_content') || '';
+      if (c || e || a) o.pub = {s: (params.get('utm_source') || '').slice(0, 40), c: c.slice(0, 120), e: e.slice(0, 120), a: a.slice(0, 120)}; }
     if (GEO){ o.g = [Math.round(GEO.la * 100) / 100, Math.round(GEO.lo * 100) / 100, String(GEO.v).slice(0, 40), String(GEO.r).slice(0, 50), String(GEO.p).slice(0, 40), String(GEO.cc).slice(0, 3)];
       if (type !== 'quitte' && !lieuEnvoye()){ o.lieu = 1; try { sessionStorage.setItem('lieu', '1'); } catch(e){} } }
     const body = JSON.stringify(o);

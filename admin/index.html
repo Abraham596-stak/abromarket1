@@ -412,6 +412,14 @@ html.ordi .dvgrid{grid-template-columns:repeat(4,minmax(0,1fr))}
 .iaerr{margin-top:14px;background:var(--surface);border-left:4px solid var(--main);border-radius:10px;padding:12px 14px;font-size:14.5px;line-height:1.45}
 .iaerr a{color:var(--main);font-weight:700}
 .iat{margin:14px 0 6px;font-weight:700}
+.apsec{margin-top:16px}.apsec>h3,.apsec summary h3{font-size:17px;margin-bottom:6px}
+.apc{border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-top:8px;background:#fff;border-left:5px solid var(--line)}
+.apc.reproduire{border-left-color:#12A150}.apc.arreter{border-left-color:var(--err)}.apc.surveiller{border-left-color:var(--sun)}
+.apc>b{display:block;font-size:15.5px}.apc>small{display:block;color:var(--soft);font-size:13px;margin-top:2px}.apc p{font-size:14px;margin-top:6px}.apc .apv{font-weight:700}
+.apcamp{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:8px}.apcamp summary{display:flex;flex-direction:column;cursor:pointer}.apcamp summary span{color:var(--soft);font-size:13px}
+.apens{margin-top:10px}.apens>b{font-size:14px}.apl{display:flex;justify-content:space-between;gap:10px;font-size:14px;padding:6px 0;border-bottom:1px solid var(--line)}.apl em{font-style:normal;color:var(--soft);white-space:nowrap}
+.apguide{background:var(--surface);border-radius:14px;padding:12px 14px;margin-top:10px}.apguide ol{margin:8px 0 6px 18px;font-size:14.5px;line-height:1.5}.apguide li{margin-bottom:8px}
+.apperso{margin-bottom:10px}
 .iasteps{margin:10px 0 4px 20px;line-height:1.5;font-size:15px}.iasteps li{margin-bottom:6px}.iasteps a{color:var(--main)}
 .iarow{display:flex;gap:10px;align-items:center;justify-content:space-between;width:100%;text-align:left;padding:12px;border:1px solid var(--line);border-radius:12px;margin-top:8px;background:#fff}
 .iarow b{color:var(--main);font-size:13.5px;white-space:nowrap}
@@ -999,6 +1007,84 @@ function nettoyerHtml(h){
   const pressePapier = () => { try { return JSON.parse(localStorage.getItem(K_PP) || 'null'); } catch(e){ return null; } };
   const nomsPaysBq = codes => { const L = (BQS && BQS.paysListe) || []; return String(codes || '').split(/[^A-Za-z]+/).filter(Boolean).map(c => (L.find(p => p.code === c.toUpperCase()) || {nom: c}).nom).join(', '); };
   const bqAppel = async o => { const r = await fetch(API, {method: 'POST', body: JSON.stringify(Object.assign({type: 'boutiques', key, v: VID}, o))}); const j = await r.json(); if (!j.ok) throw new Error(/inconnu|introuvable/i.test(j.erreur || '') && !/boutique|produit|pays|onglet/i.test(j.erreur || '') ? 'Mets à jour le code Apps Script (Code.gs).' : frErr(j.erreur)); return j; };
+  // ---------- 📣 Analyse publicitaire : quelles pubs apportent des commandes (toutes les boutiques) ----------
+  async function analysePubUI(){
+    const UTM = 'utm_source=facebook&utm_campaign={{campaign.name}}&utm_term={{adset.name}}&utm_content={{ad.name}}';
+    const pad = n => String(n).padStart(2, '0'), loc = x => x.getFullYear() + '-' + pad(x.getMonth() + 1) + '-' + pad(x.getDate()) + 'T' + pad(x.getHours()) + ':' + pad(x.getMinutes());
+    const debJ = k => { const x = new Date(); x.setHours(0, 0, 0, 0); x.setDate(x.getDate() - k); return x; };
+    const PER = {auj: ['Aujourd’hui', () => [debJ(0), new Date()]], hier: ['Hier', () => [debJ(1), debJ(0)]], j2: ['Les 2 derniers jours', () => [debJ(1), new Date()]],
+      j7: ['Les 7 derniers jours', () => [debJ(6), new Date()]], j30: ['Les 30 derniers jours', () => [debJ(29), new Date()]]};
+    let per = S.get('adm_apper') || 'j2', du = null, au = null, R = null, err = '', guide = false, ia = '';
+    const plage = () => { if (per === 'perso' && du && au) return [du, au]; const p = PER[per] || PER.j2; const [a, b] = p[1](); return [loc(a), loc(b)]; };
+    const libP = () => { if (per === 'perso' && du && au){ const f = v => { const [d, h] = v.split('T'); const [y, m, j] = d.split('-'); return j + '/' + m + (h && h !== '00:00' ? ' ' + h : ''); }; return 'Du ' + f(du) + ' au ' + f(au); } return (PER[per] || PER.j2)[0]; };
+    const ov = document.createElement('div'); ov.className = 'overlay';
+    document.body.appendChild(ov); ov.onclick = e => { if (e.target === ov) ov.remove(); };
+    const dv = () => (R && R.devise) || 'FCFA';
+    const nomPub = p => `<b>« ${esc(p.pub || 'Pub sans nom')} »</b><small>Ensemble « ${esc(p.ensemble || '—')} » · Campagne « ${esc(p.campagne || '—')} »${R && R.boutiques > 1 && p.boutiques.length ? ' · ' + esc(p.boutiques.join(', ')) : ''}</small>`;
+    const chiffres = p => `${p.commandes} commande${p.commandes > 1 ? 's' : ''} · ${p.livrees} livrée${p.livrees > 1 ? 's' : ''}${p.perdues ? ' · ' + p.perdues + ' perdue' + (p.perdues > 1 ? 's' : '') : ''}${p.visites ? ' · ' + p.visites + ' visite' + (p.visites > 1 ? 's' : '') + (p.taux != null ? ' (' + String(p.taux).replace('.', ',') + ' % commandent)' : '') : ''}${p.caLivre ? ' · ' + fmt(p.caLivre, dv()) + ' encaissés' : ''}`;
+    const carte = (p, k) => `<div class="apc ${k}">${nomPub(p)}<p>${esc(chiffres(p))}</p><p class="apv">${k === 'reproduire' ? '👉 Tu peux refaire cette vidéo (ou en faire une proche) et lui remettre du budget.' : k === 'arreter' ? (p.commandes ? '👉 Ne la reprends plus : ses commandes ne sont presque jamais livrées.' : '👉 Ne la reprends plus : ' + p.visites + ' visites et aucune commande.') : '👉 Pas encore assez de commandes pour décider : laisse-la tourner encore un peu.'}</p></div>`;
+    const guideHtml = () => `<div class="apguide"><h3>Comment ça marche</h3>
+      <ol><li><b>Dans Meta (Gestionnaire de publicités)</b>, ouvre chaque <b>publicité</b>, descends jusqu’à <b>« Paramètres de l’URL »</b> et colle ceci :<div class="utmbox"><code>${esc(UTM)}</code><button type="button" id="apCopy">📋 Copier</button></div></li>
+      <li><b>Donne des noms clairs</b> : campagne (ex : « Calcium – octobre »), ensemble (ex : « Femmes 35-55 »), publicité (ex : « Vidéo 3 – témoignage »). Ce sont ces noms que l’analyse affichera.</li>
+      <li>Chaque visite et chaque commande venant d’une pub est alors comptée toute seule, avec sa campagne, son ensemble et sa publicité.</li>
+      <li>Tous les 2 jours, une notification te rappelle de venir voir <b>les pubs à refaire</b> et <b>celles à ne plus reprendre</b>.</li></ol>
+      <p class="sub">Une pub sans ces paramètres d’URL ne peut pas être suivie. Les commandes déjà passées avant ne sont pas rattachées à une pub.</p></div>`;
+    const lier = () => {
+      const c = ov.querySelector('#apCopy'); if (c) c.onclick = async () => { try { await navigator.clipboard.writeText(UTM); c.textContent = '✓ Copié'; } catch(e){ prompt('Copie ce texte :', UTM); } };
+      ov.querySelectorAll('[data-x]').forEach(b => b.onclick = () => ov.remove());
+    };
+    const charger = async () => {
+      R = R && R.active === false ? R : null; err = ''; ia = ''; dess();
+      const [a, b] = plage();
+      try { R = await call({type: 'analysePub', du: a, au: b}); } catch(e){ err = /inconnu|introuvable/i.test(e.message) ? 'Mets à jour le code Apps Script (Code.gs).' : e.message; }
+      if (ov.isConnected) dess();
+    };
+    const dess = () => {
+      if (R && R.active === false){
+        ov.innerHTML = `<div class="detail bqsheet" role="dialog" aria-modal="true"><div class="grab"></div><h2>📣 Analyse publicitaire</h2>
+          <p class="sub">Elle te dit, pour chaque campagne, chaque ensemble et chaque publicité (vidéo), combien de commandes elle t’a apporté. Tu sais alors <b>quelles vidéos refaire</b> et <b>lesquelles ne plus reprendre</b>.</p>
+          ${guideHtml()}
+          <button class="btn blue" id="apOn" style="margin-top:12px">Activer l’analyse publicitaire</button><button class="btn ghost" data-x style="margin-top:8px">Plus tard</button></div>`;
+        lier();
+        ov.querySelector('#apOn').onclick = async e => { e.currentTarget.disabled = true; try { await call({type: 'analysePub', action: 'activer', oui: true}); guide = true; R = null; toast('✅ Analyse publicitaire activée'); charger(); } catch(x){ e.currentTarget.disabled = false; alert(x.message); } };
+        return;
+      }
+      const L = R && R.pubs || [], rep = L.filter(p => p.verdict === 'reproduire'), arr = L.filter(p => p.verdict === 'arreter'), sur = L.filter(p => p.verdict === 'surveiller');
+      const som = k => L.reduce((t, p) => t + (p[k] || 0), 0);
+      const camp = {}; L.forEach(p => { const c = camp[p.campagne || '—'] = camp[p.campagne || '—'] || {}; (c[p.ensemble || '—'] = c[p.ensemble || '—'] || []).push(p); });
+      ov.innerHTML = `<div class="detail bqsheet ptwide" role="dialog" aria-modal="true"><div class="grab"></div>
+        <h2>📣 Analyse publicitaire</h2><p class="sub">${R && R.boutiques > 1 ? 'Toutes tes boutiques (' + R.boutiques + ')' : 'Ta boutique'} · ${esc(libP())}</p>
+        <div class="periods" style="margin:8px 0"><button class="chip on" id="apPer">${CAL} ${esc(libP())} ▾</button><button class="chip" id="apGuide" style="background:var(--surface);color:var(--ink);border-color:var(--line)">❓ Comment ça marche</button></div>
+        ${per === 'perso' && (!du || !au || guide === 'perso') ? '' : ''}
+        <div id="apPerso" class="${per === 'perso' && (!du || !au) ? '' : 'hidden'} apperso"><div class="g2"><label class="lbl">Du<input class="field" type="datetime-local" id="apDu" value="${esc(du || loc(debJ(1)))}"></label><label class="lbl">Au<input class="field" type="datetime-local" id="apAu" value="${esc(au || loc(new Date()))}"></label></div><button class="btn blue" id="apOk" style="margin-top:8px">Analyser cette période</button></div>
+        ${guide ? guideHtml() : ''}
+        ${err ? `<div class="pterr">${esc(err)}</div>` : !R ? '<div class="empty">Analyse en cours…</div>' : !L.length ? `<div class="empty">Aucune visite ni commande venue d’une publicité sur cette période.<br>Vérifie que tes pubs ont bien les <b>paramètres de l’URL</b> (❓ Comment ça marche).</div>` : `
+        <div class="ptk"><div><small>Commandes venues des pubs</small><b>${som('commandes')}</b></div><div><small>Livrées</small><b>${som('livrees')}</b><small>${esc(fmt(som('caLivre'), dv()))}</small></div><div><small>Visites venues des pubs</small><b>${som('visites')}</b></div></div>
+        <div class="apsec"><h3>✅ À refaire (${rep.length})</h3>${rep.length ? rep.map(p => carte(p, 'reproduire')).join('') : '<p class="sub">Aucune publicité n’a encore assez de commandes (au moins ' + R.seuil + ') sur cette période.</p>'}</div>
+        <div class="apsec"><h3>❌ À ne plus reprendre (${arr.length})</h3>${arr.length ? arr.map(p => carte(p, 'arreter')).join('') : '<p class="sub">Aucune pour l’instant 👍</p>'}</div>
+        ${sur.length ? `<details class="apsec"><summary><h3 style="display:inline">👀 À surveiller (${sur.length})</h3></summary>${sur.map(p => carte(p, 'surveiller')).join('')}</details>` : ''}
+        <div class="apsec"><h3>📂 Détail par campagne</h3>${Object.keys(camp).map(c => { const E = camp[c], n = Object.values(E).flat().reduce((t, p) => t + p.commandes, 0);
+          return `<details class="apcamp"><summary><b>${esc(c)}</b><span>${n} commande${n > 1 ? 's' : ''} · ${Object.keys(E).length} ensemble${Object.keys(E).length > 1 ? 's' : ''}</span></summary>${Object.keys(E).map(e => `<div class="apens"><b>Ensemble « ${esc(e)} »</b>${E[e].map(p => `<div class="apl"><span>${{reproduire: '✅', arreter: '❌', surveiller: '👀'}[p.verdict]} ${esc(p.pub || 'Pub sans nom')}</span><em>${p.commandes} cmd · ${p.livrees} livr.${p.visites ? ' · ' + p.visites + ' vis.' : ''}</em></div>`).join('')}</div>`).join('')}</details>`; }).join('')}</div>
+        <div class="apsec"><button class="btn blue2" id="apIA">✨ Demander l’avis de l’IA sur mes pubs</button><div id="apIARes">${ia}</div></div>`}
+        <button class="btn ghost" data-x style="margin-top:12px">Fermer</button></div>`;
+      lier();
+      ov.querySelector('#apGuide').onclick = () => { guide = !guide; dess(); };
+      ov.querySelector('#apPer').onclick = async () => {
+        const o = await menuListe('', 'Période à analyser', Object.keys(PER).map(k => [k, PER[k][0]]).concat([['perso', '📅 Choisir les dates et les heures (du … au …)']]));
+        if (!o) return; if (o === 'perso'){ per = 'perso'; du = null; au = null; dess(); return; }
+        per = o; S.set('adm_apper', o); charger(); };
+      const ok = ov.querySelector('#apOk'); if (ok) ok.onclick = () => { const a = ov.querySelector('#apDu').value, b = ov.querySelector('#apAu').value; if (!a || !b || b <= a) return alert('Choisis une date « Au » après la date « Du ».'); du = a; au = b; charger(); };
+      const bia = ov.querySelector('#apIA'); if (bia) bia.onclick = async () => {
+        const z = ov.querySelector('#apIARes'); bia.disabled = true; z.innerHTML = '<div class="iaload"><span class="spin"></span> L’IA analyse tes publicités…</div>';
+        const lignes = L.slice(0, 60).map(p => '- Campagne « ' + p.campagne + ' » / Ensemble « ' + p.ensemble + ' » / Pub « ' + p.pub + ' » : ' + chiffres(p)).join('\n');
+        try { const j = await call({type: 'ia', action: 'ia', consigne: 'Tu es expert en publicité Facebook/Instagram pour une boutique en paiement à la livraison. Voici les résultats de mes publicités (' + libP() + '). Dis-moi simplement : 1) les 3 publicités à refaire en priorité et pourquoi ; 2) celles à arrêter ; 3) ce que les meilleures ont en commun (d’après leurs noms) et 2 idées de nouvelles vidéos à tester. Réponds en français très simple, avec des tirets, sans parler de pays ni de ville.', contexte: lignes});
+          ia = j.sansCle ? '<div class="iaerr">Branche d’abord ton assistant IA gratuit : Réglages → 🤖 Assistant IA.</div>' : `<div class="iaprev iabilan">${esc(j.texte || '').replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>')}</div>`; }
+        catch(e){ ia = `<div class="iaerr">${esc(e.message)}</div>`; }
+        if (ov.isConnected){ z.innerHTML = ia; bia.disabled = false; }
+      };
+    };
+    dess(); charger();
+  }
   // Assistant IA : la clé Gemini gratuite de CE compte (toi ou ton abonné), gardée dans son Google Sheets
   async function brancherIA(testerTout){
     const K = 'IA – clé Gemini (gratuite sur aistudio.google.com)';
@@ -1718,6 +1804,7 @@ function nettoyerHtml(h){
       openFromLink();
       if (vueDemandee === 'vendoo' && j.vendoo && j.vendoo.statut === 'proprietaire' && !window.__vAdm){ window.__vAdm = 1; vendooAdmin(); }
       // Notification « point du jour à faire » / « résumé de la semaine » : ouvre directement le point
+      if (vueDemandee === 'analyse' && !window.__vAp){ window.__vAp = 1; analysePubUI(); }
       if (vueDemandee === 'point' && !window.__vPt){ window.__vPt = 1; pointHebdo({jour: new URLSearchParams(location.search).get('jour'), stock: new URLSearchParams(location.search).get('stock')}); }
       if (!precharge){ precharge = true; setTimeout(() => { traiterFile(); loadPub(); loadPR(); loadTT(); }, 400); }
     } catch(e){
@@ -3632,6 +3719,7 @@ function nettoyerHtml(h){
       ${D.vendoo && D.vendoo.statut === 'proprietaire' ? `<div class="set"><div><b>Vendoo – abonnés et paiements</b><p>Valider les paiements MoMo, voir les abonnés, codes promo.</p></div><button class="chip" style="background:#5B2EE6;border-color:#5B2EE6" id="vAdm">Ouvrir</button></div>` : ''}
       ${VENDOO && D.vendoo && D.vendoo.statut !== 'proprietaire' ? `<div class="set"><div><b>Mon abonnement Vendoo</b><p>${D.vendoo.statut === 'essai' ? 'Essai gratuit jusqu’au ' + esc(D.vendoo.expire || '') + ' (' + D.vendoo.jours + ' j)' : D.vendoo.statut === 'actif' ? 'Actif jusqu’au ' + esc(D.vendoo.expire || '') + ' (' + D.vendoo.jours + ' j)' : D.vendoo.statut === 'grace' ? 'Terminé : coupure dans ' + D.vendoo.grace + ' j' : esc(D.vendoo.statut || '')}</p></div><a class="chip" style="background:#5B2EE6;border-color:#5B2EE6" href="${PAYER}" target="_blank" rel="noopener">Gérer</a></div>` : ''}
       <div class="set"><div><b>🚚 Agences de livraison</b><p>L’e-mail de l’agence qui reçoit les commandes de chaque pays : l’ajouter, le changer ou le retirer.</p></div><button class="chip" style="background:var(--main);border-color:var(--main)" id="agSet">Ouvrir</button></div>
+      <div class="set"><div><b>📣 Analyse publicitaire</b><p>Quelles publicités t’apportent des commandes : celles à refaire et celles à ne plus reprendre.</p></div><button class="chip" style="background:var(--main);border-color:var(--main)" id="apSet">Ouvrir</button></div>
       <div class="set"><div><b>🤖 Assistant IA</b><p>Pour les boutons ✨ IA des produits : écrire, reformuler, noter ta page. Gratuit avec ta clé Gemini.</p></div><button class="chip" style="background:var(--main);border-color:var(--main)" id="iaSet">Brancher</button></div>
       <div class="set"><div><b>💰 Point hebdomadaire</b><p>Ce que l’agence te verse, tes pubs, tes abonnements, tes achats : ton bénéfice net de la semaine.</p></div><button class="chip" style="background:var(--main);border-color:var(--main)" id="ptSet">Ouvrir</button></div>
       <div class="set"><div><b>Mes boutiques${VENDOO ? '' : ' (Vendoo)'}</b><p>Jusqu'à 30 boutiques : une par agence ou par pays. Chacune a ses produits, ses commandes et son lien.</p></div><button class="chip" style="background:var(--main);border-color:var(--main)" id="bqSet">Ouvrir</button></div>
@@ -3654,6 +3742,7 @@ function nettoyerHtml(h){
     document.getElementById('bqSet').onclick = () => mesBoutiques();
     document.getElementById('ptSet').onclick = () => pointHebdo();
     document.getElementById('iaSet').onclick = () => brancherIA();
+    document.getElementById('apSet').onclick = () => analysePubUI();
     document.getElementById('agSet').onclick = () => { const ov = document.createElement('div'); ov.className = 'overlay'; ov.onclick = e => { if (e.target === ov) ov.remove(); }; document.body.appendChild(ov); agences(ov, BQ, (D && D.boutique) || 'Ma boutique', () => ov.remove()); };
     const va = document.getElementById('vAdm'); if (va) va.onclick = () => vendooAdmin();
     app.querySelectorAll('[data-go2]').forEach(b => b.onclick = () => go(b.dataset.go2));
