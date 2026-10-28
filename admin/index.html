@@ -984,11 +984,11 @@ function nettoyerHtml(h){
       const presse = pressePapier();
       const l = (BQS && BQS.boutiques) || [], max = (BQS && BQS.max) || 30, n = l.filter(b => !b.principale).length;
       ov.innerHTML = `<div class="detail bqsheet" role="dialog" aria-modal="true" aria-label="Mes boutiques"><div class="grab"></div>
-        <h2>Mes boutiques</h2><p class="sub">${n} / ${max} boutiques créées · Une boutique = une agence (ses commandes ne se mélangent pas).</p>
+        <h2>Mes boutiques</h2><p class="sub">Boutique principale + ${n} / ${max} boutiques · Une boutique = une agence (ses commandes ne se mélangent pas). Une pub sur plusieurs pays peut utiliser la principale : chaque commande part toute seule dans la boutique de son pays.</p>
         ${msg ? `<div class="okmsg">${msg}</div>` : ''}
         ${presse ? `<div class="bqclip">📋 ${presse.ids.length} produit${presse.ids.length > 1 ? 's' : ''} copié${presse.ids.length > 1 ? 's' : ''} de « ${esc(presse.nom)} » · ouvre le ⋮ d’une autre boutique puis « Coller les produits ».</div>` : ''}
         ${!BQS ? '<div class="empty">Chargement…</div>' : l.map(b => `<div class="bqrow ${(b.code || '') === BQ ? 'on' : ''}">
-          <div class="bqi"><b>${esc(b.nom)}</b><small>${b.principale ? 'Boutique principale' : esc(nomsPaysBq(b.pays))}${b.agence ? ' · agence : ' + esc(b.agence) : ''}${!b.active ? ' · <span style="color:var(--err)">désactivée</span>' : ''}${(b.code || '') === BQ ? ' · <span class="bqcur">Ouverte</span>' : ''}</small></div>
+          <div class="bqi"><b>${esc(b.nom)}</b><small>${b.principale ? 'Boutique principale' + (b.pays ? ' · ' + esc(nomsPaysBq(b.pays)) : '') + ' · pubs multi-pays' : esc(nomsPaysBq(b.pays))}${b.agence ? ' · agence : ' + esc(b.agence) : ''}${!b.active ? ' · <span style="color:var(--err)">désactivée</span>' : ''}${(b.code || '') === BQ ? ' · <span class="bqcur">Ouverte</span>' : ''}</small></div>
           <button class="bqdots" data-bm="${esc(b.code || '')}" aria-label="Options de ${esc(b.nom)}">⋮</button></div>`).join('')}
         ${BQS && n < max ? '<button class="btn blue" id="bqNew" style="margin-top:14px">＋ Créer une nouvelle boutique</button>' : ''}
         <button class="btn ghost" id="bqX" style="margin-top:10px">Fermer</button></div>`;

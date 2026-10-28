@@ -450,8 +450,13 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
 
   function pickCountry(allowed){
     const codes = allowed.map(p => p.code);
-    const cand = [(params.get('c') || '').toUpperCase(), store.get('pays')];
-    try { cand.push(TZ[Intl.DateTimeFormat().resolvedOptions().timeZone]); } catch(e){}
+    // Lien d'une pub sur plusieurs pays (c=CI,BJ) : le pays du visiteur d'abord
+    const cs = (params.get('c') || '').toUpperCase().split(/[^A-Z]+/).filter(Boolean);
+    let tz = '', geo = '';
+    try { tz = TZ[Intl.DateTimeFormat().resolvedOptions().timeZone] || ''; } catch(e){}
+    try { geo = String((GEO && GEO.cc) || '').toUpperCase(); } catch(e){}
+    const cand = cs.length > 1 ? [tz, geo, store.get('pays')].filter(c => cs.includes(c)).concat(cs)
+      : [cs[0], store.get('pays'), tz, geo];
     for (const c of cand) if (c && codes.includes(c)) return c;
     return codes[0] || null;
   }
@@ -868,7 +873,7 @@ Heure de la livraison : ${r.livraison}`;
       memo(P.id, r.numero);
       try { if (!APERCU){ etape = 'achat'; beacon('ping'); } } catch(x){}
       // Lance tout de suite les notifications (WhatsApp, email, application) et l'envoi aux agences
-      try { const bd = avecB(JSON.stringify({type: 'apres', numero: r.numero})); if (navigator.sendBeacon) navigator.sendBeacon(API, new Blob([bd], {type: 'text/plain'})); else fetch(API, {method: 'POST', body: bd, keepalive: true}); } catch(x){}
+      try { const bd = avecB(JSON.stringify(r.b ? {type: 'apres', numero: r.numero, b: r.b} : {type: 'apres', numero: r.numero})); if (navigator.sendBeacon) navigator.sendBeacon(API, new Blob([bd], {type: 'text/plain'})); else fetch(API, {method: 'POST', body: bd, keepalive: true}); } catch(x){}
       if (modeMerci){ const n = $('numCmd'); if (n) n.textContent = r.numero; else merci(r, P); return; }
       $('mNum').textContent = r.numero;
       $('waLink').href = url;
@@ -1011,7 +1016,7 @@ Heure de la livraison : ${r.livraison}`;
     const devDe = c => dev[c] || FCFA[c] || c;
     (d.produits || []).forEach(x => {
       x.prix = x.prix || {}; const codes = Object.keys(x.prix); if (!codes.length) return;
-      (d.pays || []).forEach(p => { if (x.prix[p.code]) return; const src = codes.find(c => devDe(c) === devDe(p.code)); if (src) x.prix[p.code] = x.prix[src]; });
+      (d.pays || []).forEach(p => { if (x.prix[p.code] || p.boutique) return; const src = codes.find(c => devDe(c) === devDe(p.code)); if (src) x.prix[p.code] = x.prix[src]; });
     });
   }
   let liveDone = false;
