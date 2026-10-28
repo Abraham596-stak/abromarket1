@@ -790,6 +790,8 @@ html.ordi .pmsheet{max-width:420px}
 .agrow .bqdel{background:var(--errbg);color:#9B1C1C;flex:0 0 auto;font-size:13px;font-weight:700;padding:6px 10px;border-radius:10px}
 .agadd{display:flex;gap:8px}.agadd .field{flex:1;padding:11px 12px}.agadd button{background:var(--main);color:#fff;border-radius:12px;padding:0 14px;font-weight:800;white-space:nowrap}
 .agbloc{gap:8px}
+.agrow>span{display:flex;flex-direction:column;min-width:0;flex:1}.agrap{font-size:12px;color:var(--soft);font-weight:700}.agrap.on{color:#0B6B35}
+.aglien{background:var(--surface)!important;color:var(--main)!important;margin-right:6px}
 </style>
 </head>
 <body>
@@ -1402,7 +1404,7 @@ function nettoyerHtml(h){
         ${msg ? `<div class="okmsg">${msg}</div>` : ''}
         ${!L ? '<div class="empty">Chargement…</div>' : !L.length ? '<div class="empty">Aucun pays actif dans cette boutique.</div>' : L.map(p => { const A = p.agences || (p.agence ? p.agence.split(/\s*,\s*/) : []); return `<div class="bqrow agbloc" style="grid-template-columns:1fr">
           <div class="bqi"><b>${esc(p.nom)}</b><small>${A.length ? A.length + ' agence' + (A.length > 1 ? 's' : '') + ' reçoi' + (A.length > 1 ? 'vent' : 't') + ' les commandes' : 'Pas d’agence (tu livres toi-même)'}${p.fichier ? ` · <a href="${esc(p.fichier)}" target="_blank" rel="noopener">📄 Fichier des commandes</a>` : ''}</small></div>
-          ${A.map(e => `<div class="agrow"><span>📧 ${esc(e)}</span><button class="bqdel" data-agx="${esc(p.code)}" data-agn="${esc(e)}">Retirer</button></div>`).join('')}
+          ${A.map(e => { const rp = (p.rappels || []).find(r => r.email.toLowerCase() === e.toLowerCase()); return `<div class="agrow"><span>📧 ${esc(e)}${rp ? `<small class="agrap ${rp.actif ? 'on' : ''}">${rp.actif ? '🔔 Rappels activés' : '🔕 Rappels pas encore activés'}</small>` : ''}</span>${rp ? `<button class="bqdel aglien" data-agl="${esc(rp.lien)}" data-age="${esc(e)}">🔔 Lien</button>` : ''}<button class="bqdel" data-agx="${esc(p.code)}" data-agn="${esc(e)}">Retirer</button></div>`; }).join('')}
           <div class="agadd"><input class="field" data-agm="${esc(p.code)}" type="email" placeholder="E-mail Google de l’agence à ajouter"><button data-ags="${esc(p.code)}">➕ Ajouter</button></div></div>`; }).join('')}
         <button class="btn ghost" id="agR" style="margin-top:12px">← Retour</button></div>`;
       ov.querySelector('#agR').onclick = () => retour();
@@ -1415,6 +1417,14 @@ function nettoyerHtml(h){
         go(b, code, A.concat([email]), '✅ Agence ajoutée : ' + esc(email) + ' a reçu l’accès au fichier des commandes.');
       });
       ov.querySelectorAll('[data-agm]').forEach(i => i.onkeydown = e => { if (e.key === 'Enter') ov.querySelector(`[data-ags="${i.dataset.agm}"]`).click(); });
+      // Lien personnel de l'agence pour activer ses rappels (notifications toutes les 30 min / chaque heure)
+      ov.querySelectorAll('[data-agl]').forEach(b => b.onclick = async () => {
+        const lien = b.dataset.agl, txt = 'Bonjour 👋 Pour recevoir sur ton téléphone les rappels des commandes (statuts à changer, clients à rappeler), ouvre ce lien et touche « Activer les rappels » : ' + lien;
+        const o = await menuListe('', 'Rappels de ' + b.dataset.age, [['wa', '📤 Envoyer le lien par WhatsApp'], ['cp', '🔗 Copier le lien'], ['ou', '👁 Ouvrir la page des rappels']]);
+        if (o === 'wa') window.open('https://wa.me/?text=' + encodeURIComponent(txt), '_blank');
+        if (o === 'cp'){ try { await navigator.clipboard.writeText(lien); toast('🔗 Lien copié'); } catch(e){ prompt('Copie ce lien :', lien); } }
+        if (o === 'ou') window.open(lien, '_blank');
+      });
       ov.querySelectorAll('[data-agx]').forEach(b => b.onclick = async () => {
         const code = b.dataset.agx, em = b.dataset.agn, reste = liste(code).filter(e => e.toLowerCase() !== em.toLowerCase());
         if (!(await confirmer({titre: 'Retirer cette agence ?', texte: `<b>${esc(em)}</b> va perdre l'accès à toutes les commandes de cette boutique.${reste.length ? ' Les autres agences de ce pays gardent leur accès.' : ' C’était la dernière agence de ce pays : son fichier part à la corbeille.'} Tes commandes restent dans ton Google Sheets.`, ok: 'Retirer'}))) return;
