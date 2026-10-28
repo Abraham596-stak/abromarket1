@@ -97,8 +97,8 @@ section.bloc p.intro{color:var(--soft);font-size:17px;max-width:620px;margin:0 0
 .plan.top{border-color:var(--main);box-shadow:0 16px 44px rgba(35,80,216,.16)}
 .plan .tag{position:absolute;top:-12px;left:24px;background:var(--gold);color:#3A2A00;font-size:12.5px;font-weight:800;padding:4px 12px;border-radius:99px}
 .plan .nom{font-weight:700;color:var(--soft)}
-.plan .p{font-size:46px;font-weight:800;letter-spacing:-.03em;line-height:1.05;margin:8px 0 2px}
-.plan .p small{font-size:16px;color:var(--soft);font-weight:600;letter-spacing:0}
+.plan .p{font-size:clamp(32px,3.4vw,42px);white-space:nowrap;font-weight:800;letter-spacing:-.03em;line-height:1.05;margin:8px 0 2px}
+.plan .p small{font-size:16px;color:var(--soft);font-weight:600;letter-spacing:0;display:block;margin-top:4px}
 .plan .eq{color:var(--soft);font-size:14px}
 .plan ul{margin:16px 0 20px;padding-left:20px;color:var(--ink);font-size:15px}
 .plan ul li{margin:4px 0}
@@ -213,7 +213,7 @@ label{display:block;font-weight:700;font-size:14px;margin:12px 0 6px}
   <div><h4>Vendoo</h4><a href="#fonctions" data-ancre>Fonctions</a><a href="#tarifs" data-ancre>Tarifs</a><a href="#comment" data-ancre>Comment ça marche</a></div>
   <div><h4>Compte</h4><a href="#inscription">Créer mon compte</a><a href="#connexion">Se connecter</a><a href="#compte">Mon abonnement</a></div>
   <div><h4>Assistance</h4><a href="https://wa.me/2290160422139" target="_blank" rel="noopener">WhatsApp</a><a href="conditions.html">Conditions</a><a href="confidentialite.html">Confidentialité</a></div>
-</div><div class="bas"><span>© <span id="an"></span> Vendoo</span><span>Paiement par Mobile Money · Prix en dollars à titre indicatif, payés en FCFA</span></div></div></footer>
+</div><div class="bas"><span>© <span id="an"></span> Vendoo</span><span>Paiement par Mobile Money · Prix en FCFA</span></div></div></footer>
 <script>
 (() => {
   const API = 'https://script.google.com/macros/s/AKfycbwgdtcXlXB9niD3hactnz4SLIrpY_q74iQQZwkr1vrUBjczfCCVWwamG69uqnUQZsba/exec';
@@ -238,9 +238,9 @@ label{display:block;font-weight:700;font-size:14px;margin:12px 0 6px}
     const _al = window.alert.bind(window); window.alert = m => _al(frErr(m));
   } catch(e){}
   const F = n => Number(n || 0).toLocaleString('fr-FR').replace(/ /g, ' ') + ' F';
-  // Prix affichés en dollars (taux du jour) ; le paiement se fait en FCFA par Mobile Money
-  const USD = n => '$' + Math.round(Number(n || 0) / ((CFG && CFG.usd) || 600));
-  const PRIX0 = {mois: 19900, six: 89900, an: 149900};
+  // Prix affichés en FCFA (arrondis à la centaine)
+  const USD = n => F(Math.round(Number(n || 0) / 100) * 100) + 'CFA';
+  const PRIX0 = {mois: 14900, six: 79900, an: 119000};
   const mainEl = document.getElementById('app');
   const pleinePage = oui => { mainEl.className = oui ? '' : 'compte'; document.getElementById('nav').style.visibility = oui ? '' : 'hidden';
     document.getElementById('hCta').style.display = oui ? '' : 'none'; document.getElementById('hBtn').style.display = oui && jeton ? 'none' : ''; };
@@ -579,7 +579,7 @@ label{display:block;font-weight:700;font-size:14px;margin:12px 0 6px}
     ['⚙️', 'Règle ta boutique', `<p>Dans ton Google Sheets, onglet <b>Réglages</b> :</p><ul><li>Nom de la boutique, couleur, logo, bandeau, garanties.</li><li><b>WhatsApp</b> qui reçoit les commandes (CallMeBot, gratuit).</li><li><b>Pixels Facebook et TikTok</b> pour tes publicités.</li></ul><p>Onglet <b>Pays</b> : choisis les pays où tu vends (OUI/NON).</p>`],
     ['🚀', 'Vends', `<ul><li>Copie le <b>lien de ta boutique</b> (sur ton compte) ou d’un produit (⋮ → Copier le lien) et mets-le dans tes pubs, statuts et groupes.</li><li>Pour TikTok : onglet <b>TikTok</b> de l’application → crée une promotion par pub. Tu sauras combien chaque pub te rapporte.</li><li>Jusqu’à <b>30 boutiques</b> : Réglages → Mes boutiques (une par pays ou par agence).</li></ul>`],
     ['📦', 'Gère tes commandes', `<ul><li>Onglet <b>Commandes</b> : appelle le client, change le statut (Confirmée, En livraison, Livrée…).</li><li>Onglet <b>Relances</b> : les clients qui n’ont pas fini leur commande. Une alerte arrive 5 minutes après, avec le message de relance déjà écrit.</li><li><b>Agences</b> (facultatif) : Réglages → Mes boutiques → 🚚 Agences. L’agence reçoit les commandes de son pays et met à jour les statuts.</li></ul>`],
-    ['✦', 'Besoin d’aide ?', `<ul><li>Dans l’application, le bouton rond <b>✦ Assistant</b> en bas à droite répond à toutes tes questions, à tout moment.</li><li>Avant la fin de ton essai, abonne-toi ici : <b>19 900 F/mois</b>, <b>89 900 F/6 mois</b> ou <b>149 900 F/an</b>, par Mobile Money avec la capture d’écran du paiement.</li></ul><p>Tu peux revoir ce guide quand tu veux avec le bouton <b>📘 Guide</b> de ton compte.</p>`]
+    ['✦', 'Besoin d’aide ?', `<ul><li>Dans l’application, le bouton rond <b>✦ Assistant</b> en bas à droite répond à toutes tes questions, à tout moment.</li><li>Avant la fin de ton essai, abonne-toi ici : <b>14 900 F/mois</b>, <b>79 900 F/6 mois</b> ou <b>119 000 F/an</b>, par Mobile Money avec la capture d’écran du paiement.</li></ul><p>Tu peux revoir ce guide quand tu veux avec le bouton <b>📘 Guide</b> de ton compte.</p>`]
   ];
   function guide(){
     let i = 0;
