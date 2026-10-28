@@ -1362,8 +1362,9 @@ function nettoyerHtml(h){
         <div class="seg" style="display:flex;margin:6px 0 4px">${[['payer', 'Paiements' + (av.length ? ' (' + av.length + ')' : '')], ['abos', 'Abonnés (' + V.comptes.length + ')'], ['codes', 'Codes promo']].map(([k, l]) => `<button data-vo="${k}" class="${onglet === k ? 'on' : ''}" style="flex:1">${l}</button>`).join('')}</div>
         ${onglet === 'payer' ? (V.paiements.length ? V.paiements.map(p => `<div class="vpay ${/valider/i.test(p.statut) ? 'av' : ''}">
             <div class="l"><b>${esc(p.nom || p.email)}</b><b>${fmt(p.montant)} F</b></div>
-            <div class="sub" style="margin:2px 0">${esc(p.email)} · ${p.formule === 'an' ? '1 an' : '1 mois'}${p.code ? ' · code ' + esc(p.code) : ''} · ${esc(p.date)}</div>
-            <div class="sub">MoMo : <b>${esc(p.numero)}</b> · ID <span class="tx">${esc(p.transaction)}</span></div>
+            <div class="sub" style="margin:2px 0">${esc(p.email)} · ${p.formule === 'an' ? '1 an' : p.formule === 'six' ? '6 mois' : '1 mois'}${p.code ? ' · code ' + esc(p.code) : ''} · ${esc(p.date)}</div>
+            <div class="sub">MoMo : <b>${esc(p.numero)}</b>${p.transaction ? ` · ID <span class="tx">${esc(p.transaction)}</span>` : ''}</div>
+            ${p.capture ? `<a class="btn ghost" href="${esc(p.capture)}" target="_blank" rel="noopener" style="margin:8px 0 4px">🧾 Voir la capture du paiement</a>` : ''}
             ${/valider/i.test(p.statut) ? `<div class="act"><button style="background:var(--okbg);color:var(--ok)" data-vv="${p.ligne}">✓ Valider</button><button style="background:var(--errbg);color:var(--err)" data-vr="${p.ligne}">✕ Refuser</button></div>`
               : `<div class="sub" style="margin-top:4px">${/refus/i.test(p.statut) ? '❌ Refusé' : '✅ Validé'}</div>`}</div>`).join('') : '<div class="empty">Aucun paiement pour le moment.</div>') : ''}
         ${onglet === 'abos' ? (V.comptes.length ? V.comptes.map(c => `<div class="vpay">

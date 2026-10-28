@@ -5,51 +5,141 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Vendoo – Ta boutique en ligne, paiement à la livraison</title>
 <meta name="description" content="Crée jusqu’à 30 boutiques en ligne avec paiement à la livraison, commandes sur WhatsApp et application de gestion.">
-<meta name="theme-color" content="#5B2EE6">
+<meta name="theme-color" content="#0A1230">
 <link rel="icon" href="favicon-32.png" sizes="32x32">
 <link rel="apple-touch-icon" href="icon-192.png">
 <style>
-:root{--main:#5B2EE6;--main2:#4318C9;--ink:#14112B;--soft:#5E5A78;--line:#E6E2F5;--bg:#F6F4FF;--card:#fff;--ok:#12805C;--warn:#B45309;--bad:#B42318;--gold:#FFC53D}
+:root{--main:#2350D8;--main2:#12308F;--deep:#0A1230;--ink:#141A2E;--soft:#5A6178;--line:#E3E6EF;--bg:#FFFFFF;--surface:#F3F5FB;--card:#fff;--ok:#12805C;--warn:#B45309;--bad:#B42318;--gold:#FFC93C}
 *{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%}
-body{margin:0;font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--bg)}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{margin:0;font:16px/1.55 "Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--bg)}
 a{color:var(--main)}
 button,input,select{font:inherit}
-.wrap{max-width:560px;margin:0 auto;padding:0 16px}
-header{position:sticky;top:0;z-index:5;background:rgba(246,244,255,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
-header .wrap{display:flex;align-items:center;justify-content:space-between;height:60px}
-.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:21px;letter-spacing:-.02em;text-decoration:none;color:var(--ink)}
-.brand img{width:34px;height:34px}
+.wrap{max-width:640px;margin:0 auto;padding:0 16px}
+.large{max-width:1180px;margin:0 auto;padding:0 20px}
+/* En-tête sombre (comme les grandes plateformes) */
+header{position:sticky;top:0;z-index:20;background:rgba(10,18,48,.94);backdrop-filter:blur(12px);color:#fff}
+header .large{display:flex;align-items:center;gap:22px;height:64px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:21px;letter-spacing:-.02em;text-decoration:none;color:#fff}
+.brand img{width:32px;height:32px;border-radius:9px}
+nav.liens{display:none;gap:26px;margin-left:12px}
+nav.liens a{color:rgba(255,255,255,.86);text-decoration:none;font-weight:600;font-size:15px}
+nav.liens a:hover{color:#fff}
+.hdroite{margin-left:auto;display:flex;align-items:center;gap:8px}
 .lnk{background:none;border:0;color:var(--main);font-weight:700;padding:8px;cursor:pointer}
-.hero{padding:40px 0 18px;text-align:center}
-.hero h1{font-size:34px;line-height:1.12;letter-spacing:-.03em;margin:0 0 12px}
-.hero h1 em{font-style:normal;color:var(--main)}
-.hero p{color:var(--soft);font-size:17px;margin:0 auto 22px;max-width:440px}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:52px;border:0;border-radius:14px;background:var(--main);color:#fff;font-weight:800;font-size:17px;cursor:pointer;text-decoration:none;padding:0 18px}
+header .lnk{color:#fff}
+.pill{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;font-weight:700;text-decoration:none;cursor:pointer;border:0;white-space:nowrap}
+.pill.blanc{background:#fff;color:var(--ink);padding:10px 18px;font-size:15px}
+.pill.bleu{background:var(--main);color:#fff;padding:14px 22px;font-size:16px}
+.pill.contour{background:transparent;color:#fff;border:2px solid #fff;padding:12px 22px;font-size:16px}
+@media (min-width:900px){nav.liens{display:flex}}
+@media (max-width:420px){header .pill.blanc{padding:9px 13px;font-size:14px}}
+.hdroite .lnk{white-space:nowrap}
+#hCta .ct{display:none}
+@media (max-width:520px){#hCta .lg{display:none}#hCta .ct{display:inline}}
+.hero .large>*,.cta>*,.grille2>*,.trois>*,.tarifs>*{min-width:0}
+@media (max-width:520px){.capte{flex-direction:column;border-radius:20px;gap:6px;padding:6px}.capte .pill{width:100%;padding:13px}.capte input{padding:12px 14px}.hero h1{font-size:38px}
+  header .hdroite{gap:10px}header .hdroite .lnk{font-size:14px}}
+/* Bandeau d'accueil */
+.hero{background:radial-gradient(1200px 520px at 85% 15%,rgba(35,80,216,.55),transparent 60%),radial-gradient(900px 500px at 10% 100%,rgba(18,160,140,.28),transparent 60%),linear-gradient(160deg,#0A1230 0%,#101B4A 55%,#12308F 100%);color:#fff;overflow:hidden}
+.hero .large{display:grid;gap:34px;padding-top:56px;padding-bottom:64px}
+.hero h1{font-size:44px;line-height:1.04;letter-spacing:-.035em;margin:0 0 18px;font-weight:800}
+.hero h1 em{font-style:normal;color:var(--gold)}
+.hero p.lead{color:rgba(255,255,255,.82);font-size:18px;margin:0 0 26px;max-width:520px}
+.capte{display:flex;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);border-radius:999px;padding:5px;max-width:520px}
+.capte input{flex:1;min-width:0;background:transparent;border:0;outline:none;color:#fff;padding:10px 16px;font-size:16px}
+.capte input::placeholder{color:rgba(255,255,255,.7)}
+.hero small.note{display:block;margin-top:12px;color:rgba(255,255,255,.7);font-size:13.5px}
+.apercu{position:relative;max-width:420px;width:100%;justify-self:center}
+.ecran{background:#fff;color:var(--ink);border-radius:26px;padding:18px;box-shadow:0 30px 80px rgba(0,0,0,.45)}
+.ecran .t{display:flex;justify-content:space-between;align-items:center;font-weight:800}
+.ecran .k{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
+.ecran .k div{background:var(--surface);border-radius:14px;padding:10px 12px}
+.ecran .k small{display:block;color:var(--soft);font-size:12px}
+.ecran .k b{font-size:20px}
+.courbe{height:70px;border-radius:12px;background:linear-gradient(180deg,rgba(35,80,216,.16),rgba(35,80,216,0));position:relative;overflow:hidden}
+.courbe svg{position:absolute;inset:0;width:100%;height:100%}
+.notif{position:absolute;left:-18px;right:24px;bottom:-26px;background:#fff;color:var(--ink);border-radius:16px;padding:12px 14px;box-shadow:0 16px 40px rgba(0,0,0,.35);display:flex;gap:10px;align-items:center;font-size:14px}
+.notif i{font-style:normal;width:36px;height:36px;border-radius:10px;background:var(--main);color:#fff;display:grid;place-items:center;flex:0 0 36px}
+.notif small{display:block;color:var(--soft)}
+@media (min-width:900px){.hero .large{grid-template-columns:1.15fr .85fr;align-items:center;padding-top:90px;padding-bottom:110px}.hero h1{font-size:72px}}
+/* Sections */
+section.bloc{padding:64px 0}
+section.bloc h2{font-size:34px;line-height:1.1;letter-spacing:-.03em;margin:0 0 12px;font-weight:800}
+section.bloc p.intro{color:var(--soft);font-size:17px;max-width:620px;margin:0 0 28px}
+@media (min-width:900px){section.bloc{padding:96px 0}section.bloc h2{font-size:48px}}
+.trois{display:grid;gap:18px}
+@media (min-width:900px){.trois{grid-template-columns:repeat(3,1fr)}}
+.carte{border:1px solid var(--line);border-radius:22px;padding:18px;background:#fff}
+.visuel{height:170px;border-radius:16px;background:var(--deep);margin-bottom:16px;position:relative;overflow:hidden;display:grid;place-items:center}
+.carte h3{font-size:22px;margin:0 0 6px;letter-spacing:-.02em;font-weight:700}
+.carte p{color:var(--soft);margin:0}
+.v1 .mini{background:#fff;border-radius:12px;width:72%;padding:10px 12px;font-size:12.5px}
+.v1 .mini b{display:block;font-size:13.5px}
+.v1 .mini span{display:inline-block;margin-top:6px;background:var(--main);color:#fff;border-radius:999px;padding:4px 10px;font-weight:700}
+.v2 .mini{background:#fff;border-radius:12px;width:74%;padding:10px 12px;font-size:12.5px}
+.v2 .mini div{display:flex;justify-content:space-between;padding:2px 0}
+.v2 .mini .tot{font-weight:800;border-top:1px solid var(--line);margin-top:4px;padding-top:6px}
+.v2 .mini .go{margin-top:8px;background:var(--main);color:#fff;text-align:center;border-radius:8px;padding:6px;font-weight:800}
+.v3 .bulles{display:grid;grid-template-columns:repeat(4,44px);gap:12px}
+.v3 .bulles i{font-style:normal;width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:22px;background:rgba(255,255,255,.1)}
+.fonctions{display:grid;gap:14px}
+@media (min-width:700px){.fonctions{grid-template-columns:1fr 1fr}}
+@media (min-width:1000px){.fonctions{grid-template-columns:repeat(3,1fr)}}
+.fonc{background:var(--surface);border-radius:18px;padding:18px}
+.fonc i{font-style:normal;font-size:26px}
+.fonc b{display:block;font-size:17px;margin:8px 0 4px}
+.fonc span{color:var(--soft);font-size:15px}
+/* Tarifs */
+.tarifs{display:grid;gap:16px}
+@media (min-width:900px){.tarifs{grid-template-columns:repeat(3,1fr);align-items:stretch}}
+.plan{border:1.5px solid var(--line);border-radius:22px;padding:24px;background:#fff;position:relative;display:flex;flex-direction:column}
+.plan.top{border-color:var(--main);box-shadow:0 16px 44px rgba(35,80,216,.16)}
+.plan .tag{position:absolute;top:-12px;left:24px;background:var(--gold);color:#3A2A00;font-size:12.5px;font-weight:800;padding:4px 12px;border-radius:99px}
+.plan .nom{font-weight:700;color:var(--soft)}
+.plan .p{font-size:46px;font-weight:800;letter-spacing:-.03em;line-height:1.05;margin:8px 0 2px}
+.plan .p small{font-size:16px;color:var(--soft);font-weight:600;letter-spacing:0}
+.plan .eq{color:var(--soft);font-size:14px}
+.plan ul{margin:16px 0 20px;padding-left:20px;color:var(--ink);font-size:15px}
+.plan ul li{margin:4px 0}
+.plan .pill{margin-top:auto}
+.plan .pill.contour{color:var(--main);border-color:var(--main);background:#fff}
+/* Étapes */
+.etapes{counter-reset:e;list-style:none;padding:0;margin:0}
+.etapes li{counter-increment:e;position:relative;padding:0 0 18px 46px}
+.etapes li:before{content:counter(e);position:absolute;left:0;top:0;width:30px;height:30px;border-radius:50%;background:var(--main);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:14px}
+.etapes>li>b{display:block}
+.etapes code{background:var(--surface);border-radius:6px;padding:1px 6px;font-size:14px}
+.grille2{display:grid;gap:30px}
+@media (min-width:900px){.grille2{grid-template-columns:1fr 1fr;align-items:center}}
+/* Bandeau final sombre */
+.cta{background:var(--deep);color:#fff;border-radius:28px;padding:40px 26px;display:grid;gap:26px}
+.cta h2{color:#fff}
+.cta ul{list-style:none;padding:0;margin:0;display:grid;gap:12px;font-size:18px;font-weight:600}
+.cta li:before{content:"✓";margin-right:10px;color:var(--gold)}
+@media (min-width:900px){.cta{grid-template-columns:1.2fr .8fr;padding:64px 56px;align-items:center}}
+/* Pied de page */
+footer{background:var(--deep);color:rgba(255,255,255,.8);padding:56px 0 34px;margin-top:0}
+footer .cols{display:grid;gap:26px;grid-template-columns:1fr 1fr}
+@media (min-width:900px){footer .cols{grid-template-columns:1.4fr 1fr 1fr 1fr}}
+footer h4{color:#fff;margin:0 0 12px;font-size:16px}
+footer a{color:rgba(255,255,255,.82);text-decoration:none;display:block;margin:8px 0;font-size:15px}
+footer a:hover{color:#fff}
+footer .bas{border-top:1px solid rgba(255,255,255,.14);margin-top:34px;padding-top:20px;font-size:13.5px;display:flex;flex-wrap:wrap;gap:14px;justify-content:space-between}
+/* Espace compte (formulaires) */
+main.compte{background:var(--surface);min-height:calc(100vh - 64px);padding:8px 0 40px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:52px;border:0;border-radius:999px;background:var(--main);color:#fff;font-weight:800;font-size:17px;cursor:pointer;text-decoration:none;padding:0 18px}
 .btn:active{transform:scale(.99)}
-.btn.sec{background:#EEEAFE;color:var(--main2)}
+.btn.sec{background:#E8EEFF;color:var(--main2)}
 .btn.ghost{background:#fff;color:var(--ink);border:1.5px solid var(--line)}
-.btn[disabled]{opacity:.6}
-.feat{display:grid;gap:10px;margin:26px 0}
-.feat div{display:flex;gap:12px;align-items:flex-start;background:var(--card);border-radius:16px;padding:14px 16px;border:1px solid var(--line)}
-.feat b{display:block}
-.feat span{color:var(--soft);font-size:14px}
-.feat i{font-style:normal;font-size:22px;line-height:1.2}
-h2{font-size:24px;letter-spacing:-.02em;margin:34px 0 12px}
-.prix{display:grid;gap:12px}
-.plan{background:var(--card);border:1.5px solid var(--line);border-radius:18px;padding:18px;position:relative}
-.plan.top{border-color:var(--main);box-shadow:0 8px 28px rgba(91,46,230,.14)}
-.plan .tag{position:absolute;top:-11px;right:16px;background:var(--gold);color:#3A2A00;font-size:12px;font-weight:800;padding:3px 10px;border-radius:99px}
-.plan .p{font-size:30px;font-weight:800;letter-spacing:-.02em}
-.plan .p small{font-size:15px;color:var(--soft);font-weight:600}
-.plan ul{margin:8px 0 0;padding-left:18px;color:var(--soft);font-size:14px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;margin:14px 0}
-.card h3{margin:0 0 10px;font-size:18px}
+.btn[disabled]{opacity:.55}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px;margin:14px 0}
+.card h3{margin:0 0 10px;font-size:19px;letter-spacing:-.01em}
 label{display:block;font-weight:700;font-size:14px;margin:12px 0 6px}
 .field{width:100%;min-height:50px;border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;background:#fff;color:var(--ink);outline:none}
 .field:focus{border-color:var(--main)}
-.tabs{display:grid;grid-template-columns:1fr 1fr;background:#EEEAFE;border-radius:14px;padding:4px;margin:20px 0 6px}
-.tabs button{border:0;background:none;border-radius:10px;min-height:44px;font-weight:800;color:var(--soft);cursor:pointer}
+.tabs{display:grid;grid-template-columns:1fr 1fr;background:#E8EEFF;border-radius:999px;padding:4px;margin:20px 0 6px}
+.tabs button{border:0;background:none;border-radius:999px;min-height:44px;font-weight:800;color:var(--soft);cursor:pointer}
 .tabs button.on{background:#fff;color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.08)}
 .msg{border-radius:12px;padding:12px 14px;margin:12px 0;font-size:15px}
 .msg.err{background:#FEECEB;color:var(--bad)}
@@ -60,34 +150,38 @@ label{display:block;font-weight:700;font-size:14px;margin:12px 0 6px}
 #gbtn{display:flex;justify-content:center;min-height:44px}
 .statut{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .badge{font-size:13px;font-weight:800;padding:4px 10px;border-radius:99px;white-space:nowrap}
-.b-actif{background:#E7F6EF;color:var(--ok)}.b-essai{background:#EEEAFE;color:var(--main2)}.b-grace,.b-attente{background:#FFF4E5;color:var(--warn)}.b-expire,.b-bloque{background:#FEECEB;color:var(--bad)}
+.b-actif{background:#E7F6EF;color:var(--ok)}.b-essai{background:#E8EEFF;color:var(--main2)}.b-grace,.b-attente{background:#FFF4E5;color:var(--warn)}.b-expire,.b-bloque{background:#FEECEB;color:var(--bad)}
 .gros{font-size:28px;font-weight:800;letter-spacing:-.02em;margin:6px 0 0}
 .soft{color:var(--soft);font-size:14px}
-.choix{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.choix label{margin:0;border:1.5px solid var(--line);border-radius:14px;padding:12px;cursor:pointer;font-weight:600}
+.choix{display:grid;gap:10px}
+@media (min-width:560px){.choix{grid-template-columns:repeat(3,1fr)}}
+.choix label{margin:0;border:1.5px solid var(--line);border-radius:14px;padding:12px;cursor:pointer;font-weight:600;position:relative}
 .choix input{accent-color:var(--main)}
-.choix label:has(input:checked){border-color:var(--main);background:#F3EFFF}
+.choix label:has(input:checked){border-color:var(--main);background:#F0F4FF}
 .choix b{display:block;font-size:18px}
 .choix s{display:block;font-size:13px}
+.choix em{font-style:normal;position:absolute;top:-10px;right:10px;background:var(--gold);color:#3A2A00;font-size:11px;font-weight:800;padding:2px 8px;border-radius:99px}
 .momo{background:#FFF8E1;border:1px dashed #E0B200;border-radius:14px;padding:14px;margin:12px 0}
-.momo .num{font-size:22px;font-weight:800;letter-spacing:.02em}
-.etapes{counter-reset:e;list-style:none;padding:0;margin:0}
-.etapes li{counter-increment:e;position:relative;padding:0 0 16px 42px}
-.etapes li:before{content:counter(e);position:absolute;left:0;top:0;width:28px;height:28px;border-radius:50%;background:var(--main);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:14px}
-.etapes>li>b{display:block}
-.etapes code{background:#F3EFFF;border-radius:6px;padding:1px 6px;font-size:14px}
+.momo .num{font-size:24px;font-weight:800;letter-spacing:.02em}
+.ussd{display:grid;gap:8px;margin-top:10px}
+.ussd .btn{font-size:15px;padding:13px 10px;white-space:nowrap}
+@media (min-width:560px){.ussd{grid-template-columns:1fr 1fr}}
+.capzone{border:2px dashed var(--line);border-radius:14px;padding:16px;text-align:center;cursor:pointer;background:#fff}
+.capzone.ok{border-color:var(--ok);background:#F2FBF6}
+.capzone img{max-width:100%;max-height:220px;border-radius:10px;display:block;margin:0 auto 8px}
+.etape{display:flex;gap:10px;align-items:center;font-weight:800;margin:16px 0 4px}
+.etape span{width:28px;height:28px;border-radius:50%;background:var(--main);color:#fff;display:grid;place-items:center;font-size:14px;flex:0 0 28px}
 .row{display:flex;gap:10px}
 .row>*{flex:1}
 .hist{width:100%;border-collapse:collapse;font-size:14px}
 .hist td{padding:8px 0;border-top:1px solid var(--line)}
 .hist td:last-child{text-align:right}
-.copie{display:flex;gap:8px;align-items:center;background:#F3EFFF;border-radius:12px;padding:10px 12px;font-size:14px;word-break:break-all}
+.copie{display:flex;gap:8px;align-items:center;background:#F0F4FF;border-radius:12px;padding:10px 12px;font-size:14px;word-break:break-all}
 .copie button{flex:0 0 auto}
 /* Guide de bienvenue */
-.gv{position:fixed;inset:0;z-index:100;background:rgba(20,17,43,.55);display:flex;align-items:flex-end;justify-content:center}
+.gv{position:fixed;inset:0;z-index:100;background:rgba(10,18,48,.6);display:flex;align-items:flex-end;justify-content:center}
 .gvbox{background:#fff;width:100%;max-width:520px;border-radius:24px 24px 0 0;padding:22px 20px calc(18px + env(safe-area-inset-bottom));max-height:92vh;overflow:auto}
 @media (min-width:700px){.gv{align-items:center}.gvbox{border-radius:24px}}
-@keyframes gvm{from{transform:translateY(30px);opacity:0}}
 .gvtop{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
 .gvtop small{color:var(--soft);font-weight:700}
 .gvem{font-size:52px;line-height:1;margin:6px 0 10px}
@@ -104,18 +198,22 @@ label{display:block;font-weight:700;font-size:14px;margin:12px 0 6px}
 .pw input{padding-right:52px}
 .pwb{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:44px;height:44px;border:0;background:none;color:var(--soft);cursor:pointer;display:grid;place-items:center;border-radius:10px}
 .pwb svg{width:22px;height:22px}
-.plan[data-fo]{cursor:pointer}
-footer{text-align:center;color:var(--soft);font-size:13px;padding:30px 0 40px}
 .hidden{display:none!important}
 .spin{width:18px;height:18px;border:2.5px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:t .7s linear infinite}
 @keyframes t{to{transform:rotate(360deg)}}
-@media (min-width:700px){.hero h1{font-size:44px}.prix{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
-<header><div class="wrap"><a class="brand" href="#"><img src="icon-192.png" alt="">Vendoo</a><button class="lnk" id="hBtn">Se connecter</button></div></header>
-<main class="wrap" id="app"></main>
-<footer>© <span id="an"></span> Vendoo · Paiement par Mobile Money · <a href="confidentialite.html">Confidentialité</a> · <a href="conditions.html">Conditions</a></footer>
+<header><div class="large"><a class="brand" href="#"><img src="icon-192.png" alt="">Vendoo</a>
+  <nav class="liens" id="nav"><a href="#fonctions" data-ancre>Fonctions</a><a href="#tarifs" data-ancre>Tarifs</a><a href="#comment" data-ancre>Comment ça marche</a></nav>
+  <div class="hdroite"><button class="lnk" id="hBtn">Se connecter</button><a class="pill blanc" id="hCta" href="#inscription"><span class="lg">Démarrer gratuitement</span><span class="ct">Essai gratuit</span></a></div></div></header>
+<main id="app"></main>
+<footer><div class="large"><div class="cols">
+  <div><a class="brand" href="#" style="margin:0 0 10px"><img src="icon-192.png" alt="">Vendoo</a><p style="margin:0;font-size:14.5px;max-width:300px">Ta boutique en ligne avec paiement à la livraison, ton application de gestion et tes données chez toi.</p></div>
+  <div><h4>Vendoo</h4><a href="#fonctions" data-ancre>Fonctions</a><a href="#tarifs" data-ancre>Tarifs</a><a href="#comment" data-ancre>Comment ça marche</a></div>
+  <div><h4>Compte</h4><a href="#inscription">Créer mon compte</a><a href="#connexion">Se connecter</a><a href="#compte">Mon abonnement</a></div>
+  <div><h4>Assistance</h4><a href="https://wa.me/2290160422139" target="_blank" rel="noopener">WhatsApp</a><a href="conditions.html">Conditions</a><a href="confidentialite.html">Confidentialité</a></div>
+</div><div class="bas"><span>© <span id="an"></span> Vendoo</span><span>Paiement par Mobile Money · Prix en dollars à titre indicatif, payés en FCFA</span></div></div></footer>
 <script>
 (() => {
   const API = 'https://script.google.com/macros/s/AKfycbwgdtcXlXB9niD3hactnz4SLIrpY_q74iQQZwkr1vrUBjczfCCVWwamG69uqnUQZsba/exec';
@@ -140,7 +238,13 @@ footer{text-align:center;color:var(--soft);font-size:13px;padding:30px 0 40px}
     const _al = window.alert.bind(window); window.alert = m => _al(frErr(m));
   } catch(e){}
   const F = n => Number(n || 0).toLocaleString('fr-FR').replace(/ /g, ' ') + ' F';
-  let choixFo = S.get('vendoo_fo') === 'an' ? 'an' : 'mois';
+  // Prix affichés en dollars (taux du jour) ; le paiement se fait en FCFA par Mobile Money
+  const USD = n => '$' + Math.round(Number(n || 0) / ((CFG && CFG.usd) || 600));
+  const PRIX0 = {mois: 19900, six: 89900, an: 149900};
+  const mainEl = document.getElementById('app');
+  const pleinePage = oui => { mainEl.className = oui ? '' : 'compte'; document.getElementById('nav').style.visibility = oui ? '' : 'hidden';
+    document.getElementById('hCta').style.display = oui ? '' : 'none'; document.getElementById('hBtn').style.display = oui && jeton ? 'none' : ''; };
+  let choixFo = ['an', 'six'].includes(S.get('vendoo_fo')) ? S.get('vendoo_fo') : 'mois';
   let CFG = null, jeton = S.get('vendoo_jeton') || '', compte = null;
   try { compte = JSON.parse(S.get('vendoo_compte') || 'null'); } catch(e){}
 
@@ -176,40 +280,72 @@ footer{text-align:center;color:var(--soft);font-size:13px;padding:30px 0 40px}
 
   /* ------------ Accueil ------------ */
   function accueil(){
+    pleinePage(true);
     hBtn.textContent = jeton ? 'Mon compte' : 'Se connecter';
     hBtn.onclick = () => { location.hash = jeton ? '#compte' : '#connexion'; };
-    const P = CFG ? CFG.prix : {mois: 14000, an: 100000};
-    const eco = P.mois * 12 - P.an;
+    const P = CFG ? CFG.prix : PRIX0;
+    const plan = (fo, nom, prix, par, extra, top, tag) => `<div class="plan${top ? ' top' : ''}">${tag ? `<span class="tag">${tag}</span>` : ''}<div class="nom">${nom}</div>
+      <div class="p">${USD(prix)} <small>${par}</small></div><div class="eq">${extra}</div>
+      <ul><li>Toutes les fonctions</li><li>Jusqu’à 30 boutiques</li><li>Application de gestion + notifications</li><li>Assistant IA et analyse publicitaire</li></ul>
+      <a class="pill ${top ? 'bleu' : 'contour'}" href="#inscription" data-fo="${fo}">Choisir ${nom.toLowerCase()}</a></div>`;
     app.innerHTML = `
-      <section class="hero">
-        <h1>Ta boutique en ligne,<br><em>paiement à la livraison</em></h1>
-        <p>Crée ton site, reçois tes commandes sur WhatsApp et gère tout depuis ton téléphone. Jusqu’à 30 boutiques sur un seul compte.</p>
-        <a class="btn" href="#inscription">Essayer gratuitement 7 jours</a>
-        <p class="soft" style="margin-top:12px">Un essai par personne · Tes données restent dans ton Google</p>
-      </section>
-      <div class="feat">
-        <div><i>🏪</i><p style="margin:0"><b>30 boutiques par compte</b><span>Une boutique par agence ou par pays : les commandes ne se mélangent jamais.</span></p></div>
-        <div><i>📲</i><p style="margin:0"><b>Commandes sur WhatsApp et en notification</b><span>Chaque commande arrive tout de suite, même application fermée.</span></p></div>
-        <div><i>📊</i><p style="margin:0"><b>Application de gestion</b><span>Statuts des commandes, relance des paniers abandonnés, chiffre d’affaires, visiteurs en direct.</span></p></div>
-        <div><i>🎯</i><p style="margin:0"><b>Pixels Facebook et TikTok</b><span>Suivi des ventes par publicité pour savoir laquelle rapporte.</span></p></div>
-        <div><i>🚚</i><p style="margin:0"><b>Agences de livraison reliées</b><span>Chaque agence a son fichier, les statuts reviennent tout seuls dans ton application.</span></p></div>
-        <div><i>⭐</i><p style="margin:0"><b>Avis clients riches</b><span>Texte, captures WhatsApp, notes vocales et vidéos de tes clients.</span></p></div>
-      </div>
-      <h2>Tarifs</h2>
-      <p class="soft" style="margin-top:-4px">🎁 7 jours d’essai gratuit pour découvrir Vendoo. Ensuite, tu choisis ta formule.</p>
-      <div class="prix">
-        <div class="plan" data-fo="mois" role="button" tabindex="0"><div class="soft">Mensuel</div><div class="p">${F(P.mois)} <small>/ mois</small></div><ul><li>Toutes les fonctions</li><li>30 boutiques</li><li>Prix réduit avec un code promo</li></ul><span class="btn sec" style="margin-top:12px">Choisir le mensuel</span></div>
-        <div class="plan top" data-fo="an" role="button" tabindex="0">${eco > 0 ? `<span class="tag">${F(eco)} économisés</span>` : ''}<div class="soft">Annuel</div><div class="p">${F(P.an)} <small>/ an</small></div><ul><li>Toutes les fonctions</li><li>30 boutiques</li><li>Un seul paiement pour l’année</li></ul><span class="btn" style="margin-top:12px">Choisir l’annuel</span></div>
-      </div>
-      <div class="card"><h3>Comment ça marche ?</h3><ol class="etapes">
-        <li><b>Crée ton compte</b><span class="soft">Avec ton e-mail ou ton compte Google : 7 jours d’essai gratuit.</span></li>
-        <li><b>Installe ta boutique</b><span class="soft">Un Google Sheets à toi, partagé avec Vendoo : tes commandes restent chez toi.</span></li>
-        <li><b>Vends</b><span class="soft">Ajoute tes produits depuis l’application et partage le lien de ta boutique.</span></li>
-        <li><b>Abonne-toi</b><span class="soft">Par Mobile Money, quand tu es convaincu.</span></li>
-      </ol></div>
-      <a class="btn" href="#inscription" style="margin:8px 0 10px">Commencer mon essai gratuit</a>`;
-    app.querySelectorAll('[data-fo]').forEach(c => c.onclick = () => { choixFo = c.dataset.fo; S.set('vendoo_fo', choixFo); location.hash = jeton ? '#payer' : '#inscription'; });
+      <section class="hero"><div class="large">
+        <div><h1>Ta boutique en ligne.<br><em>Paiement à la livraison.</em></h1>
+          <p class="lead">Crée ton site, reçois chaque commande en notification et sur WhatsApp, et gère tout depuis ton téléphone. Jusqu’à 30 boutiques sur un seul compte.</p>
+          <form class="capte" id="capte"><input type="email" id="capMail" placeholder="Ton adresse e-mail" autocomplete="email" aria-label="Ton adresse e-mail"><button class="pill blanc">Démarrer gratuitement</button></form>
+          <small class="note">7 jours d’essai gratuit · Sans carte bancaire · Tes données restent dans ton Google</small></div>
+        <div class="apercu" aria-hidden="true"><div class="ecran"><div class="t"><span>Aujourd’hui</span><span style="color:var(--ok)">● 12 en direct</span></div>
+          <div class="k"><div><small>Ventes</small><b>148 500 F</b></div><div><small>Commandes</small><b>9</b></div></div>
+          <div class="courbe"><svg viewBox="0 0 300 70" preserveAspectRatio="none"><path d="M0 60 C40 55 60 30 100 38 S160 20 200 26 S260 8 300 12" fill="none" stroke="#2350D8" stroke-width="3"/></svg></div></div>
+          <div class="notif"><i>🛒</i><div><b>Commande n°1142</b><small>16 500 F · paiement à la livraison</small></div></div></div>
+      </div></section>
+      <section class="bloc" id="fonctions"><div class="large">
+        <h2>Fais passer ta boutique à la vitesse supérieure</h2>
+        <p class="intro">Tout ce qu’il faut pour vendre en paiement à la livraison, au même endroit.</p>
+        <div class="trois">
+          <div class="carte"><div class="visuel v1"><div class="mini"><b>Calcium Premium 5 en 1</b>16 500 F · Livraison gratuite<br><span>Je commande maintenant</span></div></div><h3>Un site qui fait commander</h3><p>Pages produits riches, avis clients, offres 1-2-3 pièces, stock limité, relance des paniers abandonnés.</p></div>
+          <div class="carte"><div class="visuel v2"><div class="mini"><div><span>Commande n°1142</span><span>16 500 F</span></div><div><span>Livraison</span><span>Gratuite</span></div><div class="tot"><span>À payer à la livraison</span><span>16 500 F</span></div><div class="go">Nouvelle commande ✓</div></div></div><h3>Chaque commande, tout de suite</h3><p>Notification même téléphone verrouillé, WhatsApp, e-mail et agences de livraison reliées.</p></div>
+          <div class="carte"><div class="visuel v3"><div class="bulles"><i>📊</i><i>🎯</i><i>🚚</i><i>✨</i><i>📦</i><i>💬</i><i>🎵</i><i>💰</i></div></div><h3>Tous tes outils dans une appli</h3><p>Statistiques, pixels Meta et TikTok, analyse publicitaire, stocks, points de l’agence, assistant IA.</p></div>
+        </div>
+        <div class="fonctions" style="margin-top:28px">
+          <div class="fonc"><i>🏪</i><b>30 boutiques par compte</b><span>Une boutique par marché ou par agence : les commandes ne se mélangent jamais.</span></div>
+          <div class="fonc"><i>🚚</i><b>Agences de livraison</b><span>Chaque agence reçoit ses commandes et ses relances, avec des rappels sur son téléphone.</span></div>
+          <div class="fonc"><i>📣</i><b>Analyse publicitaire</b><span>Quelles vidéos refaire, lesquelles arrêter, d’après tes vraies commandes.</span></div>
+          <div class="fonc"><i>📦</i><b>Gestion des stocks</b><span>Coût par produit, alerte à la moitié du stock, bilan de rentabilité.</span></div>
+          <div class="fonc"><i>💰</i><b>Bénéfice réel</b><span>Point du jour ou sur une période : chiffre d’affaires, pub, achats, bénéfice net.</span></div>
+          <div class="fonc"><i>✨</i><b>Assistant IA</b><span>Il écrit tes descriptions, reformule tes avis et note ta page avant publication.</span></div>
+        </div>
+      </div></section>
+      <section class="bloc" id="tarifs" style="background:var(--surface)"><div class="large">
+        <h2>Un prix simple</h2>
+        <p class="intro">Commence par 7 jours gratuits. Ensuite, choisis ta formule et paie par Mobile Money.</p>
+        <div class="tarifs">
+          ${plan('mois', 'Mensuel', P.mois, '/ mois', 'Payé chaque mois')}
+          ${plan('six', '6 mois', P.six, '/ 6 mois', 'soit ' + USD(P.six / 6) + ' par mois', true, 'Économise ' + USD(P.mois * 6 - P.six))}
+          ${plan('an', 'Annuel', P.an, '/ an', 'soit ' + USD(P.an / 12) + ' par mois', false, 'Meilleur prix')}
+        </div>
+      </div></section>
+      <section class="bloc" id="comment"><div class="large grille2">
+        <div><h2>Prêt en 5 minutes</h2><p class="intro">Pas besoin de savoir coder : tout se fait depuis ton téléphone.</p></div>
+        <ol class="etapes">
+          <li><b>Crée ton compte</b><span class="soft">Avec ton e-mail ou ton compte Google, puis active tes 7 jours gratuits.</span></li>
+          <li><b>Installe ta boutique</b><span class="soft">Un Google Sheets à toi, partagé avec Vendoo : tes commandes restent chez toi.</span></li>
+          <li><b>Ajoute tes produits</b><span class="soft">Depuis l’application, avec l’aide de l’assistant IA.</span></li>
+          <li><b>Vends</b><span class="soft">Partage le lien de ta boutique dans tes publicités et reçois tes commandes.</span></li>
+        </ol></div></section>
+      <section class="bloc" style="padding-top:0"><div class="large"><div class="cta">
+        <div><h2>Ça rapporte de vendre avec Vendoo</h2>
+          <form class="capte" id="capte2" style="margin-top:22px"><input type="email" id="capMail2" placeholder="Ton adresse e-mail" autocomplete="email" aria-label="Ton adresse e-mail"><button class="pill blanc">Démarrer un essai gratuit</button></form></div>
+        <ul><li>7 jours gratuits pour tout essayer</li><li>Paiement simple par Mobile Money</li><li>Rien n’est perdu, même en pause</li></ul>
+      </div></div></section>`;
+    const go = mail => { if (mail) S.set('vendoo_mail', mail); location.hash = jeton ? '#compte' : '#inscription'; };
+    ['capte', 'capte2'].forEach(id => { const f = document.getElementById(id); f.onsubmit = e => { e.preventDefault(); go(f.querySelector('input').value.trim()); }; });
+    app.querySelectorAll('[data-fo]').forEach(c => c.onclick = e => { e.preventDefault(); choixFo = c.dataset.fo; S.set('vendoo_fo', choixFo); location.hash = jeton ? '#payer' : '#inscription'; });
+    const hc = document.getElementById('hCta'); hc.innerHTML = jeton ? 'Mon compte' : '<span class="lg">Démarrer gratuitement</span><span class="ct">Essai gratuit</span>'; hc.setAttribute('href', jeton ? '#compte' : '#inscription');
   }
+  const ANCRES = ['fonctions', 'tarifs', 'comment'];
+  const versAncre = id => { const el = document.getElementById(id); if (el) el.scrollIntoView({behavior: 'smooth'}); };
+  document.querySelectorAll('[data-ancre]').forEach(a => a.onclick = e => { const id = a.getAttribute('href').slice(1); if (document.getElementById(id)){ e.preventDefault(); versAncre(id); } });
 
   /* ------------ Connexion / inscription ------------ */
   // Œil pour afficher / cacher le mot de passe
@@ -226,13 +362,14 @@ footer{text-align:center;color:var(--soft);font-size:13px;padding:30px 0 40px}
     });
   }
   function auth(mode){
+    pleinePage(false);
     hBtn.textContent = 'Accueil'; hBtn.onclick = () => { location.hash = ''; };
-    app.innerHTML = `
+    app.innerHTML = `<div class="wrap">
       <div class="tabs"><button data-m="inscription" class="${mode === 'inscription' ? 'on' : ''}">Créer un compte</button><button data-m="connexion" class="${mode === 'connexion' ? 'on' : ''}">Se connecter</button></div>
       <div class="card">
         <div id="gzone" class="hidden"><div id="gbtn"></div><div class="ou">ou avec ton e-mail</div></div>
         <form id="f" autocomplete="on">
-          ${mode === 'inscription' ? `<label for="nom">Ton nom</label><input class="field" id="nom" autocomplete="name" required>
+          ${mode === 'inscription' ? `<h3 style="margin:0 0 4px">Commence ton essai gratuit de 7 jours</h3><p class="soft" style="margin:0 0 6px">Sans carte bancaire.</p><label for="nom">Ton nom</label><input class="field" id="nom" autocomplete="name" required>
           <label for="tel">Ton numéro WhatsApp</label><input class="field" id="tel" type="tel" autocomplete="tel" inputmode="tel" required>` : ''}
           <label for="email">E-mail</label><input class="field" id="email" type="email" autocomplete="email" required>
           <label for="mdp">Mot de passe</label><input class="field" id="mdp" type="password" autocomplete="${mode === 'inscription' ? 'new-password' : 'current-password'}" minlength="6" required>
@@ -240,7 +377,8 @@ footer{text-align:center;color:var(--soft);font-size:13px;padding:30px 0 40px}
           <button class="btn" style="margin-top:16px">${mode === 'inscription' ? 'Commencer mon essai gratuit' : 'Se connecter'}</button>
         </form>
         ${mode === 'connexion' ? '<p style="text-align:center;margin:14px 0 0"><button class="lnk" id="oubli">Mot de passe oublié ?</button></p>' : ''}
-      </div>`;
+      </div></div>`;
+    { const em = document.getElementById('email'), sm = S.get('vendoo_mail'); if (em && sm && !em.value) em.value = sm; }
     app.querySelectorAll('[data-m]').forEach(b => b.onclick = () => { location.hash = '#' + b.dataset.m; });
     oeil(app);
     const m = document.getElementById('m');
@@ -269,13 +407,14 @@ footer{text-align:center;color:var(--soft);font-size:13px;padding:30px 0 40px}
     const s = document.createElement('script'); s.src = 'https://accounts.google.com/gsi/client'; s.async = true; s.onload = go; document.head.appendChild(s);
   }
   function oubli(){
-    app.innerHTML = `<div class="card" style="margin-top:20px"><h3>Mot de passe oublié</h3>
+    pleinePage(false);
+    app.innerHTML = `<div class="wrap"><div class="card" style="margin-top:20px"><h3>Mot de passe oublié</h3>
       <p class="soft">On t’envoie un code à 6 chiffres par e-mail.</p>
       <label for="email">E-mail</label><input class="field" id="email" type="email" autocomplete="email">
       <div id="etape2" class="hidden"><label for="code">Code reçu</label><input class="field" id="code" inputmode="numeric" autocomplete="one-time-code">
       <label for="mdp">Nouveau mot de passe</label><input class="field" id="mdp" type="password" autocomplete="new-password" minlength="6"></div>
       <div id="m"></div><button class="btn" id="go" style="margin-top:16px">Recevoir le code</button>
-      <p style="text-align:center;margin:14px 0 0"><a href="#connexion">Retour</a></p></div>`;
+      <p style="text-align:center;margin:14px 0 0"><a href="#connexion">Retour</a></p></div></div>`;
     oeil(app);
     const m = document.getElementById('m'), go = document.getElementById('go'); let etape = 1;
     go.onclick = async () => {
@@ -291,25 +430,26 @@ footer{text-align:center;color:var(--soft);font-size:13px;padding:30px 0 40px}
   const LIB = {actif: 'Actif', essai: 'Essai gratuit', grace: 'Délai de grâce', attente: 'En attente de paiement', expire: 'Coupé', bloque: 'Suspendu'};
   function compteVue(){
     if (!jeton){ location.hash = '#connexion'; return; }
+    pleinePage(false);
     hBtn.textContent = 'Se déconnecter'; hBtn.onclick = () => { deconnexion(); location.hash = ''; };
     dessinerCompte();
     call({action: 'moi', jeton}).then(j => { compte = j.compte; S.set('vendoo_compte', JSON.stringify(compte)); dessinerCompte(); }).catch(e => { if (!jeton) route(); });
     config().then(() => dessinerCompte()).catch(() => {});
   }
   function dessinerCompte(){
-    const c = compte; if (!c){ app.innerHTML = '<div class="card" style="margin-top:20px">Chargement…</div>'; return; }
+    const c = compte; if (!c){ app.innerHTML = '<div class="wrap"><div class="card" style="margin-top:20px">Chargement…</div></div>'; return; }
     const P = CFG ? CFG.prix : null, enAttente = (c.paiements || []).find(p => /valider/i.test(p.statut));
     let alerte = '';
     if (c.statut === 'attente' && c.essaiAActiver && !enAttente) alerte = '';
     else if (c.statut === 'attente' && c.essaiRefuse && !enAttente) alerte = `<div class="msg warn">Tu as déjà utilisé ton essai gratuit sur ce téléphone. Abonne-toi pour ouvrir tes boutiques.</div>`;
-    else if (c.statut === 'attente') alerte = enAttente ? `<div class="msg ok">⏳ Paiement reçu, en cours de vérification. Ton abonnement sera activé très vite.</div>` : `<div class="msg warn">Paie ton abonnement pour activer tes boutiques.</div>`;
+    else if (c.statut === 'attente') alerte = enAttente ? `<div class="msg ok">⏳ Ta capture de paiement est en cours de vérification. Ton abonnement sera activé très vite et tu recevras ton reçu par e-mail.</div>` : `<div class="msg warn">Paie ton abonnement pour activer tes boutiques.</div>`;
     if (c.statut === 'actif' && c.alerte) alerte = `<div class="msg warn">⚠️ Ton abonnement se termine dans ${c.jours} jour${c.jours > 1 ? 's' : ''}. Renouvelle-le pour ne pas être coupé.</div>`;
-    if (c.statut === 'grace') alerte = `<div class="msg warn">⚠️ Ton abonnement est terminé. Tes boutiques seront coupées dans ${c.grace} jour${c.grace > 1 ? 's' : ''}.</div>`;
+    if (c.statut === 'grace') alerte = `<div class="msg warn">⚠️ Ton abonnement est arrivé à sa fin. Renouvelle-le dans les ${c.grace} jour${c.grace > 1 ? 's' : ''} : sinon ta boutique sera mise en pause (rien n’est perdu).</div>`;
     if (c.statut === 'essai') alerte = `<div class="msg ok">🎁 Ton essai gratuit se termine le ${esc(c.expire)}. Abonne-toi quand tu veux pour continuer ensuite${c.alerte ? ' : il ne reste que ' + c.jours + ' jour' + (c.jours > 1 ? 's' : '') : ''}.</div>`;
-    if (c.statut === 'expire') alerte = c.essaiFini ? `<div class="msg err">⏳ Ton essai gratuit est terminé. Abonne-toi pour continuer : tes boutiques, produits et commandes t’attendent.</div>` : `<div class="msg err">⛔ Tes boutiques sont coupées. Rien n’est perdu : tout revient dès que ton paiement est validé.</div>`;
+    if (c.statut === 'expire') alerte = c.essaiFini ? `<div class="msg err">⏳ Ton essai gratuit est terminé. Abonne-toi pour continuer : tes boutiques, produits et commandes t’attendent.</div>` : `<div class="msg err">⏸️ Ta boutique est en pause. Rien n’est perdu : elle se rouvre automatiquement dès que ton paiement est validé.</div>`;
     if (c.statut === 'bloque') alerte = `<div class="msg err">Ton compte est suspendu. Contacte Vendoo.</div>`;
     const paye = c.statut === 'actif' || c.statut === 'grace' || c.statut === 'essai';
-    app.innerHTML = `
+    app.innerHTML = `<div class="wrap">
       <div class="card" style="margin-top:20px">
         <button class="lnk" id="gvOpen" style="float:right;margin:-6px -6px 0 0">📘 Guide</button>
         <div class="statut" style="clear:both"><div><div class="soft">Bonjour</div><div style="font-weight:800;font-size:20px">${esc(c.nom)}</div></div><span class="badge b-${c.essaiAActiver && c.statut === 'attente' ? 'essai' : c.statut}">${c.essaiAActiver && c.statut === 'attente' ? 'Essai à activer' : LIB[c.statut] || c.statut}</span></div>
@@ -317,39 +457,38 @@ footer{text-align:center;color:var(--soft);font-size:13px;padding:30px 0 40px}
         ${alerte}
       </div>
       ${c.statut === 'attente' && c.essaiAActiver ? `<div class="card" style="border:1.5px solid var(--main)"><h3>🎁 Active ton essai gratuit de 7 jours</h3>
-        <p class="soft" style="margin:0 0 10px">Pour éviter les abus, chaque personne n’a droit qu’à un seul essai. On le vérifie avec ton compte Mobile Money : une vérification de <b>${F(c.verif)}</b>, et ton essai démarre tout de suite.<br>🎁 Ces ${F(c.verif)} sont <b>déduits de ton abonnement</b> si tu continues avec Vendoo.</p>
-        ${CFG && CFG.kkiapay ? `<button class="btn" id="essaiGo">Activer mon essai · ${F(c.verif)}</button>` : '<div class="msg warn">La vérification arrive bientôt. Tu peux déjà t’abonner ci-dessous.</div>'}
-        <p class="soft" style="font-size:13px;margin:10px 0 0">Un seul essai par compte Mobile Money.</p><div id="me"></div></div>` : ''}
-      ${paye ? installation(c) : ''}
+        <p class="soft" style="margin:0 0 12px">Tout Vendoo, gratuitement, pendant 7 jours. Un seul essai par personne.</p>
+        <button class="btn" id="essaiGo">Activer mon essai gratuit</button><div id="me"></div></div>` : ''}
       <div class="card" id="payer"><h3>${c.statut === 'essai' || c.essaiFini ? 'M’abonner' : paye ? 'Renouveler mon abonnement' : 'Payer mon abonnement'}</h3>
         ${c.statut === 'essai' ? '<p class="soft">Les jours d’essai qui restent sont gardés : ton abonnement commence après.</p>' : ''}
-        ${enAttente ? `<p class="soft">Paiement de ${F(enAttente.montant)} envoyé le ${esc(enAttente.date)}, en cours de vérification.</p>` : ''}
-        ${c.credit ? `<div class="msg ok">🎁 Tes ${F(c.credit)} de vérification sont déduits : prix déjà réduit ci-dessous.</div>` : ''}
+        ${enAttente ? `<div class="msg ok">⏳ Paiement de ${F(enAttente.montant)} envoyé le ${esc(enAttente.date)} : capture en cours de vérification.</div>` : `
+        ${c.credit ? `<div class="msg ok">🎁 ${F(c.credit)} déjà payés sont déduits du prix ci-dessous.</div>` : ''}
         <div class="choix">
-          <label><input type="radio" name="fo" value="mois" ${choixFo === 'mois' ? 'checked' : ''}> Mensuel<b id="pMois">${P ? (c.credit ? `<s class="soft" style="font-weight:600">${F(P.mois)}</s> ` : '') + F(Math.max(0, P.mois - (c.credit || 0))) : '…'}</b><span class="soft">30 jours</span></label>
-          <label><input type="radio" name="fo" value="an" ${choixFo === 'an' ? 'checked' : ''}> Annuel<b>${P ? (c.credit ? `<s class="soft" style="font-weight:600">${F(P.an)}</s> ` : '') + F(Math.max(0, P.an - (c.credit || 0))) : '…'}</b><span class="soft">365 jours</span></label>
+          ${[['mois', 'Mensuel', '30 jours', ''], ['six', '6 mois', '182 jours', 'Populaire'], ['an', 'Annuel', '365 jours', 'Meilleur prix']].map(([k, l, d, t]) => `<label>${t ? `<em>${t}</em>` : ''}<input type="radio" name="fo" value="${k}" ${choixFo === k ? 'checked' : ''}> ${l}<b data-px="${k}">${P ? F(Math.max(0, P[k] - (c.credit || 0))) : '…'}</b><span class="soft">${d}</span></label>`).join('')}
         </div>
-        <div id="zCode"><label for="code">Code promo (optionnel)</label><div class="row"><input class="field" id="code" autocapitalize="characters"><button class="btn sec" id="okCode" style="flex:0 0 auto;width:auto">Appliquer</button></div></div>
-        ${CFG && CFG.kkiapay ? `<button class="btn" id="kkPay" style="margin-top:16px">Payer <span id="montantKk">${P ? F(Math.max(0, P.mois - (c.credit || 0))) : ''}</span> maintenant</button>
-        <p class="soft" style="text-align:center;margin:8px 0 0">Mobile Money ou carte bancaire · activé tout de suite</p>
-        <details style="margin-top:14px"><summary class="soft">Payer autrement (envoi MoMo direct, activation après vérification)</summary>` : ''}
+        <div id="zCode"><label for="code">Code promo (optionnel, formule mensuelle)</label><div class="row"><input class="field" id="code" autocapitalize="characters"><button class="btn sec" id="okCode" style="flex:0 0 auto;width:auto">Appliquer</button></div></div>
+        <div class="etape"><span>1</span>Envoie le paiement par Mobile Money</div>
         <div class="momo">
-          <div class="soft">1. Envoie <b id="montant">${P ? F(Math.max(0, P.mois - (c.credit || 0))) : ''}</b> par Mobile Money au :</div>
-          <div class="num">${esc(CFG ? CFG.momo : '…')}</div>
+          <div class="soft">Montant à envoyer :</div><div class="num" id="montant">${P ? F(Math.max(0, P[choixFo] - (c.credit || 0))) : ''}</div>
+          <div class="soft" style="margin-top:6px">Au numéro :</div><div class="num">${esc(CFG ? CFG.momo : '…')}</div>
           ${CFG && CFG.nomMomo ? `<div class="soft">Nom : <b>${esc(CFG.nomMomo)}</b></div>` : ''}
-          <div class="soft" style="margin-top:6px">2. Tu reçois un SMS de confirmation avec l’<b>ID de la transaction</b>.</div>
+          <div class="ussd"><a class="btn" href="tel:*880%23">📲 Payer avec MTN MoMo</a><a class="btn sec" href="tel:*855%23">📲 Payer avec Moov Money</a></div>
+          <button class="lnk" data-copie="${esc(CFG ? String(CFG.momo || '').replace(/\s/g, '') : '')}" style="margin-top:6px">📋 Copier le numéro</button>
+          <p class="soft" style="margin:6px 0 0">Le bouton ouvre le menu Mobile Money de ton téléphone : choisis « Transfert », mets le numéro et le montant, puis valide avec ton code secret.</p>
         </div>
-        <label for="num">Numéro qui a payé</label><input class="field" id="num" type="tel" inputmode="tel" value="${esc(c.tel)}">
-        <label for="tx">ID de la transaction (dans le SMS)</label><input class="field" id="tx" autocomplete="off">
+        <div class="etape"><span>2</span>Envoie la capture d’écran du paiement</div>
+        <p class="soft" style="margin:0 0 8px"><b style="color:var(--bad)">Obligatoire.</b> Fais une capture d’écran du message de confirmation Mobile Money. Ton abonnement est activé dès que nous l’avons vérifiée.</p>
+        <label class="capzone" id="capZone" for="capFile"><span id="capTxt">📷 Choisir la capture d’écran</span></label><input type="file" id="capFile" accept="image/*" class="hidden">
+        <label for="num">Numéro Mobile Money qui a payé</label><input class="field" id="num" type="tel" inputmode="tel" value="${esc(c.tel)}">
+        <label for="tx">ID de la transaction (facultatif, dans le SMS)</label><input class="field" id="tx" autocomplete="off">
         <div id="mp"></div>
-        <button class="btn${CFG && CFG.kkiapay ? ' ghost' : ''}" id="envoyer" style="margin-top:16px">J’ai payé, envoyer</button>
-        ${CFG && CFG.kkiapay ? '</details>' : ''}
+        <button class="btn" id="envoyer" style="margin-top:16px" disabled>Envoyer ma capture de paiement</button>`}
       </div>
-      ${(c.paiements || []).length ? `<div class="card"><h3>Mes paiements</h3><table class="hist">${c.paiements.map(p => `<tr><td>${esc(p.date)}<br><span class="soft">${p.formule === 'an' ? '1 an' : '1 mois'}</span></td><td>${F(p.montant)}<br><span class="soft">${/valider/i.test(p.statut) ? '⏳ en vérification' : /refus/i.test(p.statut) ? '❌ refusé' + (p.raison ? ' : ' + esc(p.raison) : '') : '✅ validé'}</span></td></tr>`).join('')}</table></div>` : ''}
+      ${(c.paiements || []).length ? `<div class="card"><h3>Mes paiements</h3><table class="hist">${c.paiements.map(p => `<tr><td>${esc(p.date)}<br><span class="soft">${p.formule === 'an' ? '1 an' : p.formule === 'six' ? '6 mois' : p.formule === 'mois' ? '1 mois' : esc(p.formule)}</span></td><td>${F(p.montant)}<br><span class="soft">${/valider/i.test(p.statut) ? '⏳ en vérification' : /refus/i.test(p.statut) ? '❌ refusé' + (p.raison ? ' : ' + esc(p.raison) : '') : '✅ validé'}</span></td></tr>`).join('')}</table></div>` : ''}
       <div class="card"><h3>Mon profil</h3><div class="soft">${esc(c.email)}${c.google ? ' · Google' : ''}</div>
         <label for="pNom">Nom</label><input class="field" id="pNom" value="${esc(c.nom)}">
         <label for="pTel">Numéro WhatsApp</label><input class="field" id="pTel" type="tel" value="${esc(c.tel)}">
-        <div id="mprof"></div><button class="btn ghost" id="sProf" style="margin-top:14px">Enregistrer</button></div>`;
+        <div id="mprof"></div><button class="btn ghost" id="sProf" style="margin-top:14px">Enregistrer</button></div></div>`;
     lierEvenements(c);
     document.getElementById('gvOpen').onclick = guide;
     if (!S.get('vendoo_guide_' + c.email) && !document.querySelector('.gv')) guide();
@@ -374,73 +513,45 @@ footer{text-align:center;color:var(--soft);font-size:13px;padding:30px 0 40px}
       </ol></div>`;
   }
   const formLier = () => `<input class="field" id="api" placeholder="https://docs.google.com/spreadsheets/d/…" style="margin-top:8px" autocomplete="off"><div id="ml"></div><button class="btn" id="lier" style="margin-top:10px">Installer ma boutique</button>`;
-  const chargerKk = () => new Promise((ok, ko) => { if (window.openKkiapayWidget) return ok(); const sc = document.createElement('script'); sc.src = 'https://cdn.kkiapay.me/k.js'; sc.onload = ok; sc.onerror = () => ko(new Error('Paiement indisponible, vérifie ta connexion.')); document.head.appendChild(sc); });
+  // Capture d'écran : réduite (1600 px, JPEG) avant l'envoi
+  const reduire = f => new Promise((ok, ko) => { const r = new FileReader(); r.onerror = () => ko(new Error('Image illisible, choisis une autre capture.')); r.onload = () => { const im = new Image(); im.onerror = () => ko(new Error('Image illisible, choisis une autre capture.')); im.onload = () => {
+    const k = Math.min(1, 1600 / Math.max(im.width, im.height)), cv = document.createElement('canvas'); cv.width = Math.round(im.width * k); cv.height = Math.round(im.height * k);
+    const g = cv.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, cv.width, cv.height); g.drawImage(im, 0, 0, cv.width, cv.height); ok(cv.toDataURL('image/jpeg', .85)); }; im.src = r.result; }; r.readAsDataURL(f); });
   function lierEvenements(c){
-    const P = CFG ? CFG.prix : null; let prixMois = P ? P.mois : 0, codeOk = '';
+    const P = CFG ? CFG.prix : null; let prixMois = P ? P.mois : 0, codeOk = '', capture = '';
     const fo = () => (app.querySelector('[name=fo]:checked') || {}).value || 'mois';
-    const montantDu = () => Math.max(0, (fo() === 'an' ? P.an : prixMois) - (c.credit || 0));
-    const majMontant = () => { if (!P) return; document.getElementById('montant').textContent = F(montantDu()); const mk = document.getElementById('montantKk'); if (mk) mk.textContent = F(montantDu()); document.getElementById('zCode').classList.toggle('hidden', fo() === 'an'); };
+    const montantDu = () => Math.max(0, (fo() === 'mois' ? prixMois : P[fo()]) - (c.credit || 0));
+    const majMontant = () => { const m = document.getElementById('montant'); if (!P || !m) return; m.textContent = F(montantDu()); document.getElementById('zCode').classList.toggle('hidden', fo() !== 'mois'); };
     app.querySelectorAll('[name=fo]').forEach(r => r.onchange = () => { choixFo = fo(); S.set('vendoo_fo', choixFo); majMontant(); });
     majMontant();
-    const mp = document.getElementById('mp');
-    document.getElementById('okCode').onclick = async e => {
+    const mp = document.getElementById('mp'), env = document.getElementById('envoyer'), okc = document.getElementById('okCode');
+    if (okc) okc.onclick = async e => {
       const b = e.currentTarget, code = document.getElementById('code').value.trim(); if (!code) return;
       occupe(b, true);
-      try { const j = await call({action: 'code', code}); prixMois = j.prix; codeOk = code; document.getElementById('pMois').innerHTML = `<s class="soft" style="font-weight:600">${F(P.mois)}</s> ${F(Math.max(0, j.prix - (c.credit || 0)))}`; majMontant(); message(mp, '✅ Code appliqué : ' + F(Math.max(0, j.prix - (c.credit || 0))) + (c.credit ? ' ce mois-ci' : ' par mois'), 'ok'); }
+      try { const j = await call({action: 'code', code}); prixMois = j.prix; codeOk = code; document.querySelector('[data-px=mois]').innerHTML = `<s class="soft" style="font-weight:600">${F(P.mois)}</s> ${F(Math.max(0, j.prix - (c.credit || 0)))}`; majMontant(); message(mp, '✅ Code appliqué : ' + F(Math.max(0, j.prix - (c.credit || 0))) + ' par mois', 'ok'); }
       catch(err){ message(mp, esc(err.message)); }
       occupe(b, false);
     };
-    document.getElementById('envoyer').onclick = async e => {
-      const b = e.currentTarget; occupe(b, true); message(mp, '');
+    const cf = document.getElementById('capFile');
+    if (cf) cf.onchange = async () => {
+      const f = cf.files[0]; if (!f) return;
+      try { capture = await reduire(f); const z = document.getElementById('capZone'); z.classList.add('ok'); z.innerHTML = `<img src="${capture}" alt=""><span>✅ Capture ajoutée · toucher pour la changer</span>`; env.disabled = false; message(mp, ''); }
+      catch(err){ message(mp, esc(err.message)); }
+    };
+    if (env) env.onclick = async e => {
+      const b = e.currentTarget; if (!capture) return message(mp, 'Ajoute d’abord la capture d’écran de ton paiement.');
+      occupe(b, true); message(mp, '');
       try {
-        const j = await call({action: 'payer', jeton, formule: fo(), code: fo() === 'mois' ? (document.getElementById('code').value.trim() || codeOk) : '', numero: document.getElementById('num').value, transaction: document.getElementById('tx').value});
+        const j = await call({action: 'payer', jeton, formule: fo(), code: fo() === 'mois' ? (document.getElementById('code').value.trim() || codeOk) : '', numero: document.getElementById('num').value, transaction: document.getElementById('tx').value, capture, captureMime: 'image/jpeg'});
         compte = j.compte; await call({action: 'moi', jeton}).then(x => { compte = x.compte; }).catch(() => {});
-        S.set('vendoo_compte', JSON.stringify(compte)); dessinerCompte();
-        message(document.getElementById('mp'), '✅ Paiement envoyé. Tu reçois un e-mail dès qu’il est validé.', 'ok');
+        S.set('vendoo_compte', JSON.stringify(compte)); dessinerCompte(); scrollTo(0, 0);
       } catch(err){ message(mp, esc(err.message)); occupe(b, false); }
     };
-    // Essai gratuit : vérification Mobile Money (100 F) puis essai lancé par le serveur
     const eg = document.getElementById('essaiGo');
     if (eg) eg.onclick = async () => {
       const me = document.getElementById('me'); message(me, ''); occupe(eg, true);
-      try {
-        await chargerKk();
-        let fini = false;
-        addSuccessListener(async rep => {
-          if (fini) return; fini = true;
-          const id = rep && (rep.transactionId || rep.transaction_id || rep.id);
-          message(me, '⏳ Vérification reçue, lancement de ton essai…', 'ok');
-          for (let essai = 0; essai < 4; essai++){
-            try { const j = await call({action: 'essai', jeton, transactionId: id}); compte = j.compte; S.set('vendoo_compte', JSON.stringify(compte)); dessinerCompte(); scrollTo(0, 0); return; }
-            catch(err){ if (essai === 3 || /déjà|uniquement|incorrect/.test(err.message)){ message(me, esc(err.message)); call({action: 'moi', jeton}).then(x => { compte = x.compte; S.set('vendoo_compte', JSON.stringify(compte)); }).catch(() => {}); return; } await new Promise(r => setTimeout(r, 4000)); }
-          }
-        });
-        openKkiapayWidget({amount: String(c.verif), key: CFG.kkiapay.cle, sandbox: !!CFG.kkiapay.test, position: 'center', theme: '#5B2EE6', paymentmethod: 'momo',
-          name: c.nom, email: c.email, phone: String(c.tel || '').replace(/\D/g, ''), data: JSON.stringify({email: c.email, type: 'essai'})});
-      } catch(err){ message(me, esc(err.message)); }
-      occupe(eg, false);
-    };
-    // Paiement KkiaPay : vérifié par le serveur auprès de KkiaPay, abonnement activé tout de suite
-    const kb = document.getElementById('kkPay');
-    if (kb) kb.onclick = async () => {
-      message(mp, ''); occupe(kb, true);
-      try {
-        await chargerKk();
-        const formule = fo(), code = formule === 'mois' ? codeOk : '';
-        let fini = false;
-        window.addSuccessListener && addSuccessListener(async rep => {
-          if (fini) return; fini = true;
-          const id = rep && (rep.transactionId || rep.transaction_id || rep.id);
-          message(mp, '⏳ Paiement reçu, activation…', 'ok');
-          for (let essai = 0; essai < 4; essai++){
-            try { const j = await call({action: 'kkiapay', jeton, formule, code, transactionId: id}); compte = j.compte; S.set('vendoo_compte', JSON.stringify(compte)); dessinerCompte(); message(document.getElementById('mp'), '✅ Paiement confirmé : ton abonnement est actif.', 'ok'); scrollTo(0, 0); return; }
-            catch(err){ if (essai === 3) message(mp, esc(err.message) + '<br>Garde l’ID ' + esc(id || '') + ' : ton abonnement sera activé automatiquement dès que KkiaPay confirme.'); else await new Promise(r => setTimeout(r, 4000)); }
-          }
-        });
-        openKkiapayWidget({amount: String(montantDu()), key: CFG.kkiapay.cle, sandbox: !!CFG.kkiapay.test, position: 'center', theme: '#5B2EE6',
-          name: c.nom, email: c.email, phone: String(c.tel || '').replace(/\D/g, ''), data: JSON.stringify({email: c.email, formule, code})});
-      } catch(err){ message(mp, esc(err.message)); }
-      occupe(kb, false);
+      try { const j = await call({action: 'essai', jeton}); compte = j.compte; S.set('vendoo_compte', JSON.stringify(compte)); dessinerCompte(); scrollTo(0, 0); }
+      catch(err){ message(me, esc(err.message)); occupe(eg, false); }
     };
     const lb = document.getElementById('lier');
     if (lb) lb.onclick = async () => {
@@ -461,14 +572,14 @@ footer{text-align:center;color:var(--soft);font-size:13px;padding:30px 0 40px}
   /* ------------ Guide de bienvenue : tout expliquer de A à Z ------------ */
   const GUIDE = [
     ['👋', 'Bienvenue sur Vendoo', `<p>En quelques minutes tu vas avoir :</p><ul><li><b>Ton site boutique</b> : tes clients commandent et paient à la livraison.</li><li><b>Ton application</b> sur ton téléphone : commandes, relances, ventes, pubs.</li><li><b>Ton Google Sheets</b> : toutes tes données, chez toi.</li></ul><p>Ce guide t’explique tout, étape par étape.</p>`],
-    ['🎁', 'Active ton essai gratuit', `<p>Tu as <b>7 jours d’essai</b>, une seule fois. Pour l’activer : une vérification de <b>1 000 F</b> par Mobile Money (bouton « Activer mon essai »).</p><p>Ces 1 000 F sont <b>déduits de ton abonnement</b> si tu continues avec Vendoo.</p>`],
+    ['🎁', 'Active ton essai gratuit', `<p>Tu as <b>7 jours d’essai gratuit</b>, une seule fois : appuie sur <b>« Activer mon essai gratuit »</b> sur ton compte.</p>`],
     ['📄', 'Installe ta boutique', `<ul><li>Appuie sur <b>« Créer mon Google Sheets »</b> (un fichier vide dans ton Google).</li><li>Dans ce fichier : <b>Partager</b> → ajoute l’e-mail affiché sur ton compte, en <b>Éditeur</b>.</li><li>Copie le lien du fichier, colle-le ici et appuie sur <b>« Installer ma boutique »</b> (environ 1 minute).</li></ul><p>Tes données restent dans ton Google : Vendoo travaille dessus pour toi.</p>`],
     ['📱', 'Ouvre ton application', `<ul><li>Appuie sur <b>« Ouvrir mon application »</b> et entre le <b>mot de passe</b> affiché sur ton compte.</li><li>Installe-la sur ton téléphone : Chrome → menu ⋮ → <b>« Ajouter à l’écran d’accueil »</b> (iPhone : Partager → « Sur l’écran d’accueil »).</li><li>Dans Réglages, active les <b>notifications</b> : chaque commande arrive tout de suite, même application fermée.</li></ul>`],
     ['🛍️', 'Ajoute tes produits', `<p>Dans l’application : <b>Produits → + Ajouter</b>.</p><ul><li>Photos (recadrer, enlever le fond…), nom, accroche, belle description.</li><li><b>Prix par pays</b> et offres (1, 2, 3 pièces…).</li><li>Avis clients : texte, capture WhatsApp, note vocale, vidéo.</li><li>Mets-le <b>en ligne</b> quand il est prêt (sinon il reste en brouillon).</li></ul><p>Le bouton <b>⋮</b> de chaque produit permet de le modifier, dupliquer, copier son lien ou le supprimer.</p>`],
     ['⚙️', 'Règle ta boutique', `<p>Dans ton Google Sheets, onglet <b>Réglages</b> :</p><ul><li>Nom de la boutique, couleur, logo, bandeau, garanties.</li><li><b>WhatsApp</b> qui reçoit les commandes (CallMeBot, gratuit).</li><li><b>Pixels Facebook et TikTok</b> pour tes publicités.</li></ul><p>Onglet <b>Pays</b> : choisis les pays où tu vends (OUI/NON).</p>`],
     ['🚀', 'Vends', `<ul><li>Copie le <b>lien de ta boutique</b> (sur ton compte) ou d’un produit (⋮ → Copier le lien) et mets-le dans tes pubs, statuts et groupes.</li><li>Pour TikTok : onglet <b>TikTok</b> de l’application → crée une promotion par pub. Tu sauras combien chaque pub te rapporte.</li><li>Jusqu’à <b>30 boutiques</b> : Réglages → Mes boutiques (une par pays ou par agence).</li></ul>`],
     ['📦', 'Gère tes commandes', `<ul><li>Onglet <b>Commandes</b> : appelle le client, change le statut (Confirmée, En livraison, Livrée…).</li><li>Onglet <b>Relances</b> : les clients qui n’ont pas fini leur commande. Une alerte arrive 5 minutes après, avec le message de relance déjà écrit.</li><li><b>Agences</b> (facultatif) : Réglages → Mes boutiques → 🚚 Agences. L’agence reçoit les commandes de son pays et met à jour les statuts.</li></ul>`],
-    ['✦', 'Besoin d’aide ?', `<ul><li>Dans l’application, le bouton rond <b>✦ Assistant</b> en bas à droite répond à toutes tes questions, à tout moment.</li><li>Avant la fin de ton essai, abonne-toi ici : <b>14 000 F/mois</b> ou <b>100 000 F/an</b>.</li></ul><p>Tu peux revoir ce guide quand tu veux avec le bouton <b>📘 Guide</b> de ton compte.</p>`]
+    ['✦', 'Besoin d’aide ?', `<ul><li>Dans l’application, le bouton rond <b>✦ Assistant</b> en bas à droite répond à toutes tes questions, à tout moment.</li><li>Avant la fin de ton essai, abonne-toi ici : <b>19 900 F/mois</b>, <b>89 900 F/6 mois</b> ou <b>149 900 F/an</b>, par Mobile Money avec la capture d’écran du paiement.</li></ul><p>Tu peux revoir ce guide quand tu veux avec le bouton <b>📘 Guide</b> de ton compte.</p>`]
   ];
   function guide(){
     let i = 0;
@@ -492,10 +603,11 @@ footer{text-align:center;color:var(--soft);font-size:13px;padding:30px 0 40px}
     if (h === 'compte' || h === 'payer'){ compteVue(); if (h === 'payer') setTimeout(() => { const p = document.getElementById('payer'); if (p) p.scrollIntoView({behavior: 'smooth'}); }, 300); return; }
     if (h === 'connexion' || h === 'inscription') return jeton ? (location.hash = '#compte') : auth(h);
     accueil();
+    if (ANCRES.includes(h)) setTimeout(() => versAncre(h), 50);
   }
-  addEventListener('hashchange', () => { route(); scrollTo(0, 0); });
+  addEventListener('hashchange', () => { route(); if (!ANCRES.includes(location.hash.slice(1))) scrollTo(0, 0); });
   route();
-  config().then(() => { if (!location.hash || location.hash === '#') accueil(); }).catch(() => {});
+  config().then(() => { const h = location.hash.slice(1); if (!h || ANCRES.includes(h)) accueil(); }).catch(() => {});
 })();
 </script>
 </body>
