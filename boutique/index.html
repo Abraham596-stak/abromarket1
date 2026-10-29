@@ -445,6 +445,8 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
     }).join('');
   }
   const R = k => (D && D.reglages && D.reglages[k]) || '';
+  // Nom affiché : celui de la boutique du pays du client (pub multi-pays sur la boutique principale)
+  const NOM = () => { const p = D && country && (D.pays || []).find(x => x.code === country); return (p && p.nomBoutique) || R('Nom de la boutique') || 'Boutique'; };
   // Le jour et l'heure de livraison sont fixés avec le client au téléphone
   const LIVRAISON = 'Fixée avec vous au téléphone';
 
@@ -492,7 +494,7 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
   }
   function header(list){
     const logo = R('Logo (lien image, optionnel)');
-    const name = R('Nom de la boutique') || 'Boutique';
+    const name = NOM();
     // Bandeau qui défile tout seul : message du Sheet + offre du jour
     const msgs = [R('Bandeau du haut'), "🔥 Offre -40% aujourd'hui seulement"].filter(Boolean);
     const tour = msgs.map((m, i) => `<span class="${/offre/i.test(m) ? 'promo' : ''}">${esc(m)}</span>`).join('');
@@ -535,7 +537,7 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
     if (!country || !avail.some(p => p.code === country)) country = pickCountry(avail);
     const prods = D.produits.filter(x => x.prix[country]);
     const autres = D.produits.filter(x => !x.prix[country] && Object.keys(x.prix).length);
-    document.title = R('Nom de la boutique') || 'Boutique';
+    document.title = NOM();
     const pays = D.pays.find(p => p.code === country) || {};
     app.innerHTML = `<div class="wrap">${header(avail)}
       <div class="hero"><h1>Nos produits</h1><p>Livraison et paiement à la réception.</p></div>
@@ -550,7 +552,7 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
       }).join('')}</div>` : (autres.length ? `<div class="grid">${autres.map(x => { const c = Object.keys(x.prix)[0], pp = D.pays.find(p => p.code === c) || {}, o = x.prix[c].offres[0];
           return `<a class="card" href="${QS}p=${encodeURIComponent(x.id)}"><img src="${esc(imgM(x.photos[0] || ''))}" alt="${esc(x.nom)}" loading="lazy"><div class="ci"><div class="cn">${esc(x.nom)}</div><div class="cp">${money(o.prix, pp.devise)}</div></div></a>`; }).join('')}</div>` : `<div class="empty">Aucun produit disponible pour le moment.</div>`)}
       ${trust()}
-      <footer>© ${new Date().getFullYear()} ${esc(R('Nom de la boutique'))}</footer></div>`;
+      <footer>© ${new Date().getFullYear()} ${esc(NOM())}</footer></div>`;
     bindCountry();
   }
 
@@ -602,7 +604,7 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
     if (!country || !avail.some(p => p.code === country)) country = pickCountry(avail);
     const pays = D.pays.find(p => p.code === country);
     const px = pays && P.prix[country];
-    document.title = P.nom + ' | ' + (R('Nom de la boutique') || 'Boutique');
+    document.title = P.nom + ' | ' + NOM();
     const photos = P.photos.length ? P.photos : [''];
     const o1 = px ? px.offres[0] : null;
     const dev = (px && px.devise) || (pays ? pays.devise : '');
@@ -673,7 +675,7 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
       ${P.faq.length ? `<section><h2>Questions fréquentes</h2>${P.faq.map(f=>`<details><summary>${esc(f.q)}</summary><p>${esc(f.r)}</p></details>`).join('')}</section>` : ''}
       ${trust()}
       </div>
-      <footer><a href="${ACCUEIL}">← Voir tous nos produits</a><br>© ${new Date().getFullYear()} ${esc(R('Nom de la boutique'))}</footer></div>
+      <footer><a href="${ACCUEIL}">← Voir tous nos produits</a><br>© ${new Date().getFullYear()} ${esc(NOM())}</footer></div>
       ${px ? `<div class="sticky" id="sticky"><div class="nv" id="nv">⏳ N'oubliez pas de valider votre commande</div><div class="sp">${money(o1.prix, dev)}</div><a href="#commande" class="cta attn" id="stCta">Je commande</a></div>` : ''}`;
 
     bindCountry();
@@ -895,7 +897,7 @@ Heure de la livraison : ${r.livraison}`;
         <a class="cta" href="./?c=${esc(country || '')}">Voir nos autres produits</a>
       </div>
       ${trust()}
-      <footer>© ${new Date().getFullYear()} ${esc(R('Nom de la boutique'))}</footer></div>`;
+      <footer>© ${new Date().getFullYear()} ${esc(NOM())}</footer></div>`;
     scrollTo({top: 0});
   }
 
