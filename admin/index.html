@@ -2881,18 +2881,11 @@ function nettoyerHtml(h){
     const attente = m => { Z.innerHTML = `<div class="iaload"><span class="spin"></span> <span>${m}</span></div>`; };
     let etude = '';
     try {
-      attente('1/2 · Étude du produit…');
-      const e = await callIA({type: 'ia', action: 'ia', mode: 'texte', contexte, consigne:
-        'Tu es un expert en publicité vidéo et en voix off qui fait vendre (paiement à la livraison). Avant d’écrire, étudie ce produit à partir de la page. ' +
-        'Réponds avec ces rubriques courtes (tirets) : CIBLE (qui achète, âge, situation) ; DOULEURS (ce qu’elle vit tous les jours, avec ses mots) ; DÉSIRS (ce qu’elle veut vraiment ressentir) ; ' +
-        'PEURS ET FREINS (ce qui l’empêche d’acheter, et comment les lever sans parler de prix) ; MOMENTS DE VIE (scènes concrètes où le problème apparaît) ; ' +
-        '5 ANGLES qui donnent envie d’acheter tout de suite ; MOTS FORTS à utiliser. N’invente aucun fait médical ou technique absent de la page. Ne parle jamais de prix, de montant, de pays ni de ville.'});
-      if (e.sansCle){ Z.innerHTML = '<div class="iaerr">Branche d’abord ton assistant IA gratuit : Réglages → 🤖 Assistant IA.</div>'; return; }
-      etude = String(e.texte || '').trim();
-      if (!etude) throw new Error('L’IA n’a rien répondu. Réessaie dans une minute.');
-      const consigneScripts = rappel => 'Tu es le meilleur rédacteur de voix off publicitaires (Facebook, TikTok) pour une boutique en paiement à la livraison. ' +
-        'Voici ton étude du produit :\n' + etude.slice(0, 5000) + '\n\n' +
-        'Écris 3 scripts de voix off DIFFÉRENTS (angle et accroche différents), en français parlé, simple et naturel, avec « vous ». ' +
+      attente('L’IA étudie le produit puis écrit 3 scripts… (30 à 60 secondes)');
+      const lent = setTimeout(() => { if (o.isConnected) attente('Encore quelques secondes, l’IA termine les scripts…'); }, 35000);
+      const consigne = 'Tu es le meilleur rédacteur de voix off publicitaires (Facebook, TikTok) pour une boutique en paiement à la livraison. ' +
+        'ÉTAPE 1, ÉTUDE (courte, 120 mots maximum, tirets) : la cible ; ses douleurs avec ses mots ; ses désirs ; ses freins et comment les lever sans parler de prix ; 3 angles qui font acheter tout de suite. ' +
+        'ÉTAPE 2 : à partir de cette étude, écris 3 scripts de voix off DIFFÉRENTS (angle et accroche différents), en français parlé, simple et naturel, avec « vous ». ' +
         (type === 'mix' ? 'Chaque script utilise un style différent parmi : problème → solution, question choc, histoire vécue, avant / après, conseil d’un proche, curiosité. Indique le style dans "titre". '
           : 'Style imposé pour les 3 : ' + T[1].replace(/^\S+\s/, '') + ' : ' + T[2] + '. ') +
         'Règles absolues : ' +
@@ -2900,30 +2893,28 @@ function nettoyerHtml(h){
         '2) Fais ressentir le problème puis le soulagement ; montre des bénéfices concrets, pas des caractéristiques. ' +
         '3) Donne envie d’acheter MAINTENANT sans jamais parler du prix : AUCUN prix, montant, chiffre d’argent, ni les mots prix, tarif, coûte, francs, pas cher. ' +
         '4) AUCUN pays, AUCUNE ville, aucune nationalité. ' +
-        '5) Pas de promesse de guérison ni de résultat garanti, pas de fausse information sur le produit. ' +
+        '5) Pas de promesse de guérison ni de résultat garanti, pas de fausse information : seulement ce qui est dans la page. ' +
         '6) Chaque script fait environ ' + Math.max(15, cible - 14) + ' mots (lu en ' + sec + ' secondes avec la phrase de fin). ' +
         '7) N’écris PAS la fin (livraison, paiement, réduction) : elle est ajoutée automatiquement. Termine par un appel à l’action court du type « Commandez maintenant. » ' +
-        '8) Pas d’indications de mise en scène entre crochets, seulement le texte à lire' + (type === 'dialogue' ? ' (avec « Voix 1 : » et « Voix 2 : »)' : '') + '. ' +
-        (rappel ? 'ATTENTION, ta réponse précédente contenait : ' + rappel + '. Corrige-le. ' : '') +
-        'Réponds UNIQUEMENT en JSON : {"scripts":[{"titre":"angle en 3 à 6 mots","texte":"le script"}]}';
-      attente('2/2 · Écriture des 3 scripts…');
-      let J = null, pb = [];
-      for (let essai = 0; essai < 2; essai++){
-        const r = await callIA({type: 'ia', action: 'ia', mode: 'texte', contexte, consigne: consigneScripts(essai ? pb.join(', ') : '')});
-        J = voJSON(r.texte);
-        if (!J || !Array.isArray(J.scripts) || !J.scripts.length){ J = {scripts: [{titre: 'Script', texte: String(r.texte || '').trim()}]}; }
-        J.scripts = J.scripts.filter(x => x && String(x.texte || '').trim()).slice(0, 3);
-        pb = [...new Set(J.scripts.flatMap(x => voInterdits(x.texte)))];
-        if (!pb.length) break;
-      }
-      // Dernier filet : on retire les phrases qui parlent encore de prix ou de pays
+        '8) Pas d’indications entre crochets, seulement le texte à lire' + (type === 'dialogue' ? ' (avec « Voix 1 : » et « Voix 2 : »)' : '') + '. ' +
+        'Réponds UNIQUEMENT en JSON, sans retour à la ligne dans les textes : {"etude":"…","scripts":[{"titre":"angle en 3 à 6 mots","texte":"le script"}]}';
+      let r;
+      try { r = await callIA({type: 'ia', action: 'ia', mode: 'texte', rapide: true, contexte, consigne}, 130000); }
+      finally { clearTimeout(lent); }
+      if (r.sansCle){ Z.innerHTML = '<div class="iaerr">Branche d’abord ton assistant IA gratuit : Réglages → 🤖 Assistant IA.</div>'; return; }
+      let J = voJSON(r.texte);
+      if (!J || !Array.isArray(J.scripts)) throw new Error(String(r.texte || '').trim() && !/^\s*[{`]/.test(r.texte) ? r.texte : 'L’IA a mal répondu. Réessaie.');
+      const E = J.etude; etude = (typeof E === 'string' ? E : Array.isArray(E) ? E.map(x => typeof x === 'string' ? '- ' + x : JSON.stringify(x)).join('\n') : E && typeof E === 'object' ? Object.entries(E).map(([k, v]) => k + ' : ' + (Array.isArray(v) ? v.join(' ; ') : v)).join('\n') : '').trim();
+      J.scripts = J.scripts.filter(x => x && String(x.texte || '').trim()).slice(0, 3);
+      // Garde-fou : on retire les phrases qui parlent encore de prix ou de pays
       J.scripts.forEach(x => { if (voInterdits(x.texte).length) x.texte = (String(x.texte).match(/[^.!?…]+[.!?…]*\s*/g) || []).filter(ph => !voInterdits(ph).length).join('').trim(); });
+      J.scripts = J.scripts.filter(x => x.texte);
       if (!J.scripts.length) throw new Error('L’IA n’a pas donné de script. Réessaie.');
       const cartes = J.scripts.map((x, i) => {
         const fin = VO_FINS[i % VO_FINS.length], texte = String(x.texte).trim().replace(/\s*(Voix \d\s*:)/g, '\n$1').trim(), complet = texte + '\n' + fin;
         return {titre: String(x.titre || 'Script ' + (i + 1)), texte, fin, complet, sec: Math.round(voMots(complet) / VO_MOTS_SEC)};
       });
-      Z.innerHTML = `<details class="voetude"><summary>📊 Étude du produit (touche pour voir)</summary><div style="margin-top:8px">${esc(etude).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>')}</div></details>` +
+      Z.innerHTML = (etude ? `<details class="voetude"><summary>📊 Étude du produit (touche pour voir)</summary><div style="margin-top:8px">${esc(etude).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>')}</div></details>` : '') +
         cartes.map((c, i) => `<div class="vosc"><h4>Script ${i + 1} · ${esc(c.titre)}</h4><div class="vom">≈ ${c.sec} secondes · ${voMots(c.complet)} mots</div>
           <div class="vot">${esc(c.texte)}<span class="vofin">${esc(c.fin)}</span></div><button class="btn blue2" data-c="${i}">📋 Copier ce script</button></div>`).join('') +
         `<button class="btn blue" id="voTout" style="margin-top:14px">📋 Copier les 3 scripts</button><button class="btn blue2" id="voRe" style="margin-top:8px">🔁 Générer 3 autres scripts</button>`;
