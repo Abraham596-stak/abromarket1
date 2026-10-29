@@ -2899,8 +2899,19 @@ function nettoyerHtml(h){
         '8) Pas d’indications entre crochets, seulement le texte à lire' + (type === 'dialogue' ? ' (avec « Voix 1 : » et « Voix 2 : »)' : '') + '. ' +
         'Réponds UNIQUEMENT en JSON, sans retour à la ligne dans les textes : {"etude":"…","scripts":[{"titre":"angle en 3 à 6 mots","texte":"le script"}]}';
       let r;
-      try { r = await callIA({type: 'ia', action: 'ia', mode: 'texte', rapide: true, contexte, consigne}, 130000); }
-      finally { clearTimeout(lent); }
+      const sature = e => /demand|overload|unavailable|ne répond pas|trop de temps/i.test(String(e && e.message || e));
+      try {
+        try { r = await callIA({type: 'ia', action: 'ia', mode: 'texte', rapide: true, contexte, consigne}, 130000); }
+        catch(e){
+          // Gemini saturé : on attend un peu et on réessaie tout seul une fois
+          if (!sature(e) || !o.isConnected) throw e;
+          attente('Gemini est très demandé en ce moment, nouvel essai dans 20 secondes…');
+          await new Promise(ok => setTimeout(ok, 20000)); if (!o.isConnected) return;
+          attente('Nouvel essai…');
+          try { r = await callIA({type: 'ia', action: 'ia', mode: 'texte', rapide: true, contexte, consigne}, 130000); }
+          catch(e2){ throw sature(e2) ? new Error('Gemini (l’IA gratuite de Google) est saturé en ce moment : beaucoup de monde l’utilise. Réessaie dans quelques minutes.') : e2; }
+        }
+      } finally { clearTimeout(lent); }
       if (r.sansCle){ Z.innerHTML = '<div class="iaerr">Branche d’abord ton assistant IA gratuit : Réglages → 🤖 Assistant IA.</div>'; return; }
       let J = voJSON(r.texte);
       if (!J || !Array.isArray(J.scripts)) throw new Error(String(r.texte || '').trim() && !/^\s*[{`]/.test(r.texte) ? r.texte : 'L’IA a mal répondu. Réessaie.');
