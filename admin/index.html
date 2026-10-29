@@ -73,6 +73,13 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
 .store i{width:34px;height:34px;border-radius:10px;background:var(--sun);display:grid;place-items:center;font-style:normal;font-size:18px}
 .iconbtn{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-size:20px;background:rgba(255,255,255,.08)}
 .iconbtn.off{opacity:.5}
+.nfbtn{position:relative}.nfbadge{position:absolute;top:2px;right:0;min-width:19px;height:19px;padding:0 5px;border-radius:10px;background:#E5484D;color:#fff;font-size:11.5px;font-weight:800;display:grid;place-items:center;line-height:1}
+.nfhead{display:flex;align-items:center;justify-content:space-between;gap:10px}.nfhead h2{margin:0}
+.nfit{display:flex;gap:10px;width:100%;text-align:left;padding:14px 4px;border-bottom:1px solid var(--line);background:none}
+.nfit .nfdot{flex:0 0 10px;height:10px;border-radius:50%;margin-top:6px;background:transparent}.nfit.nfnl .nfdot{background:var(--main)}
+.nfit small{display:block;color:var(--soft);font-size:12.5px;font-weight:700}.nfit b{display:block;font-size:15.5px;margin:2px 0;color:var(--ink)}.nfit.nflu b{font-weight:600}
+.nfit p{margin:0;color:var(--soft);font-size:14px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-line}
+.nfit .nfbq{display:inline-block;margin-top:4px;font-size:12px;font-weight:700;color:var(--main)}
 
 .kpis{display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;margin:18px -16px 0;padding:0 16px 4px}
 .kpis::-webkit-scrollbar{display:none}
@@ -2077,7 +2084,7 @@ function nettoyerHtml(h){
           <div class="avatar" aria-hidden="true">${esc((D.boutique || 'AB').slice(0,2).toUpperCase())}</div>
           <button class="store" id="bqBtn" aria-label="Changer de boutique"><img class="brandlogo" src="icon-192.png" alt="" aria-hidden="true"><span class="stn">${esc(D.boutique || 'Ma boutique')}</span><span class="stv">▾</span></button>
           <button class="iconbtn refbtn" id="refBtn" aria-label="Actualiser" title="Actualiser (F5)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button>
-          <button class="iconbtn ${sound ? '' : 'off'}" id="snd" aria-label="${sound ? 'Couper le son' : 'Activer le son'}">${sound ? '🔔' : '🔕'}</button>
+          <button class="iconbtn nfbtn" id="nfBtn" aria-label="Notifications${D.notifs ? ' : ' + D.notifs + ' non lue' + (D.notifs > 1 ? 's' : '') : ''}">🔔${D.notifs ? `<span class="nfbadge">${D.notifs > 99 ? '99+' : D.notifs}</span>` : ''}</button>
         </div>
 
         ${pushBanner()}
@@ -2125,7 +2132,7 @@ function nettoyerHtml(h){
     bindOrders();
     document.getElementById('bqBtn').onclick = () => mesBoutiques();
     document.getElementById('refBtn').onclick = actualiser;
-    document.getElementById('snd').onclick = () => { sound = !sound; S.set('adm_sound', sound ? '1' : '0'); if (sound) chime(); home(); };
+    document.getElementById('nfBtn').onclick = () => ouvrirNotifs();
   }
 
   function drawChart(){
@@ -2839,6 +2846,49 @@ function nettoyerHtml(h){
     PR.produits.push(c); memoPR();
     enfiler({action: 'sauver', produit: c, ancienId: ''});
     editer(c, 'Copie créée en brouillon ✓ Modifie-la puis mets-la en ligne.');
+  }
+
+  /* ---------- 🔔 Cloche : toutes les notifications gardées (sauf commandes et relances) ---------- */
+  const nfDate = ts => { const d = new Date(ts), n = Date.now(), m = Math.round((n - ts) / 6e4);
+    if (m < 1) return 'à l’instant'; if (m < 60) return 'il y a ' + m + ' min';
+    const h = d.toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'}), auj = new Date(); auj.setHours(0, 0, 0, 0);
+    if (ts >= auj.getTime()) return 'aujourd’hui ' + h; if (ts >= auj.getTime() - 864e5) return 'hier ' + h;
+    return d.toLocaleDateString('fr-FR', {day: 'numeric', month: 'short', year: d.getFullYear() === auj.getFullYear() ? undefined : 'numeric'}) + ' · ' + h; };
+  function majCloche(n){ if (D) D.notifs = n; const b = document.getElementById('nfBtn'); if (!b) return;
+    b.innerHTML = '🔔' + (n ? `<span class="nfbadge">${n > 99 ? '99+' : n}</span>` : ''); }
+  async function ouvrirNotifs(){
+    const o = feuille(`<div class="nfhead"><h2>🔔 Notifications</h2><button class="iconbtn2" id="nfMenu" aria-label="Options">⋮</button></div><div id="nfL"><div class="iaload"><span class="spin"></span> Chargement…</div></div><button class="btn ghost" data-x style="margin-top:14px">Fermer</button>`);
+    o.querySelector('[data-x]').onclick = () => o.remove();
+    let L = [];
+    const nomsB = c => { const b = ((typeof BQS !== 'undefined' && BQS && BQS.boutiques) || []).find(x => x.code === c); return b ? b.nom : c; };
+    const dess = () => {
+      const z = o.querySelector('#nfL'); if (!z) return;
+      z.innerHTML = L.length ? L.map((n, i) => `<button class="nfit ${n.lu ? 'nflu' : 'nfnl'}" data-i="${i}"><span class="nfdot"></span><span style="min-width:0;flex:1"><small>${esc(nfDate(n.ts))}</small><b>${esc(n.titre)}</b>${n.texte ? `<p>${esc(n.texte)}</p>` : ''}${n.boutique ? `<span class="nfbq">🏪 ${esc(nomsB(n.boutique))}</span>` : ''}</span></button>`).join('')
+        : '<div class="empty">Aucune notification pour le moment.</div>';
+      z.querySelectorAll('[data-i]').forEach(b => b.onclick = () => ouvrir(L[+b.dataset.i]));
+    };
+    const charger = async action => {
+      try { const j = await call(Object.assign({type: 'notifs'}, action || {})); L = j.notifs || []; majCloche(j.nonLues || 0); dess(); }
+      catch(e){ const z = o.querySelector('#nfL'); if (z) z.innerHTML = `<div class="iaerr">${esc(e.message)}</div>`; }
+    };
+    const ouvrir = async n => {
+      if (!n.lu){ n.lu = true; majCloche(L.filter(x => !x.lu).length); dess(); call({type: 'notifs', action: 'lu', id: n.id}).catch(() => {}); }
+      if (n.lien){
+        let u; try { u = new URL(n.lien, location.href); } catch(e){}
+        // Lien vers l'application : on y va directement (même onglet) ; sinon on l'ouvre à côté
+        if (u && u.origin === location.origin && u.pathname === location.pathname){ o.remove(); setTimeout(() => { location.href = u.href; }, 250); return; }
+        if (u){ window.open(u.href, '_blank', 'noopener'); return; }
+      }
+      // Pas de lien : on affiche le message en entier
+      const d = feuille(`<h2>${esc(n.titre)}</h2><p class="sub">${esc(nfDate(n.ts))}${n.boutique ? ' · 🏪 ' + esc(nomsB(n.boutique)) : ''}</p><div class="iaprev iabilan" style="white-space:pre-line">${esc(n.texte || '')}</div><button class="btn ghost" data-x style="margin-top:14px">Fermer</button>`);
+      d.querySelector('[data-x]').onclick = () => d.remove();
+    };
+    o.querySelector('#nfMenu').onclick = async () => {
+      const c = await menuListe('', 'Notifications', [['tout', '✓ Tout marquer comme lu'], ['son', sound ? '🔕 Couper le son des commandes' : '🔔 Activer le son des commandes']]);
+      if (c === 'tout'){ L.forEach(n => n.lu = true); dess(); majCloche(0); charger({action: 'toutLu'}); }
+      if (c === 'son'){ sound = !sound; S.set('adm_sound', sound ? '1' : '0'); if (sound) chime(); toast(sound ? '🔔 Son des commandes activé' : '🔕 Son des commandes coupé'); }
+    };
+    charger();
   }
 
   /* ---------- Voix off : étude du produit puis 3 scripts (IA gratuite Gemini du compte) ---------- */
