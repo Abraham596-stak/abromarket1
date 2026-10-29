@@ -2899,24 +2899,30 @@ function nettoyerHtml(h){
     try {
       attente('L’IA étudie le produit puis écrit 3 scripts… (30 à 60 secondes)');
       const lent = setTimeout(() => { if (o.isConnected) attente('Encore quelques secondes, l’IA termine les scripts…'); }, 35000);
-      const consigne = 'Tu es un copywriter publicitaire de très haut niveau, spécialiste des voix off vidéo (Facebook, TikTok) qui font vendre en paiement à la livraison à un public d’Afrique francophone. ' +
-        'Tu connais la psychologie d’achat : on achète une émotion (soulagement, fierté, indépendance, ne plus avoir honte, être de nouveau capable) puis on la justifie. ' +
-        'Travaille en 3 temps, dans ta tête, avant de répondre. ' +
-        'TEMPS 1, ÉTUDE (120 mots maximum, tirets) : la cible exacte ; ses douleurs avec SES mots et des scènes concrètes de sa journée ; ce qu’elle ressent (gêne, frustration, peur de dépendre des autres) ; ce qu’elle désire vraiment ; ses 3 freins à l’achat et comment les lever SANS parler de prix ; 5 angles d’attaque. ' +
-        'TEMPS 2, ÉCRITURE : 3 scripts de voix off vraiment différents (angle, accroche et émotion différents), en français parlé naturel, avec « vous », phrases courtes, rythme qui donne envie d’écouter jusqu’au bout. ' +
+      const consigne = 'RÔLE : tu es le meilleur copywriter de voix off publicitaires d’Afrique francophone. Tes vidéos Facebook et TikTok font commander des milliers de clients en paiement à la livraison. ' +
+        'Tu maîtrises la psychologie d’achat (Eugene Schwartz, Gary Halbert, réponse directe) : les gens achètent une ÉMOTION puis la justifient. Ton public : des gens simples, occupés, qui scrollent vite, méfiants envers la publicité, sensibles à la famille, à la foi, à la dignité et au regard des autres. ' +
+        'MÉTHODE, en 3 temps, avant de répondre. ' +
+        'TEMPS 1, ÉTUDE (130 mots maximum, tirets) : la cible exacte (qui, âge, situation) ; sa douleur principale dite avec SES mots ; 3 scènes concrètes de sa journée où elle souffre du problème ; ce qu’elle ressent au fond (honte, gêne, peur de dépendre des autres, frustration, peur de vieillir…) ; ce qu’elle désire vraiment (le résultat émotionnel, pas le produit) ; ses 3 freins à l’achat et comment les lever SANS parler d’argent ; 5 angles d’attaque. ' +
+        'TEMPS 2, ÉCRITURE de 3 scripts IRRÉSISTIBLES et vraiment différents (angle, émotion et accroche différents). ' +
         (type === 'mix' ? 'Chaque script utilise un style différent parmi : problème → solution, question choc, histoire vécue, avant / après, conseil d’un proche, curiosité. Indique le style dans "titre". '
           : 'Style imposé pour les 3 : ' + T[1].replace(/^\S+\s/, '') + ' : ' + T[2] + '. ') +
-        'Structure de chaque script : (a) ACCROCHE de 3 secondes maximum qui arrête le pouce : une scène précise, une douleur nommée ou une question où la personne se reconnaît tout de suite ; ' +
-        '(b) AGITATION : fais ressentir le problème avec un détail concret du quotidien ; (c) RÉVÉLATION : le produit arrive comme la solution simple et évidente ; ' +
-        '(d) 2 ou 3 BÉNÉFICES concrets, qu’on voit ou qu’on sent (pas des caractéristiques techniques) ; (e) PROJECTION : la vie juste après, ce que la personne peut enfin refaire ; (f) APPEL À L’ACTION court et pressant du type « Commandez maintenant ». ' +
-        'TEMPS 3, RELECTURE : vérifie chaque script et corrige-le s’il ne respecte pas une règle : ' +
-        '1) AUCUN prix, montant, chiffre d’argent, ni les mots prix, tarif, coûte, francs, pas cher, promo : la personne doit vouloir le produit sans penser à l’argent. ' +
+        'Chaque script suit ce chemin : ' +
+        '(a) ACCROCHE (2 à 3 secondes) qui arrête le pouce : une scène ultra précise où la personne se reconnaît, ou une question qui touche sa douleur, ou une phrase surprenante. Exemples de FORMES (ne pas copier) : « Vous aussi, vous… ? », « Si vous… ce message est pour vous. », « Le jour où… », « Personne ne vous dit que… ». ' +
+        '(b) AGITATION : un ou deux détails concrets et visuels du quotidien qui rendent le problème insupportable, et l’émotion qui va avec. ' +
+        '(c) BASCULE : « jusqu’au jour où… » / « il existe une solution simple… » : le produit arrive comme l’évidence. ' +
+        '(d) BÉNÉFICES : 2 ou 3 résultats concrets qu’on voit, qu’on sent ou qu’on vit (transforme chaque caractéristique de la page en résultat pour la personne). ' +
+        '(e) PROJECTION : fais-la se voir juste après : ce qu’elle peut enfin refaire, ce que les autres remarquent, la fierté retrouvée. ' +
+        '(f) URGENCE et APPEL À L’ACTION : une raison d’agir maintenant (ne plus perdre une journée de plus avec ce problème) puis un ordre court : « Commandez maintenant. » ' +
+        'STYLE : français parlé, chaleureux et direct, « vous », phrases de 4 à 12 mots, une idée par phrase, mots simples qu’on comprend à l’oreille, répétition du bénéfice principal, boucles de curiosité, aucune phrase molle. ' +
+        'TEMPS 3, RELECTURE impitoyable : réécris tout script qui ne respecte pas UNE de ces règles : ' +
+        '1) AUCUN prix, montant, chiffre d’argent, ni les mots prix, tarif, coûte, francs, pas cher, promo, réduction : la personne doit vouloir le produit sans penser à l’argent. ' +
         '2) AUCUN pays, AUCUNE ville, aucune nationalité. ' +
-        '3) Seulement des faits présents dans la page produit ; pas de promesse de guérison ni de résultat garanti ; pas de faux témoignage nommé. ' +
-        '4) Pas de mots creux (révolutionnaire, incroyable, miracle, unique au monde). ' +
-        '5) Chaque script fait environ ' + Math.max(15, cible - 14) + ' mots (lu en ' + sec + ' secondes avec la phrase de fin). ' +
-        '6) N’écris PAS la fin (livraison, paiement, réduction) : elle est ajoutée automatiquement après ton appel à l’action. ' +
-        '7) Pas d’indications entre crochets ni de didascalies, seulement le texte à lire' + (type === 'dialogue' ? ' (avec « Voix 1 : » et « Voix 2 : »)' : '') + '. ' +
+        '3) Seulement des faits présents dans la page produit ; pas de promesse de guérison ni de résultat garanti ; pas de faux témoignage avec un nom. ' +
+        '4) Aucun mot creux (révolutionnaire, incroyable, miracle, magique, unique au monde). ' +
+        '5) L’accroche donne-t-elle envie d’écouter la suite ? Sinon, réécris-la. ' +
+        '6) Chaque script fait environ ' + Math.max(15, cible - 14) + ' mots (lu en ' + sec + ' secondes avec la phrase de fin). ' +
+        '7) N’écris PAS la fin (livraison, paiement, réduction) : elle est ajoutée automatiquement juste après ton « Commandez maintenant ». ' +
+        '8) Pas de didascalies ni de crochets, seulement le texte à lire' + (type === 'dialogue' ? ' (avec « Voix 1 : » et « Voix 2 : »)' : '') + '. ' +
         'Réponds UNIQUEMENT en JSON valide, sans retour à la ligne dans les textes : {"etude":"…","scripts":[{"titre":"angle en 3 à 6 mots","texte":"le script"}]}';
       let r;
       const sature = e => /demand|overload|unavailable|ne répond pas|trop de temps/i.test(String(e && e.message || e));
@@ -2929,7 +2935,7 @@ function nettoyerHtml(h){
           await new Promise(ok => setTimeout(ok, 20000)); if (!o.isConnected) return;
           attente('Nouvel essai…');
           try { r = await callIA({type: 'ia', action: 'ia', mode: 'texte', rapide: true, contexte, consigne}, 130000); }
-          catch(e2){ throw sature(e2) ? new Error('Gemini (l’IA gratuite de Google) est saturé en ce moment : beaucoup de monde l’utilise. Réessaie dans quelques minutes.') : e2; }
+          catch(e2){ throw sature(e2) ? new Error(/Groq/.test(e2.message) ? 'Groq et Gemini sont tous les deux occupés en ce moment. Réessaie dans quelques minutes.' : 'Gemini est saturé en ce moment et Groq n’est pas encore branché. Ajoute ta clé Groq gratuite : Réglages → 🤖 Assistant IA → « IA de secours : Groq ».') : e2; }
         }
       } finally { clearTimeout(lent); }
       if (r.sansCle){ Z.innerHTML = '<div class="iaerr">Branche d’abord ton assistant IA gratuit : Réglages → 🤖 Assistant IA.</div>'; return; }
