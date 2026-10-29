@@ -972,6 +972,7 @@ Heure de la livraison : ${r.livraison}`;
     g.t = Date.now(); GEO = g; try { store.set('geo', JSON.stringify(g)); } catch(e){}
     if (!lieuEnvoye()) beacon('ping');
   }
+  let VUES = 0;
   function beacon(type){
     try {
       if (!sid){ sid = sessionStorage.getItem('sid') || (Date.now().toString(36) + Math.random().toString(36).slice(2, 8)); sessionStorage.setItem('sid', sid); }
@@ -987,6 +988,8 @@ Heure de la livraison : ${r.livraison}`;
       if (type !== 'quitte' && !lieuEnvoye()){ o.lieu = 1; try { sessionStorage.setItem('lieu', '1'); } catch(e){} } }
     const body = JSON.stringify(o);
     try {
+      // Page produit (hors départ) : on lit la réponse pour connaître les vrais visiteurs de ce produit
+      if (pid && type !== 'quitte' && window.fetch){ fetch(API, {method:'POST', body: avecB(body), keepalive:true}).then(r => r.json()).then(j => { if (j && typeof j.vues === 'number') VUES = j.vues; }).catch(()=>{}); return; }
       if (navigator.sendBeacon) navigator.sendBeacon(API, new Blob([avecB(body)], {type:'text/plain'}));
       else fetch(API, {method:'POST', body: avecB(body), keepalive:true}).catch(()=>{});
     } catch(e){}
@@ -1067,17 +1070,26 @@ Heure de la livraison : ${r.livraison}`;
     if (document.querySelector('.preuve')) return;   // les ventes peuvent arriver après (données en direct) : on vérifie à chaque fois
     const el = document.createElement('div'); el.className = 'preuve'; el.setAttribute('role', 'status'); document.body.appendChild(el);
     const ilya = t => { const m = Math.max(1, Math.round((Date.now() - t) / 6e4)); return m < 60 ? 'il y a ' + m + ' min' : m < 1440 ? 'il y a ' + Math.round(m / 60) + ' h' : 'il y a ' + Math.round(m / 1440) + ' j'; };
-    let i = 0;
+    let i = 0, j = 0;
+    // Messages vrais quand ce produit n'a pas encore de commande : vrais visiteurs en ce moment, livraison
+    const infos = () => {
+      if (!pid || /^non$/i.test(String(R('Notifications de ventes sur le site (OUI/NON)')).trim())) return [];
+      const P = (D.produits || []).find(x => x.id === pid), ph = P && P.photos[0] ? `<img src="${esc(imgM(P.photos[0]))}" alt="">` : '', m = [];
+      if (VUES >= 1) m.push(`${ph}<div><b>👀 ${VUES === 1 ? '1 autre personne regarde' : VUES + ' autres personnes regardent'}</b> ce produit en ce moment</div>`);
+      m.push(`${ph}<div><b>🚚 Livraison gratuite partout</b><small>Paiement à la livraison</small></div>`);
+      return m;
+    };
     const montrer = () => {
-      const l = L(); if (!l.length) return;
+      const l = L();
       const ae = document.activeElement;
       if (ae && /INPUT|TEXTAREA|SELECT/.test(ae.tagName)) return;   // jamais pendant que le client remplit le formulaire
+      if (!l.length){ const m = infos(); if (!m.length) return; el.innerHTML = m[j++ % m.length]; el.classList.add('on'); setTimeout(() => el.classList.remove('on'), 5000); return; }
       const p = l[i++ % l.length], prod = D.produits.find(x => x.nom === p.produit);
       el.innerHTML = `${prod && prod.photos[0] ? `<img src="${esc(imgM(prod.photos[0]))}" alt="">` : ''}<div><b>${esc(p.nom)}</b> ${p.livree ? 'a reçu sa commande' : 'a commandé'} <b>${esc((t => t.length > 34 ? t.slice(0, 32).trim() + '…' : t)(prod ? prod.nom : p.produit))}</b><small>${p.livree ? '<span class="ok">✔ Livré</span> · ' : ''}${ilya(p.t)}</small></div>`;
       el.classList.add('on'); setTimeout(() => el.classList.remove('on'), 5000);
       stkMoins();
     };
-    setTimeout(() => { montrer(); setInterval(montrer, 8000); }, 5000);
+    setTimeout(() => { montrer(); setInterval(montrer, pid && !L().length ? 15000 : 8000); }, 5000);
   }
   load().then(() => { if (D && !APERCU){ startTracking(); preuvesVentes(); } });
 })();
