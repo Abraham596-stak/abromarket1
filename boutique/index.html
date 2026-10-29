@@ -1060,7 +1060,10 @@ Heure de la livraison : ${r.livraison}`;
   }
   // Toutes les 8 secondes : une vraie commande récente (« Awa K. vient de commander… »)
   function preuvesVentes(){
-    const L = () => (D && D.preuves || []).filter(p => Date.now() - p.t < 21 * 864e5);
+    // Sur une page produit : seulement les vraies commandes de CE produit (sinon rien, jamais un autre produit)
+    const norm = t => String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\b(tg|bj|ci)\b/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+    const ici = () => { const P = pid && D && (D.produits || []).find(x => x.id === pid); return P ? norm(P.nom) : ''; };
+    const L = () => { const n = ici(); return (D && D.preuves || []).filter(p => Date.now() - p.t < 21 * 864e5 && (!pid || (n && norm(p.produit) === n))); };
     if (document.querySelector('.preuve')) return;   // les ventes peuvent arriver après (données en direct) : on vérifie à chaque fois
     const el = document.createElement('div'); el.className = 'preuve'; el.setAttribute('role', 'status'); document.body.appendChild(el);
     const ilya = t => { const m = Math.max(1, Math.round((Date.now() - t) / 6e4)); return m < 60 ? 'il y a ' + m + ' min' : m < 1440 ? 'il y a ' + Math.round(m / 60) + ' h' : 'il y a ' + Math.round(m / 1440) + ' j'; };
