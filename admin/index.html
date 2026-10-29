@@ -1100,7 +1100,7 @@ function nettoyerHtml(h){
     const o = feuille(`<h2>🤖 Assistant IA</h2><div id="iaB"><div class="empty">Chargement…</div></div>`);
     let R; try { R = await bqAppel({action: 'reglages', code: ''}); } catch(e){ o.remove(); return alert('Impossible de charger : ' + e.message); }
     if (!o.isConnected) return;
-    const ok = !!(R.valeurs || {})[K];
+    const ok = !!(R.valeurs || {})[K], KG = 'IA – clé Groq (gratuite sur console.groq.com)', okG = !!(R.valeurs || {})[KG];
     if (!(R.cles || []).includes(K)){ o.querySelector('#iaB').innerHTML = '<div class="iaerr">Colle d’abord le dernier <b>Code.gs</b> dans Apps Script (Gérer les déploiements → Modifier → Nouvelle version), puis reviens ici.</div><button class="btn ghost" data-x style="margin-top:12px">Fermer</button>'; o.querySelector('[data-x]').onclick = () => o.remove(); return; }
     o.querySelector('#iaB').innerHTML = `
       <p class="sub">${ok ? '✅ <b>Ton assistant est branché.</b> Tu peux changer la clé ci-dessous.' : 'C’est gratuit et ça prend 1 minute :'}</p>
@@ -1109,7 +1109,13 @@ function nettoyerHtml(h){
       <button class="btn blue" id="iaOk" style="margin-top:14px">Enregistrer</button>
       ${ok ? '<button class="btn ghost" id="iaTest" style="margin-top:8px">🧪 Tester l’assistant</button><div id="iaRes"></div><button class="btn ghost" id="iaDel" style="margin-top:8px">Retirer la clé</button>' : ''}
       <button class="btn ghost" data-x style="margin-top:8px">Fermer</button>
-      <p class="sub" style="margin-top:12px">La clé reste dans ton Google Sheets. Chaque abonné branche la sienne : ta clé ne sert jamais pour eux.</p>`;
+      <div style="border-top:1px solid var(--line);margin:18px 0 6px;padding-top:14px"><b>⚡ IA de secours : Groq</b> ${okG ? '<span style="color:#067647;font-weight:700">✅ branchée</span>' : ''}
+        <p class="sub" style="margin:6px 0">Gratuite et très rapide. Elle écrit tes voix off en premier et prend le relais quand Gemini est saturé.</p>
+        <ol class="iasteps"><li>Ouvre <a href="https://console.groq.com/keys" target="_blank" rel="noopener"><b>console.groq.com/keys</b></a> et connecte-toi (avec Google, c’est le plus simple).</li><li>Appuie sur <b>« Create API Key »</b>, donne un nom (ex : boutique), puis <b>copie la clé</b> (elle commence par <b>gsk_</b>).</li><li>Colle-la ci-dessous et enregistre.</li></ol>
+        <label class="lbl" for="iaG">Clé Groq</label><input class="field" id="iaG" type="password" autocomplete="off" placeholder="${okG ? 'Déjà enregistrée (colle une autre clé pour la changer)' : 'Colle ta clé gsk_… ici'}">
+        <button class="btn blue" id="iaGOk" style="margin-top:12px">Enregistrer la clé Groq</button>
+        ${okG ? '<button class="btn ghost" id="iaGTest" style="margin-top:8px">🧪 Tester Groq</button><div id="iaGRes"></div><button class="btn ghost" id="iaGDel" style="margin-top:8px">Retirer la clé Groq</button>' : ''}</div>
+      <p class="sub" style="margin-top:12px">Les clés restent dans ton Google Sheets. Chaque abonné branche les siennes : tes clés ne servent jamais pour eux.</p>`;
     o.querySelector('[data-x]').onclick = () => o.remove();
     const sauver = async (v, bt) => { bt.disabled = true; try { await bqAppel({action: 'reglagesSauver', code: '', valeurs: {[K]: v}}); o.remove(); if (v) brancherIA(true); else toast('Clé retirée'); } catch(e){ bt.disabled = false; alert('Impossible d’enregistrer : ' + e.message); } };
     // Test réel : une petite question à Gemini avec la clé enregistrée
@@ -1127,6 +1133,16 @@ function nettoyerHtml(h){
     if (testerTout && ok) tester();
     o.querySelector('#iaOk').onclick = e => { const v = o.querySelector('#iaK').value.trim(); if (/\s/.test(v) || v.length < 30 || !/^(AIza|AQ\.)/.test(v)) return alert('Cette clé ne ressemble pas à une clé Gemini (elle commence par « AIza » ou « AQ. »). Recopie-la avec le bouton « Copier la clé » sur aistudio.google.com.'); sauver(v, e.currentTarget); };
     const del = o.querySelector('#iaDel'); if (del) del.onclick = e => sauver('', e.currentTarget);
+    // Clé Groq
+    const sauverG = async (v, bt) => { bt.disabled = true; try { await bqAppel({action: 'reglagesSauver', code: '', valeurs: {[KG]: v}}); o.remove(); brancherIA(false); toast(v ? '✅ Clé Groq enregistrée' : 'Clé Groq retirée'); } catch(e){ bt.disabled = false; alert('Impossible d’enregistrer : ' + e.message); } };
+    o.querySelector('#iaGOk').onclick = e => { const v = o.querySelector('#iaG').value.trim(); if (/\s/.test(v) || v.length < 30 || !/^gsk_/.test(v)) return alert('Cette clé ne ressemble pas à une clé Groq (elle commence par « gsk_ »). Recopie-la sur console.groq.com/keys.'); sauverG(v, e.currentTarget); };
+    const gd = o.querySelector('#iaGDel'); if (gd) gd.onclick = e => sauverG('', e.currentTarget);
+    const gt = o.querySelector('#iaGTest'); if (gt) gt.onclick = async () => {
+      const zone = o.querySelector('#iaGRes'); gt.disabled = true; zone.innerHTML = '<div class="iaload"><span class="spin"></span> Test de Groq…</div>';
+      try { const j = await call({type: 'ia', action: 'ia', forcer: 'groq', consigne: 'Réponds seulement par cette phrase : Groq est prêt à écrire tes voix off.', contexte: ''});
+        zone.innerHTML = `<div class="okmsg" style="margin-top:12px">✅ <b>Groq répond :</b><br>« ${esc(String(j.texte || '').slice(0, 200))} »</div>`; }
+      catch(e){ zone.innerHTML = `<div class="iaerr">❌ <b>Groq ne marche pas encore :</b> ${esc(e.message)}</div>`; }
+      gt.disabled = false; };
   }
   // Feuille par-dessus (sans fermer la liste des boutiques)
   function feuille(html){ const o = document.createElement('div'); o.className = 'overlay'; o.innerHTML = `<div class="detail bqsheet" role="dialog" aria-modal="true"><div class="grab"></div>${html}</div>`; o.onclick = e => { if (e.target === o) o.remove(); }; document.body.appendChild(o); return o; }
@@ -2883,21 +2899,25 @@ function nettoyerHtml(h){
     try {
       attente('L’IA étudie le produit puis écrit 3 scripts… (30 à 60 secondes)');
       const lent = setTimeout(() => { if (o.isConnected) attente('Encore quelques secondes, l’IA termine les scripts…'); }, 35000);
-      const consigne = 'Tu es le meilleur rédacteur de voix off publicitaires (Facebook, TikTok) pour une boutique en paiement à la livraison. ' +
-        'ÉTAPE 1, ÉTUDE (courte, 120 mots maximum, tirets) : la cible ; ses douleurs avec ses mots ; ses désirs ; ses freins et comment les lever sans parler de prix ; 3 angles qui font acheter tout de suite. ' +
-        'ÉTAPE 2 : à partir de cette étude, écris 3 scripts de voix off DIFFÉRENTS (angle et accroche différents), en français parlé, simple et naturel, avec « vous ». ' +
+      const consigne = 'Tu es un copywriter publicitaire de très haut niveau, spécialiste des voix off vidéo (Facebook, TikTok) qui font vendre en paiement à la livraison à un public d’Afrique francophone. ' +
+        'Tu connais la psychologie d’achat : on achète une émotion (soulagement, fierté, indépendance, ne plus avoir honte, être de nouveau capable) puis on la justifie. ' +
+        'Travaille en 3 temps, dans ta tête, avant de répondre. ' +
+        'TEMPS 1, ÉTUDE (120 mots maximum, tirets) : la cible exacte ; ses douleurs avec SES mots et des scènes concrètes de sa journée ; ce qu’elle ressent (gêne, frustration, peur de dépendre des autres) ; ce qu’elle désire vraiment ; ses 3 freins à l’achat et comment les lever SANS parler de prix ; 5 angles d’attaque. ' +
+        'TEMPS 2, ÉCRITURE : 3 scripts de voix off vraiment différents (angle, accroche et émotion différents), en français parlé naturel, avec « vous », phrases courtes, rythme qui donne envie d’écouter jusqu’au bout. ' +
         (type === 'mix' ? 'Chaque script utilise un style différent parmi : problème → solution, question choc, histoire vécue, avant / après, conseil d’un proche, curiosité. Indique le style dans "titre". '
           : 'Style imposé pour les 3 : ' + T[1].replace(/^\S+\s/, '') + ' : ' + T[2] + '. ') +
-        'Règles absolues : ' +
-        '1) Les 2 premières secondes doivent accrocher (douleur ou désir de la cible). ' +
-        '2) Fais ressentir le problème puis le soulagement ; montre des bénéfices concrets, pas des caractéristiques. ' +
-        '3) Donne envie d’acheter MAINTENANT sans jamais parler du prix : AUCUN prix, montant, chiffre d’argent, ni les mots prix, tarif, coûte, francs, pas cher. ' +
-        '4) AUCUN pays, AUCUNE ville, aucune nationalité. ' +
-        '5) Pas de promesse de guérison ni de résultat garanti, pas de fausse information : seulement ce qui est dans la page. ' +
-        '6) Chaque script fait environ ' + Math.max(15, cible - 14) + ' mots (lu en ' + sec + ' secondes avec la phrase de fin). ' +
-        '7) N’écris PAS la fin (livraison, paiement, réduction) : elle est ajoutée automatiquement. Termine par un appel à l’action court du type « Commandez maintenant. » ' +
-        '8) Pas d’indications entre crochets, seulement le texte à lire' + (type === 'dialogue' ? ' (avec « Voix 1 : » et « Voix 2 : »)' : '') + '. ' +
-        'Réponds UNIQUEMENT en JSON, sans retour à la ligne dans les textes : {"etude":"…","scripts":[{"titre":"angle en 3 à 6 mots","texte":"le script"}]}';
+        'Structure de chaque script : (a) ACCROCHE de 3 secondes maximum qui arrête le pouce : une scène précise, une douleur nommée ou une question où la personne se reconnaît tout de suite ; ' +
+        '(b) AGITATION : fais ressentir le problème avec un détail concret du quotidien ; (c) RÉVÉLATION : le produit arrive comme la solution simple et évidente ; ' +
+        '(d) 2 ou 3 BÉNÉFICES concrets, qu’on voit ou qu’on sent (pas des caractéristiques techniques) ; (e) PROJECTION : la vie juste après, ce que la personne peut enfin refaire ; (f) APPEL À L’ACTION court et pressant du type « Commandez maintenant ». ' +
+        'TEMPS 3, RELECTURE : vérifie chaque script et corrige-le s’il ne respecte pas une règle : ' +
+        '1) AUCUN prix, montant, chiffre d’argent, ni les mots prix, tarif, coûte, francs, pas cher, promo : la personne doit vouloir le produit sans penser à l’argent. ' +
+        '2) AUCUN pays, AUCUNE ville, aucune nationalité. ' +
+        '3) Seulement des faits présents dans la page produit ; pas de promesse de guérison ni de résultat garanti ; pas de faux témoignage nommé. ' +
+        '4) Pas de mots creux (révolutionnaire, incroyable, miracle, unique au monde). ' +
+        '5) Chaque script fait environ ' + Math.max(15, cible - 14) + ' mots (lu en ' + sec + ' secondes avec la phrase de fin). ' +
+        '6) N’écris PAS la fin (livraison, paiement, réduction) : elle est ajoutée automatiquement après ton appel à l’action. ' +
+        '7) Pas d’indications entre crochets ni de didascalies, seulement le texte à lire' + (type === 'dialogue' ? ' (avec « Voix 1 : » et « Voix 2 : »)' : '') + '. ' +
+        'Réponds UNIQUEMENT en JSON valide, sans retour à la ligne dans les textes : {"etude":"…","scripts":[{"titre":"angle en 3 à 6 mots","texte":"le script"}]}';
       let r;
       const sature = e => /demand|overload|unavailable|ne répond pas|trop de temps/i.test(String(e && e.message || e));
       try {
