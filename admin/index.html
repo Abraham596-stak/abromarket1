@@ -1756,6 +1756,50 @@ function nettoyerHtml(h){
   }
   // Appels à l'IA : jamais d'attente sans fin
   function callIA(body, maxMs){ return Promise.race([call(body), new Promise((_, ko) => setTimeout(() => ko(new Error('L’IA met trop de temps à répondre. Réessaie dans une minute.')), maxMs || 100000))]); }
+  function nouvelleBoutique(ov, retour){
+    const pays = (BQS && BQS.paysListe) || [];
+    ov.innerHTML = `<div class="detail bqsheet" role="dialog" aria-modal="true" aria-label="Nouvelle boutique"><div class="grab"></div>
+      <h2>Nouvelle boutique</h2><p class="sub">Elle fonctionne exactement comme ta boutique principale : site, application, commandes, relances, TikTok, WhatsApp.</p>
+      ${BQS && BQS.abonne ? `<div class="help" style="margin:4px 0 10px"><b>1.</b> <a href="https://sheets.new" target="_blank" rel="noopener">Crée un Google Sheets vide</a> dans ton Google.<br><b>2.</b> Appuie sur « Partager » et ajoute <b>${esc(BQS.partage)}</b> en « Éditeur ».<br><b>3.</b> Colle son lien ici : tes données restent dans ton Google.</div>
+      <label class="lbl" for="nbFi">Lien du Google Sheets de cette boutique</label><input class="field" id="nbFi" placeholder="https://docs.google.com/spreadsheets/d/…">` : ''}
+      <label class="lbl" for="nbNom">Nom de la boutique</label><input class="field" id="nbNom" placeholder="Ex : ABROMARKET Togo">
+      <label class="lbl">Pays de vente (l'agence de ce pays recevra les commandes)</label>
+      <button type="button" class="cadran" id="nbPays" data-codes="">Choisir le ou les pays ▾</button>
+      <label class="lbl" for="nbAg">Email Google de l'agence <span style="font-weight:500;color:var(--soft)">— facultatif</span></label><input class="field" id="nbAg" type="email" placeholder="Laisse vide si tu n'as pas encore d'agence">
+      <p class="sub" style="margin:4px 0 0">Tu pourras l'ajouter, la changer ou la retirer plus tard : Mes boutiques → 🚚 Agences.</p>
+      <label class="lbl" for="nbWa">WhatsApp qui reçoit les commandes (avec l'indicatif)</label><input class="field" id="nbWa" inputmode="tel" placeholder="Ex : 22890000000 (vide = le même que ta boutique principale)">
+      <label class="lbl" for="nbMail">Email qui reçoit les commandes</label><input class="field" id="nbMail" type="email" placeholder="Vide = le même que ta boutique principale">
+      <label class="lbl" for="nbPre">Préfixe des numéros de commande</label><input class="field" id="nbPre" maxlength="6" placeholder="Ex : TG (commandes TG1001, TG1002…)">
+      <label class="confirm2"><input type="checkbox" id="nbCop" checked> Copier les produits, prix et avis de ma boutique principale</label>
+      <button class="btn blue" id="nbOk" style="margin-top:14px">Créer la boutique</button>
+      <button class="btn ghost" id="nbAnn" style="margin-top:10px">Annuler</button></div>`;
+    ov.querySelector('#nbAnn').onclick = () => retour();
+    const cp = ov.querySelector('#nbPays');
+    cp.onclick = async () => { const c = await choisirPays(pays, cp.dataset.codes ? cp.dataset.codes.split(',') : []); if (!c) return; cp.dataset.codes = c.join(','); cp.textContent = c.length ? nomsPaysBq(c.join(', ')) + ' ▾' : 'Choisir le ou les pays ▾'; cp.classList.toggle('plein', !!c.length); };
+    ov.querySelector('#nbOk').onclick = async e => {
+      const b = e.currentTarget, nom = ov.querySelector('#nbNom').value.trim();
+      const codes = (cp.dataset.codes || '').split(',').filter(Boolean);
+      if (nom.length < 2){ alert('Donne un nom à la boutique.'); return; }
+      if (!codes.length){ alert('Choisis au moins un pays de vente.'); return; }
+      b.disabled = true; b.textContent = 'Création en cours… (environ 30 secondes)';
+      try {
+        const r = await fetch(API, {method: 'POST', body: JSON.stringify({type: 'boutiques', action: 'creer', key, v: VID, fichier: (ov.querySelector('#nbFi') || {}).value || '', nom, pays: codes.join(','), agence: ov.querySelector('#nbAg').value.trim(),
+          whatsapp: ov.querySelector('#nbWa').value.trim(), email: ov.querySelector('#nbMail').value.trim(), prefixe: ov.querySelector('#nbPre').value.trim(), copier: ov.querySelector('#nbCop').checked})});
+        const j = await r.json(); if (!j.ok) throw new Error(frErr(j.erreur) || 'Erreur');
+        BQS = null; try { localStorage.removeItem(K_BQS); } catch(x){}
+        ov.innerHTML = `<div class="detail bqsheet"><div class="grab"></div><h2>✅ Boutique créée</h2>
+          <p class="sub"><b>${esc(j.nom)}</b> est prête. Son site sera en ligne dans 10 minutes environ.</p>
+          <div class="linkbox">${esc(siteDe(j.code))}</div>
+          <div class="addrow"><button id="nbCp">🔗 Copier le lien du site</button><a href="${esc(j.sheetUrl)}" target="_blank" rel="noopener">📄 Ouvrir son Google Sheets</a></div>
+          <button class="btn blue" id="nbGo" style="margin-top:14px">Ouvrir cette boutique dans l'application</button>
+          <button class="btn ghost" id="nbF" style="margin-top:10px">Fermer</button></div>`;
+        ov.querySelector('#nbCp').onclick = async ev => { try { await navigator.clipboard.writeText(siteDe(j.code)); ev.target.textContent = '✓ Copié'; } catch(x){ prompt('Lien du site :', siteDe(j.code)); } };
+        ov.querySelector('#nbGo').onclick = () => ouvrirBoutique(j.code);
+        ov.querySelector('#nbF').onclick = () => ov.remove();
+      } catch(err){ b.disabled = false; b.textContent = 'Créer la boutique'; alert('Création impossible : ' + err.message); }
+    };
+  }
+
   async function call(body){
     // Lecture : si Google répond mal (page d'erreur, réseau coupé), on réessaie tout seul 2 fois
     let j, n = body && body.action ? 1 : 3;
