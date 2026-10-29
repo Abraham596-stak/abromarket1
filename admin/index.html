@@ -426,6 +426,12 @@ html.ordi .dvgrid{grid-template-columns:repeat(4,minmax(0,1fr))}
 .iaprev{margin-top:14px;border:1px solid var(--line);border-radius:12px;padding:12px 14px;max-height:340px;overflow:auto;font-size:14.5px;line-height:1.5;background:#fff}
 .iaprev p{margin:0 0 8px}.iaprev ul{padding-left:20px}
 .iabilan{max-height:none}
+.vosc{margin-top:12px;border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:#fff}
+.vosc h4{margin:0 0 4px;font-size:15px}.vosc .vom{color:var(--soft);font-size:12.5px;font-weight:700;margin-bottom:8px}
+.vosc .vot{white-space:pre-wrap;font-size:15.5px;line-height:1.55}.vosc .vofin{display:block;margin-top:8px;font-weight:700;color:var(--main)}
+.vosc .btn{margin-top:10px;padding:12px;font-size:15px}
+.voetude{margin-top:10px;font-size:14px;line-height:1.5;background:var(--surface);border-radius:12px;padding:10px 12px}
+.voetude summary{font-weight:700;cursor:pointer}
 .phedit{position:absolute;top:4px;right:4px;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.92);font-size:19px;font-weight:800;line-height:1;box-shadow:0 2px 6px rgba(0,0,0,.2)}
 .ph img{object-fit:contain!important;background:#fff}
 /* Retouche photo */
@@ -2781,6 +2787,7 @@ function nettoyerHtml(h){
       <div class="pmtete"><img src="${esc(vignette(p.photos[0]))}" alt=""><b>${esc(p.nom)}</b></div>
       <button data-o="edit">✏️ Modifier</button>
       <button data-o="dup">⧉ Dupliquer</button>
+      <button data-o="voix">🎙️ Générer des voix off</button>
       <button data-o="lien">🔗 Copier le lien</button>
       <a href="${esc(url)}" target="_blank" rel="noopener">👁 Voir sur le site</a>
       ${PR ? `<button data-o="statut">${p.enLigne ? '⏸ Passer en brouillon' : '● Mettre en ligne'}</button>` : ''}
@@ -2799,6 +2806,7 @@ function nettoyerHtml(h){
       fermerM();
       if (o === 'edit') editer(P);
       if (o === 'dup') dupliquer(id);
+      if (o === 'voix') voixOff(P);
       if (o === 'sel'){ prSel = new Set([id]); drawProducts(); }
       if (o === 'statut'){ P.enLigne = !P.enLigne; memoPR(); enfiler({action: 'sauver', produit: P, ancienId: P.id}); toast(P.enLigne ? '● En ligne' : 'Passé en brouillon'); drawProducts(); }
       if (o === 'suppr'){
@@ -2815,6 +2823,115 @@ function nettoyerHtml(h){
     PR.produits.push(c); memoPR();
     enfiler({action: 'sauver', produit: c, ancienId: ''});
     editer(c, 'Copie créée en brouillon ✓ Modifie-la puis mets-la en ligne.');
+  }
+
+  /* ---------- Voix off : étude du produit puis 3 scripts (IA gratuite Gemini du compte) ---------- */
+  const VO_TYPES = [
+    ['probleme', '😣 Problème → solution', 'commence par le problème que vit la personne, fais-le ressentir, puis présente le produit comme la solution simple'],
+    ['question', '❓ Question choc', 'commence par une question directe qui arrête le pouce (la personne se reconnaît tout de suite), puis déroule'],
+    ['histoire', '📖 Histoire vécue', 'raconte une petite scène de vie à la première personne (« je »), comme une mise en scène, sans nom ni âge précis, sans dire que c’est un vrai client'],
+    ['avantapres', '✨ Avant / après', 'montre la vie avant (difficile) puis la vie après le produit (simple, agréable)'],
+    ['comparaison', '⚖️ Comparaison', 'compare avec ce que les gens font aujourd’hui (solution compliquée, longue ou coûteuse) sans citer de montant, puis montre pourquoi ce produit est plus simple'],
+    ['conseil', '🤝 Conseil d’un proche', 'quelqu’un parle à un ami ou un parent, comme un conseil sincère'],
+    ['dialogue', '👥 Dialogue à 2 voix', 'un court dialogue entre deux personnes ; écris « Voix 1 : » et « Voix 2 : » au début de chaque réplique'],
+    ['secret', '🔍 Curiosité / secret', 'éveille la curiosité avec une découverte simple que peu de gens connaissent, puis révèle le produit'],
+    ['direct', '⚡ Direct et rapide', 'phrases très courtes et percutantes, rythme rapide, un bénéfice par phrase'],
+    ['mix', '🎲 3 types différents (l’IA choisit)', '']
+  ];
+  const VO_DUREES = [['15', '⏱ 15 secondes'], ['30', '⏱ 30 secondes'], ['45', '⏱ 45 secondes'], ['60', '⏱ 1 minute'], ['90', '⏱ 1 minute 30']];
+  // Fins de script : ajoutées par l'application (texte exact), la réduction n'est pas mise à chaque fois
+  const VO_FINS = ['Livraison gratuite partout, paiement à la livraison et une réduction de 40 pourcent aujourd’hui seulement.',
+    'Livraison gratuite partout et paiement à la livraison.',
+    'Livraison gratuite partout, paiement à la livraison et une réduction de 40 pourcent aujourd’hui seulement.'];
+  const VO_MOTS_SEC = 2.6; // vitesse d'une voix off en français
+  const voTexte = h => String(h || '').replace(/<br\s*\/?>/gi, '\n').replace(/<\/(p|div|h\d|li)>/gi, '\n').replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&#39;|&rsquo;/g, '’').replace(/&quot;/g, '"').replace(/https?:\/\/\S+/g, '')
+    .replace(/^##\s*/gm, '').replace(/\*\*/g, '').split('\n').map(l => l.replace(/\s+/g, ' ').trim()).filter(Boolean).join('\n');
+  const voMots = t => String(t || '').split(/\s+/).filter(Boolean).length;
+  // Garde-fou : jamais de prix ni de pays/ville dans un script
+  function voInterdits(t){
+    const pays = ((PR && PR.pays) || []).map(p => p.nom).concat(['Bénin', 'Benin', 'Togo', 'Côte d’Ivoire', "Côte d'Ivoire", 'Ivoirien', 'Sénégal', 'Cameroun', 'Burkina', 'Mali', 'Niger', 'Guinée', 'Gabon', 'Congo', 'Nigeria', 'Ghana', 'Afrique',
+      'Cotonou', 'Porto-Novo', 'Parakou', 'Abomey', 'Lomé', 'Kara', 'Abidjan', 'Bouaké', 'Yamoussoukro', 'Dakar', 'Douala', 'Yaoundé', 'Ouagadougou', 'Bamako', 'Niamey', 'Conakry', 'Libreville', 'Lagos', 'Accra']);
+    const bas = String(t).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+    const trouves = pays.filter(p => { const k = String(p).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[’']/g, '.'); return new RegExp('(^|[^a-z])' + k + '([^a-z]|$)').test(bas); });
+    if (/\d[\d\s.,]*\s*(f\b|fcfa|cfa|francs?|€|\$|euros?|dollars?)/i.test(t) || /\b(francs?|fcfa|cfa|mille francs|prix|tarif|coûte|coute|co[uû]ter|bon marché|pas cher)\b/i.test(t)) trouves.push('prix');
+    return trouves;
+  }
+  function voJSON(t){
+    t = String(t || '').replace(/^```(?:json)?/i, '').replace(/```\s*$/, '').trim();
+    const a = t.indexOf('{'), b = t.lastIndexOf('}');
+    try { return JSON.parse(t.slice(a, b + 1)); } catch(e){}
+    try { return JSON.parse(t.slice(a, b + 1).replace(/\r?\n/g, ' ')); } catch(e){ return null; }
+  }
+  async function voixOff(P, type, duree){
+    type = type || await menuListe(vignette(P.photos[0]), 'Quel type de voix off ?', VO_TYPES.map(([k, l]) => [k, l]));
+    if (!type) return;
+    duree = duree || await menuListe(vignette(P.photos[0]), 'Quelle durée ?', VO_DUREES);
+    if (!duree) return;
+    const sec = +duree, cible = Math.round(sec * VO_MOTS_SEC);
+    const contexte = ['Nom : ' + P.nom, P.accroche && 'Accroche : ' + P.accroche,
+      P.avantages && 'Avantages : ' + voTexte(P.avantages).split('\n').join(' ; '),
+      P.description && 'Page produit :\n' + voTexte(P.description).slice(0, 7000),
+      P.boite && 'Dans la boîte : ' + voTexte(P.boite).split('\n').join(' ; '),
+      P.faq && 'Questions des clients : ' + voTexte(P.faq).split('\n').join(' | ')].filter(Boolean).join('\n');
+    const T = VO_TYPES.find(x => x[0] === type);
+    const o = feuille(`<h2>🎙️ Voix off · ${esc(P.nom)}</h2><p class="sub">${esc(T[1])} · ${sec < 60 ? sec + ' secondes' : sec === 60 ? '1 minute' : '1 minute 30'}</p><div id="voZ"></div><button class="btn ghost" data-x style="margin-top:14px">Fermer</button>`);
+    o.querySelector('[data-x]').onclick = () => o.remove();
+    const Z = o.querySelector('#voZ');
+    const attente = m => { Z.innerHTML = `<div class="iaload"><span class="spin"></span> <span>${m}</span></div>`; };
+    let etude = '';
+    try {
+      attente('1/2 · Étude du produit…');
+      const e = await callIA({type: 'ia', action: 'ia', mode: 'texte', contexte, consigne:
+        'Tu es un expert en publicité vidéo et en voix off qui fait vendre (paiement à la livraison). Avant d’écrire, étudie ce produit à partir de la page. ' +
+        'Réponds avec ces rubriques courtes (tirets) : CIBLE (qui achète, âge, situation) ; DOULEURS (ce qu’elle vit tous les jours, avec ses mots) ; DÉSIRS (ce qu’elle veut vraiment ressentir) ; ' +
+        'PEURS ET FREINS (ce qui l’empêche d’acheter, et comment les lever sans parler de prix) ; MOMENTS DE VIE (scènes concrètes où le problème apparaît) ; ' +
+        '5 ANGLES qui donnent envie d’acheter tout de suite ; MOTS FORTS à utiliser. N’invente aucun fait médical ou technique absent de la page. Ne parle jamais de prix, de montant, de pays ni de ville.'});
+      if (e.sansCle){ Z.innerHTML = '<div class="iaerr">Branche d’abord ton assistant IA gratuit : Réglages → 🤖 Assistant IA.</div>'; return; }
+      etude = String(e.texte || '').trim();
+      if (!etude) throw new Error('L’IA n’a rien répondu. Réessaie dans une minute.');
+      const consigneScripts = rappel => 'Tu es le meilleur rédacteur de voix off publicitaires (Facebook, TikTok) pour une boutique en paiement à la livraison. ' +
+        'Voici ton étude du produit :\n' + etude.slice(0, 5000) + '\n\n' +
+        'Écris 3 scripts de voix off DIFFÉRENTS (angle et accroche différents), en français parlé, simple et naturel, avec « vous ». ' +
+        (type === 'mix' ? 'Chaque script utilise un style différent parmi : problème → solution, question choc, histoire vécue, avant / après, conseil d’un proche, curiosité. Indique le style dans "titre". '
+          : 'Style imposé pour les 3 : ' + T[1].replace(/^\S+\s/, '') + ' : ' + T[2] + '. ') +
+        'Règles absolues : ' +
+        '1) Les 2 premières secondes doivent accrocher (douleur ou désir de la cible). ' +
+        '2) Fais ressentir le problème puis le soulagement ; montre des bénéfices concrets, pas des caractéristiques. ' +
+        '3) Donne envie d’acheter MAINTENANT sans jamais parler du prix : AUCUN prix, montant, chiffre d’argent, ni les mots prix, tarif, coûte, francs, pas cher. ' +
+        '4) AUCUN pays, AUCUNE ville, aucune nationalité. ' +
+        '5) Pas de promesse de guérison ni de résultat garanti, pas de fausse information sur le produit. ' +
+        '6) Chaque script fait environ ' + Math.max(15, cible - 14) + ' mots (lu en ' + sec + ' secondes avec la phrase de fin). ' +
+        '7) N’écris PAS la fin (livraison, paiement, réduction) : elle est ajoutée automatiquement. Termine par un appel à l’action court du type « Commandez maintenant. » ' +
+        '8) Pas d’indications de mise en scène entre crochets, seulement le texte à lire' + (type === 'dialogue' ? ' (avec « Voix 1 : » et « Voix 2 : »)' : '') + '. ' +
+        (rappel ? 'ATTENTION, ta réponse précédente contenait : ' + rappel + '. Corrige-le. ' : '') +
+        'Réponds UNIQUEMENT en JSON : {"scripts":[{"titre":"angle en 3 à 6 mots","texte":"le script"}]}';
+      attente('2/2 · Écriture des 3 scripts…');
+      let J = null, pb = [];
+      for (let essai = 0; essai < 2; essai++){
+        const r = await callIA({type: 'ia', action: 'ia', mode: 'texte', contexte, consigne: consigneScripts(essai ? pb.join(', ') : '')});
+        J = voJSON(r.texte);
+        if (!J || !Array.isArray(J.scripts) || !J.scripts.length){ J = {scripts: [{titre: 'Script', texte: String(r.texte || '').trim()}]}; }
+        J.scripts = J.scripts.filter(x => x && String(x.texte || '').trim()).slice(0, 3);
+        pb = [...new Set(J.scripts.flatMap(x => voInterdits(x.texte)))];
+        if (!pb.length) break;
+      }
+      // Dernier filet : on retire les phrases qui parlent encore de prix ou de pays
+      J.scripts.forEach(x => { if (voInterdits(x.texte).length) x.texte = (String(x.texte).match(/[^.!?…]+[.!?…]*\s*/g) || []).filter(ph => !voInterdits(ph).length).join('').trim(); });
+      if (!J.scripts.length) throw new Error('L’IA n’a pas donné de script. Réessaie.');
+      const cartes = J.scripts.map((x, i) => {
+        const fin = VO_FINS[i % VO_FINS.length], texte = String(x.texte).trim().replace(/\s*(Voix \d\s*:)/g, '\n$1').trim(), complet = texte + '\n' + fin;
+        return {titre: String(x.titre || 'Script ' + (i + 1)), texte, fin, complet, sec: Math.round(voMots(complet) / VO_MOTS_SEC)};
+      });
+      Z.innerHTML = `<details class="voetude"><summary>📊 Étude du produit (touche pour voir)</summary><div style="margin-top:8px">${esc(etude).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>')}</div></details>` +
+        cartes.map((c, i) => `<div class="vosc"><h4>Script ${i + 1} · ${esc(c.titre)}</h4><div class="vom">≈ ${c.sec} secondes · ${voMots(c.complet)} mots</div>
+          <div class="vot">${esc(c.texte)}<span class="vofin">${esc(c.fin)}</span></div><button class="btn blue2" data-c="${i}">📋 Copier ce script</button></div>`).join('') +
+        `<button class="btn blue" id="voTout" style="margin-top:14px">📋 Copier les 3 scripts</button><button class="btn blue2" id="voRe" style="margin-top:8px">🔁 Générer 3 autres scripts</button>`;
+      const copier = async t => { try { await navigator.clipboard.writeText(t); toast('📋 Copié'); } catch(x){ prompt('Copie ce texte :', t); } };
+      Z.querySelectorAll('[data-c]').forEach(b => b.onclick = () => copier(cartes[+b.dataset.c].complet));
+      Z.querySelector('#voTout').onclick = () => copier(cartes.map((c, i) => 'Script ' + (i + 1) + ' · ' + c.titre + '\n' + c.complet).join('\n\n'));
+      Z.querySelector('#voRe').onclick = () => { o.remove(); voixOff(P, type, duree); };
+    } catch(e){ if (o.isConnected) Z.innerHTML = `<div class="iaerr">${esc(e.message || String(e))}</div>`; }
   }
 
   // Réduit la photo sur le téléphone avant l'envoi (rapide, même en 3G)
