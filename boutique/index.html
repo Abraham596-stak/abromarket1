@@ -42,7 +42,7 @@ a{color:inherit}
 .defile .promo{color:#FFD54A;font-weight:800}
 @keyframes defile{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 header{display:flex;align-items:center;justify-content:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);position:sticky;top:0;background:rgba(255,255,255,.96);z-index:15;box-shadow:0 2px 14px rgba(18,48,143,.06)}
-.brand{display:flex;align-items:center;justify-content:center;gap:10px;text-decoration:none;font:800 21px "Bricolage Grotesque",sans-serif;letter-spacing:.06em;color:var(--main);min-width:0}
+.brand{display:flex;align-items:center;justify-content:center;gap:10px;text-decoration:none;font:800 clamp(16px,5vw,21px) "Bricolage Grotesque",sans-serif;letter-spacing:.03em;color:var(--main);min-width:0}
 .brand img{height:36px;width:auto}
 .brand span{background:linear-gradient(90deg,#12308F,#2350D8);-webkit-background-clip:text;background-clip:text;color:transparent}
 .brand span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -80,7 +80,6 @@ header{display:flex;align-items:center;justify-content:center;gap:10px;padding:1
 .stars{color:#E9A300;font-size:15px;margin-top:8px}
 .stars small{color:var(--soft);margin-left:6px}
 .pricetag{margin:16px 18px 0;background:var(--sun);border-radius:18px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;position:relative}
-.pricetag::before{content:"";position:absolute;left:-7px;top:50%;width:14px;height:14px;margin-top:-7px;background:var(--bg);border-radius:50%}
 .pricetag .now{font-family:"Bricolage Grotesque",sans-serif;font-size:32px;font-weight:800;line-height:1}
 .pricetag .old{text-decoration:line-through;color:#6B5A1E;font-size:15px;margin-top:4px}
 .pricetag .off{background:var(--ink);color:#fff;font-weight:700;border-radius:999px;padding:6px 12px;font-size:15px;white-space:nowrap}
@@ -214,8 +213,9 @@ input:focus,textarea:focus,select:focus{border-color:var(--main);outline:none}
 .choice label .p s{color:var(--soft);font-size:13px;font-weight:500}
 .choice input:checked+label{border-color:var(--main);box-shadow:inset 0 0 0 1px var(--main)}
 .choice input:focus-visible+label,.cta:focus-visible,button:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
-.confirm{display:flex;gap:12px;align-items:flex-start;background:#fff;border:2px solid var(--line);border-radius:12px;padding:14px 16px;cursor:pointer;font-weight:700}
-.confirm input{width:24px;height:24px;accent-color:var(--main);flex:0 0 24px;margin-top:1px}
+.confirm,.field .confirm{display:flex;gap:12px;align-items:center;background:#fff;border:2px solid var(--line);border-radius:12px;padding:14px 16px;cursor:pointer;font-weight:700}
+.confirm input{width:24px;height:24px;accent-color:var(--main);flex:0 0 24px;margin:0}
+.confirm span{flex:1;line-height:1.35}
 .error{color:var(--err);font-size:14px;font-weight:600;margin-top:6px;display:none}
 .field.bad .error{display:block}
 .field.bad input,.field.bad textarea,.field.bad .confirm,.field.bad .phone,.field.bad select{border-color:var(--err)}
@@ -224,7 +224,7 @@ input:focus,textarea:focus,select:focus{border-color:var(--main);outline:none}
 .ticket .row{display:flex;justify-content:space-between;gap:12px;padding:4px 0}
 .ticket .row span:first-child{color:var(--soft)}
 .ticket .row span:last-child{text-align:right;font-weight:600}
-.ticket .total{border-top:2px dashed var(--line);margin-top:8px;padding-top:10px}
+.ticket .total{border-top:2px dashed var(--line);margin-top:8px;padding-top:10px;align-items:center}
 .ticket .total span:last-child{font-family:"Bricolage Grotesque",sans-serif;font-size:24px;font-weight:800;color:var(--main)}
 .cta{display:block;width:100%;background:var(--main);color:#fff;border:0;border-radius:14px;padding:18px;font:700 19px "Figtree",sans-serif;text-align:center;text-decoration:none;cursor:pointer}
 .cta[disabled]{opacity:.7;cursor:wait}
@@ -445,6 +445,8 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
     }).join('');
   }
   const R = k => (D && D.reglages && D.reglages[k]) || '';
+  // Le jour et l'heure de livraison sont fixés avec le client au téléphone
+  const LIVRAISON = 'Fixée avec vous au téléphone';
 
   const TZ = {'Africa/Porto-Novo':'BJ','Africa/Ouagadougou':'BF','Africa/Bujumbura':'BI','Africa/Douala':'CM','Africa/Bangui':'CF','Indian/Comoro':'KM','Africa/Brazzaville':'CG','Africa/Kinshasa':'CD','Africa/Lubumbashi':'CD','Africa/Abidjan':'CI','Africa/Djibouti':'DJ','Africa/Libreville':'GA','Africa/Conakry':'GN','Africa/Malabo':'GQ','Indian/Antananarivo':'MG','Africa/Bamako':'ML','Africa/Nouakchott':'MR','Africa/Niamey':'NE','Africa/Kigali':'RW','Africa/Dakar':'SN','Africa/Ndjamena':'TD','Africa/Lome':'TG','Africa/Casablanca':'MA','Africa/Algiers':'DZ','Africa/Tunis':'TN','Indian/Mauritius':'MU','Indian/Mahe':'SC'};
 
@@ -620,11 +622,6 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
                 <label for="o${i}"><span>${esc(o.label)}${save && o.qte > 1 ? `<small>Vous économisez ${money(save, dev)}</small>` : ''}</span>
                 <span class="p"><b>${money(o.prix, dev)}</b>${o.ancien > o.prix ? `<s>${money(o.ancien, dev)}</s>` : ''}</span></label></div>`;
             }).join('')}</div></div>
-          <div class="field"><span class="legend">Quand voulez-vous être livré ?</span><div class="choices">
-            <div class="choice"><input type="radio" name="jour" id="j0" value="today" checked><label for="j0"><span>Aujourd'hui${promo?`<small>Promo : −${money(promo, dev)}</small>`:''}</span></label></div>
-            <div class="choice"><input type="radio" name="jour" id="j1" value="tomorrow"><label for="j1"><span>Demain</span></label></div></div></div>
-          <div class="field"><label for="slot">Moment de la journée</label>
-            <select class="in" id="slot"><option value="dès que possible">Dès que possible</option><option value="le matin">Le matin (8h – 12h)</option><option value="l'après-midi">L'après-midi (12h – 16h)</option><option value="le soir">Le soir (16h – 20h)</option></select></div>
           <h3 class="etape">Vos informations de livraison</h3>
           <div class="field" id="fNom"><label for="nom">Votre nom</label><input type="text" id="nom" autocomplete="name" placeholder="Nom et prénom">
             <div class="error">Indiquez votre nom.</div></div>
@@ -640,12 +637,11 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
           <div class="field" id="fAdr"><label for="adr">Lieu exact de livraison</label>
             <textarea id="adr" placeholder="Quartier, rue, repère connu (ex : à côté de la pharmacie…)"></textarea>
             <div class="error">Précisez où le livreur doit venir.</div></div>
-          <div class="field" id="fOk"><label class="confirm"><input type="checkbox" id="ok"> Je veux vraiment ce produit et je serai disponible à la livraison</label>
+          <div class="field" id="fOk"><label class="confirm"><input type="checkbox" id="ok"><span>Je veux vraiment ce produit et je serai disponible à la livraison</span></label>
             <div class="error">Cochez cette case pour confirmer votre commande.</div></div>
           <div class="ticket" aria-live="polite">
             <div class="row"><span>Offre</span><span id="tOff"></span></div>
-            <div class="row"><span>Livraison</span><span id="tDay"></span></div>
-            <div class="row" id="tPromoRow"><span>Promo livraison du jour</span><span id="tPromo"></span></div>
+            <div class="row"><span>Livraison</span><span id="tDay">${esc(LIVRAISON)}</span></div>
             <div class="row total"><span>À payer à la livraison</span><span id="tTotal"></span></div></div>
           <div class="valider" id="valider" hidden><span class="vi">⏳</span><div><b>Votre commande n'est pas encore validée.</b> Appuyez sur « Je commande maintenant » pour la confirmer, sinon elle ne sera pas enregistrée.</div></div>
           <button type="submit" class="cta attn" id="sendBtn">Je commande maintenant</button>
@@ -718,16 +714,11 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
     const form = $('form');
     const state = () => {
       const o = px.offres.find(x => x.key === form.querySelector('input[name=offre]:checked').value);
-      const today = form.querySelector('input[name=jour]:checked').value === 'today';
-      const disc = today ? promo : 0;
-      return {o, today, disc, total: Math.max(0, o.prix - disc)};
+      return {o, today: false, disc: 0, total: o.prix};
     };
     const update = () => {
       const s = state();
       $('tOff').textContent = s.o.label;
-      $('tDay').textContent = (s.today ? "Aujourd'hui" : 'Demain') + ', ' + $('slot').value;
-      $('tPromoRow').style.display = s.disc ? 'flex' : 'none';
-      $('tPromo').textContent = '−' + money(s.disc, dev);
       $('tTotal').textContent = money(s.total, dev);
     };
     form.addEventListener('change', update);
@@ -819,12 +810,12 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
       form.__markOrdered();
       sending = true; btn.disabled = true; btn.textContent = 'Envoi en cours…'; err.style.display = 'none';
       const payload = {produit: P.id, pays: pays.code, offre: s.o.key, nom, tel, ville, adresse: adr,
-        jour: s.today ? 'today' : 'tomorrow', moment: $('slot').value, page: location.href.split('#')[0], attrib: attribution(), deja: prev && prev.numero ? prev.numero : '',
+        jour: '', moment: '', page: location.href.split('#')[0], attrib: attribution(), deja: prev && prev.numero ? prev.numero : '',
         secours: {total: s.total, label: s.o.label, qte: s.o.qte}};
       // Affichage immédiat de la confirmation : le client n'attend pas
       const modeMerci = !/whatsapp/i.test(R('Après la commande (MERCI = page de remerciement / WHATSAPP = le client envoie sur WhatsApp)'));
       const garde = saveForm();
-      if (modeMerci) merci({numero: '', produit: P.nom, offre: s.o.label, livraison: (s.today ? "Aujourd'hui" : 'Demain') + ', ' + $('slot').value,
+      if (modeMerci) merci({numero: '', produit: P.nom, offre: s.o.label, livraison: LIVRAISON,
         adresse: ville + ' – ' + adr, total: s.total, devise: dev, tel: '+' + pays.indicatif + ' ' + tel, nom}, P);
       const retour = () => { if (modeMerci){ render(); restoreForm(garde); const f = $('form'); if (f) f.__markOrdered && f.__unmarkOrdered && f.__unmarkOrdered(); $('commande').scrollIntoView({block:'start'}); } };
       let r = null;
@@ -840,7 +831,7 @@ footer a{display:inline-block;margin-bottom:10px;font-weight:700;color:var(--mai
       if (!r || !r.ok){
         form.__unmarkOrdered(); retour();
         const err = $('sendErr');
-        const msg = `Nouvelle commande (non numérotée)\nPays : ${pays.nom}\nProduit : ${P.nom}\nOffre : ${s.o.label}\nNom : ${nom}\nNuméro : +${pays.indicatif} ${tel}\nAdresse de la livraison : ${ville} – ${adr}\nLe prix à payer : ${money(s.total, dev)}\nHeure de la livraison : ${(s.today ? "Aujourd'hui" : 'Demain')}, ${$('slot').value}`;
+        const msg = `Nouvelle commande (non numérotée)\nPays : ${pays.nom}\nProduit : ${P.nom}\nOffre : ${s.o.label}\nNom : ${nom}\nNuméro : +${pays.indicatif} ${tel}\nAdresse de la livraison : ${ville} – ${adr}\nLe prix à payer : ${money(s.total, dev)}\nLivraison : ${LIVRAISON}`;
         const wa = (pays.whatsapp || R('WhatsApp des commandes')).replace(/\D/g,'');
         err.innerHTML = `${esc(r && r.erreur ? r.erreur : 'Connexion difficile.')} Réessayez.<a href="https://wa.me/${wa}?text=${encodeURIComponent(msg)}">Ou commandez directement sur WhatsApp →</a>`;
         err.style.display = 'block';
