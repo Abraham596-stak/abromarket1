@@ -841,6 +841,9 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
 .iabtn,.iahd .av{background:#17191E;box-shadow:0 6px 20px rgba(17,24,39,.25)}
 .ptile{background:var(--card);border:1px solid var(--line);border-radius:12px}
 .ptile>span:first-child,.ianote>span:first-child,.toast .e{display:none}
+.setrow{width:100%;text-align:left;color:var(--ink);text-decoration:none;background:none}.setgo{color:var(--soft);font-size:22px;line-height:1}
+.sethd{font-size:13px;font-weight:600;color:var(--soft);text-transform:uppercase;letter-spacing:.04em;margin:22px 0 2px}
+.bqgo{color:var(--soft);font-size:22px;padding:0 6px}
 .set .chip{background:var(--card)!important;color:var(--ink)!important;border:1px solid var(--line)!important;font-weight:600}
 .vband.essai{background:var(--surface);color:var(--ink)}.vband.essai a{background:var(--ink);color:var(--bg)}
 @media (prefers-color-scheme:dark){:root{--bg:#0B0B0B;--card:#1A1A1A;--surface:#242424;--line:#303030;--ink:#EDEDED;--soft:#A3A3A3;--main:#5B8CFF;--okbg:#10301F;--errbg:#3A1717;color-scheme:dark}
@@ -1090,15 +1093,14 @@ function nettoyerHtml(h){
       ov.innerHTML = `<div class="detail bqsheet" role="dialog" aria-modal="true" aria-label="Mes boutiques"><div class="grab"></div>
         <h2>Mes boutiques</h2><p class="sub">Boutique principale + ${n} / ${max} boutiques · Une boutique = une agence (ses commandes ne se mélangent pas). Une pub sur plusieurs pays peut utiliser la principale : chaque commande part toute seule dans la boutique de son pays.</p>
         ${msg ? `<div class="okmsg">${msg}</div>` : ''}
-        ${presse ? `<div class="bqclip">📋 ${presse.ids.length} produit${presse.ids.length > 1 ? 's' : ''} copié${presse.ids.length > 1 ? 's' : ''} de « ${esc(presse.nom)} » · ouvre le ⋮ d’une autre boutique puis « Coller les produits ».</div>` : ''}
+        ${presse ? `<div class="bqclip">📋 ${presse.ids.length} produit${presse.ids.length > 1 ? 's' : ''} copié${presse.ids.length > 1 ? 's' : ''} de « ${esc(presse.nom)} » · ouvre l’autre boutique, puis Réglages (≡) → « Coller les produits ».</div>` : ''}
         ${!BQS ? '<div class="empty">Chargement…</div>' : l.map(b => `<div class="bqrow ${(b.code || '') === BQ ? 'on' : ''}">
           <div class="bqi"><b>${esc(b.nom)}</b><small>${b.principale ? 'Boutique principale' + (b.pays ? ' · ' + esc(nomsPaysBq(b.pays)) : '') + ' · pubs multi-pays' : esc(nomsPaysBq(b.pays))}${b.agence ? ' · agence : ' + esc(b.agence) : ''}${!b.active ? ' · <span style="color:var(--err)">désactivée</span>' : ''}${(b.code || '') === BQ ? ' · <span class="bqcur">Ouverte</span>' : ''}</small></div>
-          <button class="bqdots" data-bm="${esc(b.code || '')}" aria-label="Options de ${esc(b.nom)}">⋮</button></div>`).join('')}
+          <span class="bqgo" data-bm="${esc(b.code || '')}" aria-hidden="true">›</span></div>`).join('')}
         ${BQS && n < max ? '<button class="btn blue" id="bqNew" style="margin-top:14px">＋ Créer une nouvelle boutique</button>' : ''}
         <button class="btn ghost" id="bqX" style="margin-top:10px">Fermer</button></div>`;
       ov.querySelector('#bqX').onclick = () => ov.remove();
       const nb = ov.querySelector('#bqNew'); if (nb) nb.onclick = () => nouvelleBoutique(ov, dessiner);
-      ov.querySelectorAll('[data-bm]').forEach(b => b.onclick = () => menuBoutique(ov, (BQS.boutiques || []).find(x => (x.code || '') === b.dataset.bm), dessiner));
       // Toucher une boutique l'ouvre dans l'application (le ⋮ garde les options)
       ov.querySelectorAll('.bqrow').forEach(r => r.onclick = e => { if (e.target.closest('[data-bm]')) return; const c = r.querySelector('[data-bm]').dataset.bm; if (c === (BQ || '')) { ov.remove(); return; } r.classList.add('ouvre'); ouvrirBoutique(c); });
     };
@@ -1359,7 +1361,7 @@ function nettoyerHtml(h){
       box.querySelector('#cpGo').onclick = () => {
         const ids = P.map(p => p.id).filter(id => sel.has(id));
         try { localStorage.setItem(K_PP, JSON.stringify({source: code, nom: b.nom, ids, quand: Date.now()})); } catch(e){}
-        o.remove(); retour(`📋 ${ids.length} produit${ids.length > 1 ? 's' : ''} copié${ids.length > 1 ? 's' : ''}. Ouvre le ⋮ d’une autre boutique puis « Coller les produits ».`);
+        o.remove(); retour(`📋 ${ids.length} produit${ids.length > 1 ? 's' : ''} copié${ids.length > 1 ? 's' : ''}. Ouvre l’autre boutique, puis Réglages (≡) → « Coller les produits ».`);
       };
     };
     dess();
@@ -4085,7 +4087,22 @@ function nettoyerHtml(h){
   /* ---------- Réglages ---------- */
   function settings(){
     const perm = 'Notification' in window ? Notification.permission : 'unsupported';
+    const bqI = BQS && (BQS.boutiques || []).find(x => (x.code || '') === (BQ || '')), ppI = pressePapier();
+    if (!BQS) fetch(API, {method: 'POST', body: JSON.stringify({type: 'boutiques', key, v: VID})}).then(r => r.json()).then(j => { if (j.ok){ BQS = j; try { localStorage.setItem(K_BQS, JSON.stringify(j)); } catch(e){} if (view === 'settings') render(); } }).catch(() => {});
+    const ligneBq = (id, t, p, danger) => `<button class="set setrow" data-bq="${id}"><div><b${danger ? ' style="color:var(--err)"' : ''}>${t}</b>${p ? `<p>${p}</p>` : ''}</div><span class="setgo">›</span></button>`;
     app.innerHTML = `<div class="page"><h1>Réglages</h1>
+      <h3 class="sethd">Boutique · ${esc((bqI && bqI.nom) || (D && D.boutique) || 'Ma boutique')}</h3>
+      ${!bqI ? '<div class="empty">Chargement…</div>' : [
+        ligneBq('renommer', 'Renommer la boutique', ''),
+        ligneBq('pays', 'Pays de vente', esc(nomsPaysBq(bqI.pays)) || ''),
+        ligneBq('reglages', 'Pixels, WhatsApp et commandes', 'Meta, TikTok, numéro qui reçoit les commandes…'),
+        ligneBq('copier', 'Copier les produits', 'Pour les coller dans une autre boutique'),
+        ppI && ppI.ids && ppI.ids.length && (ppI.source || '') !== (bqI.code || '') ? ligneBq('coller', 'Coller les produits', ppI.ids.length + ' produit' + (ppI.ids.length > 1 ? 's' : '') + ' de « ' + esc(ppI.nom) + ' »') : '',
+        ligneBq('lien', 'Copier le lien du site', ''),
+        bqI.sheetUrl ? `<a class="set setrow" href="${esc(bqI.sheetUrl)}" target="_blank" rel="noopener"><div><b>Ouvrir le Google Sheets</b></div><span class="setgo">↗</span></a>` : '',
+        bqI.principale ? '' : ligneBq('suppr', 'Supprimer la boutique', 'Son site, ses produits et ses commandes', true)
+      ].join('')}
+      <h3 class="sethd">Général</h3>
       ${D.vendoo && D.vendoo.statut === 'proprietaire' ? `<div class="set"><div><b>Vendoo – abonnés et paiements</b><p>Valider les paiements MoMo, voir les abonnés, codes promo.</p></div><button class="chip" style="background:#5B2EE6;border-color:#5B2EE6" id="vAdm">Ouvrir</button></div>` : ''}
       ${VENDOO && D.vendoo && D.vendoo.statut !== 'proprietaire' ? `<div class="set"><div><b>Mon abonnement Vendoo</b><p>${D.vendoo.statut === 'essai' ? 'Essai gratuit jusqu’au ' + esc(D.vendoo.expire || '') + ' (' + D.vendoo.jours + ' j)' : D.vendoo.statut === 'actif' ? 'Actif jusqu’au ' + esc(D.vendoo.expire || '') + ' (' + D.vendoo.jours + ' j)' : D.vendoo.statut === 'grace' ? 'Terminé : coupure dans ' + D.vendoo.grace + ' j' : esc(D.vendoo.statut || '')}</p></div><a class="chip" style="background:#5B2EE6;border-color:#5B2EE6" href="${PAYER}" target="_blank" rel="noopener">Gérer</a></div>` : ''}
       <div class="set"><div><b>🚚 Agences de livraison</b><p>L’e-mail de l’agence qui reçoit les commandes de chaque pays : l’ajouter, le changer ou le retirer.</p></div><button class="chip" style="background:var(--main);border-color:var(--main)" id="agSet">Ouvrir</button></div>
@@ -4113,6 +4130,18 @@ function nettoyerHtml(h){
     document.getElementById('ptSet').onclick = () => pointHebdo();
     document.getElementById('iaSet').onclick = () => brancherIA();
     document.getElementById('apSet').onclick = () => analysePubUI();
+    app.querySelectorAll('[data-bq]').forEach(btn => btn.onclick = async () => {
+      const b = BQS && (BQS.boutiques || []).find(x => (x.code || '') === (BQ || '')); if (!b) return;
+      const retour = msg => { if (msg) toast(String(msg).replace(/<[^>]+>/g, '')); if (view === 'settings') render(); };
+      const o = btn.dataset.bq;
+      if (o === 'renommer') return renommerBq(b, retour);
+      if (o === 'pays') return paysBq(b, retour);
+      if (o === 'reglages') return reglagesBq(b);
+      if (o === 'copier') return copierBq(b, retour);
+      if (o === 'coller') return collerBq(b, retour);
+      if (o === 'suppr') return supprimerBq(b, retour);
+      if (o === 'lien'){ const u = siteDe(b.code || ''); try { await navigator.clipboard.writeText(u); toast('Lien du site copié'); } catch(x){ prompt('Lien du site :', u); } }
+    });
     document.getElementById('agSet').onclick = () => { const ov = document.createElement('div'); ov.className = 'overlay'; ov.onclick = e => { if (e.target === ov) ov.remove(); }; document.body.appendChild(ov); agences(ov, BQ, (D && D.boutique) || 'Ma boutique', () => ov.remove()); };
     const va = document.getElementById('vAdm'); if (va) va.onclick = () => vendooAdmin();
     app.querySelectorAll('[data-go2]').forEach(b => b.onclick = () => go(b.dataset.go2));
