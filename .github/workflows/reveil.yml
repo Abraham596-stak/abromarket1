@@ -10,5 +10,9 @@ jobs:
     timeout-minutes: 2
     steps:
       - run: |
-          D=$(date +%s%N); curl -sL --max-time 60 "https://script.google.com/macros/s/AKfycbwgdtcXlXB9niD3hactnz4SLIrpY_q74iQQZwkr1vrUBjczfCCVWwamG69uqnUQZsba/exec?ping=1" -o r.txt || true
-          echo "Réponse en $(( ($(date +%s%N) - D) / 1000000 )) ms : $(head -c 60 r.txt)"
+          API="https://script.google.com/macros/s/AKfycbwgdtcXlXB9niD3hactnz4SLIrpY_q74iQQZwkr1vrUBjczfCCVWwamG69uqnUQZsba/exec"
+          # Réveille le serveur et prépare les données de chaque boutique (le site les reçoit ensuite tout de suite)
+          for b in "" "abromarket-benin" "abromarket-togo"; do
+            D=$(date +%s%N); curl -sL --max-time 60 "$API?${b:+b=$b&}t=$(date +%s)" -o r.txt || true
+            echo "${b:-principale} : $(( ($(date +%s%N) - D) / 1000000 )) ms, $(wc -c < r.txt) octets"
+          done
