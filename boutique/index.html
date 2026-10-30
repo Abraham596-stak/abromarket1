@@ -1044,7 +1044,7 @@ Heure de la livraison : ${r.livraison}`;
       if (save) store.set(K_DATA, JSON.stringify(fresh));
       if (D && same(D, fresh)) return;
       const first = !D; D = fresh;
-      if (first) ready = precharger(imagesPage(D), 1200).then(() => { shown = true; render(); });
+      if (first) ready = precharger(imagesPage(D), 600).then(() => { shown = true; render(); });
       else if (shown && !touched) render();
     };
     const cached = store.get(K_DATA);
