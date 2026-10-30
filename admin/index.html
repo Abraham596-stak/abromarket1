@@ -355,7 +355,10 @@ html.ordi .dvgrid{grid-template-columns:repeat(4,minmax(0,1fr))}
 .dnav{display:flex;align-items:center;justify-content:space-between;margin:-4px 0 6px;color:var(--soft);font-weight:600;font-size:14px}
 .dnavb{width:44px;height:36px;border-radius:12px;background:var(--surface);font-size:24px;line-height:1;color:var(--ink)}
 .dnavb:disabled{opacity:.3}
-.detail{transition:transform .15s ease-out;touch-action:pan-y}
+.detail{touch-action:pan-y}
+.overlay.plein{overflow:hidden}.overlay.plein .detail.plein{will-change:transform}
+.detail.fantome{position:absolute;inset:0;pointer-events:none}
+html.ordi .overlay.plein{padding:0}
 .detail.glisse-g{animation:glg .22s ease-out}.detail.glisse-d{animation:gld .22s ease-out}
 @keyframes glg{from{transform:translateX(60px);opacity:.3}}@keyframes gld{from{transform:translateX(-60px);opacity:.3}}
 /* Relances */
@@ -2543,14 +2546,12 @@ function nettoyerHtml(h){
     if (diff < 7) return dt.toLocaleDateString('fr-FR', {weekday:'long'});
     return dt.toLocaleDateString('fr-FR', {day:'numeric', month:'long'});
   }
-  function detail(num, sens, ovExistant){
-    const o = D.commandes.find(x => x.numero === num); if (!o) return;
-    const tel = String(o.tel).replace(/\D/g, '');
-    if (!listeDetail.includes(num)) listeDetail = D.commandes.map(x => x.numero);
-    const i = listeDetail.indexOf(num), prec = listeDetail[i - 1], suiv = listeDetail[i + 1];
-    const ov = ovExistant || document.createElement('div'); ov.className = 'overlay plein';
-    const SVG = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
-    ov.innerHTML = `<div class="detail plein ${sens ? 'glisse-' + sens : ''}" role="dialog" aria-modal="true" aria-label="Commande ${esc(o.numero)}">
+  const SVGd = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+  // HTML d'une page de commande (utilisé pour la commande ouverte ET pour les voisines affichées pendant le glissement)
+  function pageCommande(o, sens){
+    const tel = String(o.tel).replace(/\D/g, ''), SVG = SVGd;
+    const i = listeDetail.indexOf(o.numero), prec = listeDetail[i - 1], suiv = listeDetail[i + 1];
+    return `<div class="detail plein ${sens ? 'glisse-' + sens : ''}" role="dialog" aria-modal="true" aria-label="Commande ${esc(o.numero)}">
       <div class="cmdbar"><button id="cmdBack" aria-label="Retour">${SVG('<path d="M15 18l-6-6 6-6"/>')}</button>
         <button data-aller="${esc(prec || '')}" ${prec ? '' : 'disabled'} aria-label="Commande précédente">${SVG('<path d="M18 15l-6-6-6 6"/>')}</button>
         <button data-aller="${esc(suiv || '')}" ${suiv ? '' : 'disabled'} aria-label="Commande suivante">${SVG('<path d="M6 9l6 6 6-6"/>')}</button>
@@ -2580,26 +2581,55 @@ function nettoyerHtml(h){
       <button class="btn blue" id="save" style="margin-top:12px">Enregistrer le statut</button>
       <button class="btn ghost" id="close" style="margin-top:10px">Fermer</button>
       <button class="lnk dsuppr" id="dsup">🗑 Supprimer cette commande (test, erreur…)</button></div>`;
+  }
+  function detail(num, sens, ovExistant){
+    const o = D.commandes.find(x => x.numero === num); if (!o) return;
+    if (!listeDetail.includes(num)) listeDetail = D.commandes.map(x => x.numero);
+    const i = listeDetail.indexOf(num), prec = listeDetail[i - 1], suiv = listeDetail[i + 1];
+    const ov = ovExistant || document.createElement('div'); ov.className = 'overlay plein';
+    ov.innerHTML = pageCommande(o, sens);
     if (!ovExistant) document.body.appendChild(ov);
     bindCopy(ov);
     const close = () => { ov.remove(); render(); };
     ov.onclick = e => { if (e.target === ov) close(); };
-    // Glisser à gauche = commande suivante, à droite = précédente
-    const aller = (n, s) => { if (n) detail(n, s, ov); };
+    // Glissement comme Shopify : la page suit le doigt et la commande voisine arrive à côté
+    const boite = ov.querySelector('.detail');
+    const voisins = {};   // pages fantômes (affichage seul) de la précédente et de la suivante
+    [[prec, -1], [suiv, 1]].forEach(([n, c]) => { const ob = n && D.commandes.find(x => x.numero === n); if (!ob) return;
+      const t = document.createElement('div'); t.innerHTML = pageCommande(ob); const el = t.firstElementChild;
+      el.classList.add('fantome'); el.setAttribute('aria-hidden', 'true'); el.inert = true; el.removeAttribute('role');
+      el.querySelectorAll('[id]').forEach(x => x.removeAttribute('id'));
+      el.style.transform = `translate3d(${c * 100}%,0,0)`; ov.appendChild(el); voisins[c] = el; });
+    let anime = false;
+    const placer = (dx, ms) => { const w = ov.clientWidth || innerWidth, tr = ms ? `transform ${ms}ms cubic-bezier(.2,.8,.2,1)` : 'none';
+      boite.style.transition = tr; boite.style.transform = dx ? `translate3d(${dx}px,0,0)` : '';
+      for (const c in voisins){ voisins[c].style.transition = tr; voisins[c].style.transform = `translate3d(${dx + c * w}px,0,0)`; } };
+    const aller = (n, s) => { if (!n || anime) return; anime = true;
+      const c = n === suiv ? 1 : -1, w = ov.clientWidth || innerWidth;
+      if (!voisins[c]) { detail(n, s, ov); return; }
+      placer(-c * w, 280); setTimeout(() => detail(n, null, ov), 290); };
     ov.querySelectorAll('[data-aller]').forEach(b => b.onclick = () => aller(b.dataset.aller, b.dataset.aller === suiv ? 'g' : 'd'));
     ov.querySelector('#cmdBack').onclick = () => close();
     ov.querySelector('#cmdPdf').onclick = async e => { const b = e.currentTarget; b.disabled = true; try { await bonDeCommande(o); } catch(x){ alert('PDF impossible : ' + x.message); } b.disabled = false; };
-    // Le téléphone peut annuler le geste (touchcancel) dès qu'il croit à un défilement : on décide aussi dans ce cas
-    const boite = ov.querySelector('.detail'); let x0 = 0, y0 = 0, x1 = 0, y1 = 0, suivi = false, horiz = null;
-    boite.addEventListener('touchstart', e => { if (e.touches.length > 1 || e.target.closest('select,input,textarea')) { suivi = false; return; }
-      x0 = x1 = e.touches[0].clientX; y0 = y1 = e.touches[0].clientY; suivi = true; horiz = null; }, {passive: true});
+    // le téléphone peut annuler le geste (touchcancel) : on termine proprement dans ce cas aussi
+    let x0 = 0, y0 = 0, x1 = 0, y1 = 0, suivi = false, horiz = null, pts = [];
+    boite.addEventListener('touchstart', e => { if (anime || e.touches.length > 1 || e.target.closest('select,input,textarea')) { suivi = false; return; }
+      x0 = x1 = e.touches[0].clientX; y0 = y1 = e.touches[0].clientY; suivi = true; horiz = null; pts = [[x0, performance.now()]]; }, {passive: true});
     boite.addEventListener('touchmove', e => { if (!suivi) return; x1 = e.touches[0].clientX; y1 = e.touches[0].clientY;
       const dx = x1 - x0, dy = y1 - y0;
-      if (horiz === null && (Math.abs(dx) > 12 || Math.abs(dy) > 12)) horiz = Math.abs(dx) > Math.abs(dy);
-      if (horiz){ if (e.cancelable) e.preventDefault(); boite.style.transform = `translateX(${dx * .6}px)`; } }, {passive: false});
-    const finGeste = () => { if (!suivi) return; suivi = false; boite.style.transform = '';
-      const dx = x1 - x0, dy = y1 - y0;
-      if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)) aller(dx < 0 ? suiv : prec, dx < 0 ? 'g' : 'd'); };
+      if (horiz === null && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) horiz = Math.abs(dx) > Math.abs(dy);
+      if (!horiz) return;
+      if (e.cancelable) e.preventDefault();
+      const t = performance.now(); pts.push([x1, t]); while (pts.length > 2 && t - pts[0][1] > 100) pts.shift();
+      const bord = (dx < 0 && !voisins[1]) || (dx > 0 && !voisins[-1]);   // pas de voisine : résistance
+      placer(bord ? dx * .25 : dx, 0); }, {passive: false});
+    const finGeste = () => { if (!suivi) return; suivi = false; if (!horiz) return;
+      const dx = x1 - x0, w = ov.clientWidth || innerWidth, p0 = pts[0], dt = performance.now() - p0[1];
+      const v = dt > 0 ? (x1 - p0[0]) / dt : 0;   // px/ms
+      const c = dx < 0 ? 1 : -1, ok = voisins[c] && (Math.abs(dx) > w * .3 || (Math.abs(v) > .35 && Math.sign(v) === -c && Math.abs(dx) > 20));
+      if (ok){ anime = true; const reste = w - Math.abs(dx), ms = Math.max(140, Math.min(300, reste / Math.max(Math.abs(v), 1.2)));
+        placer(-c * w, ms); setTimeout(() => detail(c === 1 ? suiv : prec, null, ov), ms + 10); }
+      else placer(0, 220); };
     boite.addEventListener('touchend', finGeste, {passive: true});
     boite.addEventListener('touchcancel', finGeste, {passive: true});
     ov.querySelector('#close').onclick = close;
