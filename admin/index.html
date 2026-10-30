@@ -15,7 +15,7 @@
 <link rel="apple-touch-icon" href="logo-v2-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <link rel="preconnect" href="https://script.google.com">
 <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
 <link rel="preload" href="commande.mp3" as="audio"><link rel="preload" href="relance.mp3" as="audio">
@@ -807,6 +807,46 @@ html.ordi .pmsheet{max-width:420px}
 .agbloc{gap:8px}
 .agrow>span{display:flex;flex-direction:column;min-width:0;flex:1}.agrap{font-size:12px;color:var(--soft);font-weight:700}.agrap.on{color:#0B6B35}
 .aglien{background:var(--surface)!important;color:var(--main)!important;margin-right:6px}
+
+/* ===== Thème professionnel (sobre, type Shopify) ===== */
+:root{--deep:#000000;--main:#2B59E8;--sun:#FFFFFF;--ink:#303030;--soft:#616161;--line:#E3E3E3;--surface:#F1F1F1;--bg:#FFFFFF;--card:#FFFFFF;--onDeepSoft:rgba(255,255,255,.62);color-scheme:light}
+
+body,button,input,select,textarea{font-family:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body{-webkit-font-smoothing:antialiased;font-feature-settings:"tnum" 1,"cv11" 1}
+h1,h2,h3,.num{font-family:"Inter",system-ui,sans-serif;font-weight:650;letter-spacing:-.02em}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--main)}
+.btn{background:#17191E;color:#fff;border-radius:10px;font-weight:600;font-size:16px;padding:14px}
+.btn.blue{background:var(--main);color:#fff}.btn.ghost{background:#F2F3F5;color:var(--ink)}
+.btn.blue2{background:#fff;color:var(--ink);border:1px solid var(--line)}
+.avatar{background:#2C2F36;color:#fff;font:600 15px "Inter",sans-serif;width:40px;height:40px}
+.store{font:650 19px "Inter",sans-serif;letter-spacing:-.01em}
+.brandlogo{width:36px;height:36px;border-radius:9px;box-shadow:none}
+.iconbtn{background:rgba(255,255,255,.06);width:40px;height:40px}
+.iconbtn svg{width:20px;height:20px}
+.chip{border-radius:8px;font-weight:500;font-size:14px}
+.chip.on{background:#fff;color:#17191E;border-color:#fff}
+.kpi{border-radius:10px;padding:10px 12px}.kpi small{font-size:13px}.kpi b{font:650 22px "Inter",sans-serif;letter-spacing:-.02em}
+.kpi.on{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.14)}
+.legend span::before{background:#7EA2FF}
+.card{border-radius:12px}.tile{border-radius:12px}.tile b{font:650 22px "Inter",sans-serif;letter-spacing:-.02em}
+.detail{border-radius:16px 16px 0 0}
+.nav{border-radius:16px;box-shadow:0 6px 24px rgba(17,24,39,.14)}
+.toast{background:#fff;color:var(--ink);border-radius:12px;border-left:4px solid var(--main);box-shadow:0 10px 30px rgba(17,24,39,.18)}
+.pushban{background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:12px}
+.login .logo{background:#fff;color:#17191E;border-radius:16px}
+.ph:first-child::before{background:#17191E;color:#fff;border-radius:6px}
+.nfbadge{background:#E5484D}
+.pmsheet>button,.pmsheet>a{font-weight:500;font-size:15.5px;border-radius:8px}
+.overlay{background:rgba(17,24,39,.45)}
+.iabtn,.iahd .av{background:#17191E;box-shadow:0 6px 20px rgba(17,24,39,.25)}
+.ptile{background:var(--card);border:1px solid var(--line);border-radius:12px}
+.ptile>span:first-child,.ianote>span:first-child,.toast .e{display:none}
+.set .chip{background:var(--card)!important;color:var(--ink)!important;border:1px solid var(--line)!important;font-weight:600}
+.vband.essai{background:var(--surface);color:var(--ink)}.vband.essai a{background:var(--ink);color:var(--bg)}
+@media (prefers-color-scheme:dark){:root{--bg:#0B0B0B;--card:#1A1A1A;--surface:#242424;--line:#303030;--ink:#EDEDED;--soft:#A3A3A3;--main:#5B8CFF;--okbg:#10301F;--errbg:#3A1717;color-scheme:dark}
+  .btn{background:#EDEDED;color:#111}.btn.ghost,.btn.blue2{background:#242424;color:#EDEDED;border-color:#303030}.btn.blue{background:var(--main);color:#fff}
+  .nav{background:#1A1A1A;box-shadow:0 6px 24px rgba(0,0,0,.6)}.toast,.pushban{background:#1A1A1A;color:#EDEDED}
+  .ph:first-child::before{background:#EDEDED;color:#111}.iabtn,.iahd .av{background:#EDEDED;color:#111}}
 </style>
 </head>
 <body>
@@ -830,6 +870,50 @@ html.ordi .pmsheet{max-width:420px}
 <button class="vueflot hidden" id="vueflot" data-vue="ordi">🖥 Vue ordinateur</button>
 
 <script>
+/* Mode sombre automatique (comme Shopify) : suit le réglage du téléphone */
+(function(){
+  const mq = matchMedia('(prefers-color-scheme: dark)');
+  const rgb = v => { const m = String(v || '').match(/rgba?\(\s*(\d+)[ ,]+(\d+)[ ,]+(\d+)(?:[ ,/]+([\d.]+))?/); return m ? [+m[1], +m[2], +m[3], m[4] == null ? 1 : +m[4]] : null; };
+  const lum = c => (0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]) / 255;
+  const fait = new WeakSet();
+  function convertir(rules){
+    for (const r of rules){
+      if (r.cssRules && !r.selectorText){ if (!(r.media && /prefers-color-scheme/.test(r.media.mediaText))) convertir(r.cssRules); continue; }
+      const st = r.style; if (!st || fait.has(r)) continue; fait.add(r);
+      const sel = r.selectorText || '';
+      if (/^(\.top|\.kpi|\.chip|\.iconbtn|\.avatar|\.btn|\.toast|\.pushban|\.login|\.bar|\.store|\.legend|\.nfbadge|\.dv|\.tt-top|\.rtop)/.test(sel) || /pulse|dot|live|badge.*::|on\b.*::before/.test(sel)) continue;   // en-tête noir : déjà sombre
+      const bg = rgb(st.backgroundColor);
+      if (bg && bg[3] > .5){ const l = lum(bg), sb = Math.max(...bg.slice(0, 3)) - Math.min(...bg.slice(0, 3)); if (l > .7 && sb > 25) st.backgroundColor = 'color-mix(in srgb, rgb(' + bg.slice(0, 3) + ') 24%, var(--card))'; else if (l > .97) st.backgroundColor = 'var(--card)'; else if (l > .85) st.backgroundColor = 'var(--surface)'; else if (l > .7 && (bg[0] > 200 || bg[2] > 200)) st.backgroundColor = 'color-mix(in srgb, rgb(' + bg.slice(0, 3) + ') 14%, var(--card))'; }
+      if (st.backgroundImage && /linear-gradient\((?:[^()]*\([^()]*\))*[^()]*#?(fff|f[0-9a-f]{5}|e[a-f0-9]{5})/i.test(st.backgroundImage) && !/repeating/.test(st.backgroundImage)) st.backgroundImage = 'none';
+      const co = rgb(st.color); if (co){ const sat = Math.max(...co.slice(0, 3)) - Math.min(...co.slice(0, 3)), l = lum(co); if (sat > 40 && l < .45) st.color = 'color-mix(in srgb, rgb(' + co.slice(0, 3) + ') 45%, #fff)'; else if (l < .3) st.color = 'var(--ink)'; else if (l < .45) st.color = 'var(--soft)'; }
+      ['borderColor', 'borderTopColor', 'borderBottomColor', 'borderLeftColor', 'borderRightColor'].forEach(k => { const b = rgb(st[k]); if (b && lum(b) > .78) st[k] = 'var(--line)'; });
+    }
+  }
+  function appliquer(){ if (!mq.matches) return; for (const sh of document.styleSheets){ try { convertir(sh.cssRules); } catch(e){} } }
+  // Styles écrits directement dans les écrans (fond blanc, texte foncé)
+  function inline(el){
+    if (!mq.matches || !el.style) return;
+    const bg = rgb(el.style.backgroundColor); if (bg && bg[3] > .5 && lum(bg) > .85 && !el.closest('.top')) el.style.backgroundColor = lum(bg) > .97 ? 'var(--card)' : 'var(--surface)';
+    const co = rgb(el.style.color); if (co){ const sat = Math.max(...co.slice(0, 3)) - Math.min(...co.slice(0, 3)), l = lum(co); if (sat > 40 && l < .45) el.style.color = 'color-mix(in srgb, rgb(' + co.slice(0, 3) + ') 45%, #fff)'; else if (l < .3) el.style.color = 'var(--ink)'; else if (l < .45) el.style.color = 'var(--soft)'; }
+  }
+  const obs = new MutationObserver(m => { if (!mq.matches) return; m.forEach(x => x.addedNodes.forEach(n => { if (n.nodeType !== 1) return; inline(n); n.querySelectorAll && n.querySelectorAll('[style]').forEach(inline); })); });
+  const go = () => { appliquer(); obs.observe(document.body, {childList: true, subtree: true}); document.querySelectorAll('[style]').forEach(inline); };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go); else go();
+  mq.addEventListener ? mq.addEventListener('change', () => location.reload()) : mq.addListener(() => location.reload());
+})();
+
+/* Interface sobre : on retire l'emoji placé au début des titres, boutons et menus (le texte reste) */
+(function(){
+  const SEL = 'h1,h2,h3,h4,summary,button,a,.chip,.set b,.nfit b,.lbl,.kpi small,.tile small,.okmsg,.iaerr,.ptile b,.ianote b,label';
+  let EMO; try { EMO = new RegExp('^(\\s*)(?:\\p{Extended_Pictographic}|\\p{Regional_Indicator}|[\\u2190-\\u21FF\\u2300-\\u23FF\\u25A0-\\u25FF\\u2600-\\u27BF\\u2980-\\u29FF\\u2B00-\\u2BFF])(?:\\uFE0F|\\u200D|\\p{Extended_Pictographic}|\\p{Emoji_Modifier})*\\s+(?=\\S)', 'u'); } catch(e){ return; }
+  const net = el => { const t = el.firstChild; if (t && t.nodeType === 3 && EMO.test(t.nodeValue)) t.nodeValue = t.nodeValue.replace(EMO, '$1'); };
+  let file = new Set(), prevu = false;
+  const passe = () => { prevu = false; file.forEach(n => { if (!n.isConnected) return; if (n.matches && n.matches(SEL)) net(n); if (n.querySelectorAll) n.querySelectorAll(SEL).forEach(net); }); file = new Set(); };
+  const obs = new MutationObserver(m => { m.forEach(x => x.addedNodes.forEach(n => { if (n.nodeType === 1) file.add(n); else if (n.parentElement) file.add(n.parentElement); })); if (!prevu){ prevu = true; requestAnimationFrame(passe); } });
+  const go = () => { obs.observe(document.body, {childList: true, subtree: true}); file.add(document.body); passe(); };
+  if (document.body) go(); else document.addEventListener('DOMContentLoaded', go);
+})();
+
 (function(){
   const app = document.getElementById('app'), nav = document.getElementById('nav');
   // Boutique en cours (Vendoo) : '' = boutique principale ; chaque boutique garde ses propres données sur le téléphone
@@ -2007,7 +2091,7 @@ function nettoyerHtml(h){
   function finDemarrage(){
     if (demarre) return; demarre = true;
     const d = document.getElementById('demarrage'), t0 = performance.now();
-    setTimeout(() => { const m = document.getElementById('couleurBarre'); if (m) m.content = '#12308F';
+    setTimeout(() => { const m = document.getElementById('couleurBarre'); if (m) m.content = '#000000';
       if (d){ d.style.opacity = '0'; setTimeout(() => d.remove(), 160); } }, Math.max(0, 250 - t0));
   }
   function render(){
@@ -2091,7 +2175,7 @@ function nettoyerHtml(h){
           <div class="avatar" aria-hidden="true">${esc((D.boutique || 'AB').slice(0,2).toUpperCase())}</div>
           <button class="store" id="bqBtn" aria-label="Changer de boutique"><img class="brandlogo" src="icon-192.png" alt="" aria-hidden="true"><span class="stn">${esc(D.boutique || 'Ma boutique')}</span><span class="stv">▾</span></button>
           <button class="iconbtn refbtn" id="refBtn" aria-label="Actualiser" title="Actualiser (F5)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button>
-          <button class="iconbtn nfbtn" id="nfBtn" aria-label="Notifications${D.notifs ? ' : ' + D.notifs + ' non lue' + (D.notifs > 1 ? 's' : '') : ''}">🔔${D.notifs ? `<span class="nfbadge">${D.notifs > 99 ? '99+' : D.notifs}</span>` : ''}</button>
+          <button class="iconbtn nfbtn" id="nfBtn" aria-label="Notifications${D.notifs ? ' : ' + D.notifs + ' non lue' + (D.notifs > 1 ? 's' : '') : ''}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>${D.notifs ? `<span class="nfbadge">${D.notifs > 99 ? '99+' : D.notifs}</span>` : ''}</button>
         </div>
 
         ${pushBanner()}
@@ -2167,7 +2251,7 @@ function nettoyerHtml(h){
     const unit = metric === 'ventes' ? D.devise : metric;
     el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Évolution des ${esc(metric)} (${esc(unit)})">${grid}
       <path d="${path(b)}" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="2" stroke-dasharray="4 4"/>
-      <path d="${path(a)}" fill="none" stroke="#FFC93C" stroke-width="3" stroke-linecap="round"/>${xl}</svg>`;
+      <path d="${path(a)}" fill="none" stroke="#7EA2FF" stroke-width="2.5" stroke-linecap="round"/>${xl}</svg>`;
   }
 
   /* ---------- Vue en direct (comme Shopify) ---------- */
@@ -2873,7 +2957,7 @@ function nettoyerHtml(h){
     if (ts >= auj.getTime()) return 'aujourd’hui ' + h; if (ts >= auj.getTime() - 864e5) return 'hier ' + h;
     return d.toLocaleDateString('fr-FR', {day: 'numeric', month: 'short', year: d.getFullYear() === auj.getFullYear() ? undefined : 'numeric'}) + ' · ' + h; };
   function majCloche(n){ if (D) D.notifs = n; const b = document.getElementById('nfBtn'); if (!b) return;
-    b.innerHTML = '🔔' + (n ? `<span class="nfbadge">${n > 99 ? '99+' : n}</span>` : ''); }
+    b.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>' + (n ? `<span class="nfbadge">${n > 99 ? '99+' : n}</span>` : ''); }
   async function ouvrirNotifs(){
     const o = feuille(`<div class="nfhead"><h2>🔔 Notifications</h2><button class="iconbtn2" id="nfMenu" aria-label="Options">⋮</button></div><div id="nfL"><div class="iaload"><span class="spin"></span> Chargement…</div></div><button class="btn ghost" data-x style="margin-top:14px">Fermer</button>`);
     o.querySelector('[data-x]').onclick = () => o.remove();
