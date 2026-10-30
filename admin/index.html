@@ -73,6 +73,8 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
 .store i{width:34px;height:34px;border-radius:10px;background:var(--sun);display:grid;place-items:center;font-style:normal;font-size:18px}
 .iconbtn{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-size:20px;background:rgba(255,255,255,.08)}
 .iconbtn.off{opacity:.5}
+.pxg{display:grid;grid-template-columns:auto 1fr 1fr;gap:8px 10px;align-items:center;margin-top:6px}.pxg>b{font-size:13px;color:var(--soft)}.pxg>span{font-weight:700;font-size:15px}.pxg .field{margin:0}
+.pxauto{display:block;padding:12px 14px;border-radius:12px;background:var(--surface);color:var(--soft);font-weight:700;text-decoration:line-through;min-height:46px}
 .nfbtn{position:relative}.nfbadge{position:absolute;top:2px;right:0;min-width:19px;height:19px;padding:0 5px;border-radius:10px;background:#E5484D;color:#fff;font-size:11.5px;font-weight:800;display:grid;place-items:center;line-height:1}
 .nfhead{display:flex;align-items:center;justify-content:space-between;gap:10px}.nfhead h2{margin:0}
 .nfit{display:flex;gap:10px;width:100%;text-align:left;padding:14px 4px;border-bottom:1px solid var(--line);background:none}
@@ -3213,10 +3215,14 @@ function nettoyerHtml(h){
           </div></div>
 
         ${M ? `<div class="card"><h3>Prix</h3><p class="tag">Le prix de ce produit dans cette boutique (${esc(PB.devise)}). Pour le vendre dans une autre boutique : copie-le, colle-le là-bas et change le prix.</p>
-            <div class="g2"><label>Prix 1 pièce<input class="field" inputmode="numeric" data-pm="p1" value="${esc(M.p1 || '')}"></label><label>Ancien prix (barré)<input class="field" inputmode="numeric" data-pm="ancien" value="${esc(M.ancien || '')}"></label>
-            <label>Prix 2 pièces (ou %)<input class="field" data-pm="p2" value="${esc(M.p2 || '')}" placeholder="ex : 35000 ou 10%"></label><label>Prix 3 pièces (ou %)<input class="field" data-pm="p3" value="${esc(M.p3 || '')}" placeholder="ex : 50000 ou 15%"></label>
-            <label>Réduction si livré aujourd'hui<input class="field" inputmode="numeric" data-pm="jour" value="${esc(M.jour || '')}"></label><label>Offre : achetés<input class="field" inputmode="numeric" data-pm="oa" value="${esc(M.oa || '')}" placeholder="ex : 2"></label>
-            <label>Offre : offerts<input class="field" inputmode="numeric" data-pm="oo" value="${esc(M.oo || '')}" placeholder="ex : 1"></label><label>Offre : prix<input class="field" inputmode="numeric" data-pm="op" value="${esc(M.op || '')}" placeholder="auto"></label></div></div>` : `        <div class="card"><h3>Prix par pays</h3><p class="tag">Laisse vide un pays où tu ne vends pas ce produit.</p>
+            <div class="pxg"><span></span><b>Prix</b><b>Prix barré</b>
+              <span>Unité</span><input class="field" inputmode="numeric" data-pm="p1" value="${esc(M.p1 || '')}" placeholder="ex : 15500"><input class="field" inputmode="numeric" data-pm="ancien" value="${esc(M.ancien || '')}" placeholder="facultatif">
+              <span>Deux</span><input class="field" data-pm="p2" value="${esc(M.p2 || '')}" placeholder="ex : 27000"><output class="pxauto" data-pb="2"></output>
+              <span>Trois</span><input class="field" data-pm="p3" value="${esc(M.p3 || '')}" placeholder="ex : 36000"><output class="pxauto" data-pb="3"></output></div>
+            <p class="tag" style="margin-top:8px">Le prix barré de 2 et 3 pièces est calculé tout seul (prix barré de l’unité × quantité). Tu peux aussi écrire un pourcentage (ex : 10%). Laisse « Deux » ou « Trois » vide pour ne pas proposer l’offre.</p>
+            <details class="pays1" ${M.oa || M.oo ? 'open' : ''}><summary><b>Offre spéciale</b><span class="tag">facultatif · ex : achetez 2, recevez 3</span></summary>
+            <div class="g2"><label>Achetés<input class="field" inputmode="numeric" data-pm="oa" value="${esc(M.oa || '')}" placeholder="ex : 2"></label><label>Offerts<input class="field" inputmode="numeric" data-pm="oo" value="${esc(M.oo || '')}" placeholder="ex : 1"></label>
+            <label>Prix de l’offre<input class="field" inputmode="numeric" data-pm="op" value="${esc(M.op || '')}" placeholder="auto"></label></div></details></div>` : `        <div class="card"><h3>Prix par pays</h3><p class="tag">Laisse vide un pays où tu ne vends pas ce produit.</p>
           ${paysTous.map(p => { const x = prixDe(p.nom) || {}; const k = esc(p.nom); return `<details class="pays1" data-p="${k}" ${x.p1 || ouverts.includes(p.nom) ? 'open' : ''}><summary><b>${esc(p.nom)}</b>${p.actif ? '' : ' <span class="tag">(pays inactif)</span>'}<span class="tag">${x.p1 ? esc(fmt(String(x.p1).replace(/[^\d.,]/g, ''), p.devise)) : 'pas de prix'}</span></summary>
             <div class="g2"><label>Prix 1 pièce<input class="field" inputmode="numeric" data-px="${k}|p1" value="${esc(x.p1 || '')}"></label><label>Ancien prix (barré)<input class="field" inputmode="numeric" data-px="${k}|ancien" value="${esc(x.ancien || '')}"></label>
             <label>Prix 2 pièces (ou %)<input class="field" data-px="${k}|p2" value="${esc(x.p2 || '')}" placeholder="ex : 35000 ou 10%"></label><label>Prix 3 pièces (ou %)<input class="field" data-px="${k}|p3" value="${esc(x.p3 || '')}" placeholder="ex : 50000 ou 15%"></label>
@@ -3514,6 +3520,10 @@ function nettoyerHtml(h){
         uploads[tok].then(url => { P.photos = P.photos.map(u => u === tok ? url : u); }).catch(() => {});
         dessiner();
       });
+      // Prix barré de 2 et 3 pièces : calculé comme sur le site ((prix barré ou prix) × quantité)
+      const pxAuto = () => { const n = v => Number(String(v || '').replace(/[^\d.]/g, '')) || 0, g = q => ed.querySelector(`[data-pm="${q}"]`), p1 = n(g('p1') && g('p1').value), an = n(g('ancien') && g('ancien').value), b = an > p1 ? an : p1;
+        ed.querySelectorAll('[data-pb]').forEach(o => { const q = +o.dataset.pb, v = g('p' + q) && g('p' + q).value.trim(); o.textContent = b && v ? fmt(b * q) : '—'; }); };
+      ed.querySelectorAll('[data-pm]').forEach(t => t.addEventListener('input', pxAuto)); pxAuto();
       ed.querySelectorAll('[data-cp]').forEach(b => b.onclick = maj(() => {
         const srcP = prixDe(b.dataset.cp); if (!srcP) return;
         const dev = (PR.pays.find(p => p.nom === b.dataset.cp) || {}).devise;
