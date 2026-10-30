@@ -844,6 +844,26 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
 .setrow{width:100%;text-align:left;color:var(--ink);text-decoration:none;background:none}.setgo{color:var(--soft);font-size:22px;line-height:1}
 .sethd{font-size:13px;font-weight:600;color:var(--soft);text-transform:uppercase;letter-spacing:.04em;margin:22px 0 2px}
 .bqgo{color:var(--soft);font-size:22px;padding:0 6px}
+/* Couleurs Shopify (badges, succès, liens) */
+:root{--main:#005BD3;--ok:#29845A;--okbg:#CDFEE1;--err:#C70A24;--errbg:#FEE9E8}
+.badge{border-radius:8px;font-size:13px;font-weight:550;padding:3px 9px;background:#FFEB78;color:#4F4700}
+.b-Confirmée,.b-En,.b-Jarrive{background:#E0F0FF;color:#00527C}.b-Livrée,.b-Lui{background:#CDFEE1;color:#0C5132}
+.b-À,.b-Expédition{background:#FFD6A4;color:#5E4200}.b-Annulée,.b-Retournée{background:#FEDAD9;color:#8E1F0B}
+.b-Ne,.b-Nous,.b-Injoignable{background:#E3E3E3;color:#616161}
+.switch.on{background:#29845A}
+@media (prefers-color-scheme:dark){:root{--main:#4D9BFF;--ok:#4FC28C;--okbg:#0C3A26;--err:#FF6B6B;--errbg:#3A1717}
+  .badge{background:#4A4100;color:#FFEB78}.b-Confirmée,.b-En,.b-Jarrive{background:#06304D;color:#9CD3FF}.b-Livrée,.b-Lui{background:#0C3A26;color:#7EE2B0}
+  .b-À,.b-Expédition{background:#4A2E00;color:#FFD6A4}.b-Annulée,.b-Retournée{background:#4A1410;color:#FFB3AE}.b-Ne,.b-Nous,.b-Injoignable{background:#303030;color:#B5B5B5}}
+/* Commande en plein écran (comme Shopify) */
+.overlay.plein{align-items:stretch;background:var(--bg)}
+.detail.plein{max-width:none;width:100%;height:100%;max-height:100%;border-radius:0;padding-top:0;animation:none;overflow-y:auto}
+.cmdbar{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:6px;margin:0 -18px 6px;padding:calc(env(safe-area-inset-top) + 8px) 10px 8px;background:var(--card);border-bottom:1px solid var(--line)}
+.cmdbar .sp{flex:1;text-align:center;font-weight:600;color:var(--soft);font-size:14px}
+.cmdbar button{width:42px;height:42px;border-radius:10px;display:grid;place-items:center;color:var(--ink);background:none}
+.cmdbar button:active{background:var(--surface)}.cmdbar button[disabled]{opacity:.3}
+.cmdbar svg{width:22px;height:22px}
+.detail .ticket{border:1px solid var(--line);border-radius:12px;background:var(--card)}.detail .ticket .total span:last-child{color:var(--ink)}
+.detail .maplink small{display:none}
 .set .chip{background:var(--card)!important;color:var(--ink)!important;border:1px solid var(--line)!important;font-weight:600}
 .vband.essai{background:var(--surface);color:var(--ink)}.vband.essai a{background:var(--ink);color:var(--bg)}
 @media (prefers-color-scheme:dark){:root{--bg:#0B0B0B;--card:#1A1A1A;--surface:#242424;--line:#303030;--ink:#EDEDED;--soft:#A3A3A3;--main:#5B8CFF;--okbg:#10301F;--errbg:#3A1717;color-scheme:dark}
@@ -2527,10 +2547,15 @@ function nettoyerHtml(h){
     const tel = String(o.tel).replace(/\D/g, '');
     if (!listeDetail.includes(num)) listeDetail = D.commandes.map(x => x.numero);
     const i = listeDetail.indexOf(num), prec = listeDetail[i - 1], suiv = listeDetail[i + 1];
-    const ov = ovExistant || document.createElement('div'); ov.className = 'overlay';
-    ov.innerHTML = `<div class="detail ${sens ? 'glisse-' + sens : ''}" role="dialog" aria-modal="true" aria-label="Commande ${esc(o.numero)}">
-      <div class="grab"></div>
-      <div class="dnav"><button class="dnavb" data-aller="${esc(prec || '')}" ${prec ? '' : 'disabled'} aria-label="Commande précédente">‹</button><span>${i + 1} / ${listeDetail.length}</span><button class="dnavb" data-aller="${esc(suiv || '')}" ${suiv ? '' : 'disabled'} aria-label="Commande suivante">›</button></div>
+    const ov = ovExistant || document.createElement('div'); ov.className = 'overlay plein';
+    const SVG = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+    ov.innerHTML = `<div class="detail plein ${sens ? 'glisse-' + sens : ''}" role="dialog" aria-modal="true" aria-label="Commande ${esc(o.numero)}">
+      <div class="cmdbar"><button id="cmdBack" aria-label="Retour">${SVG('<path d="M15 18l-6-6 6-6"/>')}</button>
+        <button data-aller="${esc(prec || '')}" ${prec ? '' : 'disabled'} aria-label="Commande précédente">${SVG('<path d="M18 15l-6-6-6 6"/>')}</button>
+        <button data-aller="${esc(suiv || '')}" ${suiv ? '' : 'disabled'} aria-label="Commande suivante">${SVG('<path d="M6 9l6 6 6-6"/>')}</button>
+        <span class="sp">${i + 1} / ${listeDetail.length}</span>
+        <button id="cmdPdf" aria-label="Bon de commande en PDF">${SVG('<path d="M6 9V3h12v6"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v7H6z"/>')}</button></div>
+      <div class="dnav" style="display:none"><button class="dnavb" data-aller="${esc(prec || '')}" ${prec ? '' : 'disabled'} aria-label="Commande précédente">‹</button><span>${i + 1} / ${listeDetail.length}</span><button class="dnavb" data-aller="${esc(suiv || '')}" ${suiv ? '' : 'disabled'} aria-label="Commande suivante">›</button></div>
       <h2>Commande #${esc(o.numero)}</h2>
       <p class="sub">${esc(dayName(o.date))} à ${esc(o.heure)} · ${esc(o.pays)}${o.source ? ' · ' + esc(o.source) : ''}</p>
       ${badge(o.statut)}
@@ -2560,7 +2585,9 @@ function nettoyerHtml(h){
     ov.onclick = e => { if (e.target === ov) close(); };
     // Glisser à gauche = commande suivante, à droite = précédente
     const aller = (n, s) => { if (n) detail(n, s, ov); };
-    ov.querySelectorAll('[data-aller]').forEach(b => b.onclick = () => aller(b.dataset.aller, b.textContent === '›' ? 'g' : 'd'));
+    ov.querySelectorAll('[data-aller]').forEach(b => b.onclick = () => aller(b.dataset.aller, b.dataset.aller === suiv ? 'g' : 'd'));
+    ov.querySelector('#cmdBack').onclick = () => close();
+    ov.querySelector('#cmdPdf').onclick = async e => { const b = e.currentTarget; b.disabled = true; try { await bonDeCommande(o); } catch(x){ alert('PDF impossible : ' + x.message); } b.disabled = false; };
     const boite = ov.querySelector('.detail'); let x0 = 0, y0 = 0, suivi = false;
     boite.addEventListener('touchstart', e => { if (e.target.closest('select,input,textarea')) return; x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; suivi = true; }, {passive: true});
     boite.addEventListener('touchmove', e => { if (!suivi) return; const dx = e.touches[0].clientX - x0, dy = e.touches[0].clientY - y0;
@@ -2587,6 +2614,40 @@ function nettoyerHtml(h){
       try { await call({type:'statut', numero: o.numero, statut: st}); o.statut = st; b.textContent = 'Statut enregistré ✓'; setTimeout(close, 700); }
       catch(err){ b.disabled = false; b.textContent = 'Échec : réessayer'; }
     };
+  }
+
+  /* ---------- Bon de commande en PDF (à envoyer au client sur WhatsApp, comme Shopify) ---------- */
+  let jsPdfP = null;
+  const chargerJsPdf = () => jsPdfP = jsPdfP || new Promise((ok, ko) => { if (window.jspdf) return ok(window.jspdf);
+    const sc = document.createElement('script'); sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'; sc.onload = () => ok(window.jspdf); sc.onerror = () => { jsPdfP = null; ko(new Error('connexion')); }; document.head.appendChild(sc); });
+  async function bonDeCommande(o){
+    const {jsPDF} = await chargerJsPdf();
+    const doc = new jsPDF({unit: 'mm', format: 'a5'}), W = 148, M = 14;
+    const txt = v => String(v == null ? '' : v).replace(/[  ]/g, ' ').replace(/[^\x20-\x7E -ÿ’–€]/g, '').trim();
+    const nb = n => String(Math.round(Number(n) || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    const boutique = txt((D && D.boutique) || 'Boutique');
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(15); doc.text(boutique, M, 20);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(97);
+    doc.text('Bon de commande n° ' + txt(o.numero), W - M, 17, {align: 'right'}); doc.text(txt(o.date) + (o.heure ? ' à ' + txt(o.heure) : ''), W - M, 22, {align: 'right'});
+    doc.setDrawColor(48); doc.setLineWidth(.4); doc.line(M, 27, W - M, 27);
+    doc.setTextColor(48); doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.text('CLIENT', M, 35); doc.text('LIVRAISON', W / 2 + 2, 35);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(10);
+    doc.text([txt(o.nom), txt(o.tel)], M, 41);
+    doc.text(doc.splitTextToSize(txt(o.adresse) + (o.pays ? '\n' + txt(o.pays) : ''), W / 2 - M - 2), W / 2 + 2, 41);
+    let y = 62; doc.line(M, y, W - M, y); y += 7;
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.text('ARTICLE', M, y); doc.text('OFFRE', W - M, y, {align: 'right'}); y += 6;
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(10);
+    const lignesP = doc.splitTextToSize(txt(o.produit), W - 2 * M - 34); doc.text(lignesP, M, y); doc.text(txt(o.offre || (o.qte + ' pièce' + (o.qte > 1 ? 's' : ''))), W - M, y, {align: 'right'});
+    y += lignesP.length * 5 + 4; doc.line(M, y, W - M, y); y += 9;
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(12); doc.text('Total à payer à la livraison', M, y); doc.text(nb(o.total) + ' ' + txt(o.devise || 'FCFA'), W - M, y, {align: 'right'});
+    y += 7; doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(97);
+    doc.text('Vous payez seulement à la réception du colis.', M, y);
+    doc.setFontSize(10); doc.setTextColor(48); doc.text('Merci pour votre commande !', W / 2, 190, {align: 'center'});
+    doc.setFontSize(8); doc.setTextColor(140); doc.text(boutique, W / 2, 196, {align: 'center'});
+    const nom = 'Bon-de-commande-' + txt(o.numero).replace(/\W+/g, '') + '.pdf', blob = doc.output('blob'), file = new File([blob], nom, {type: 'application/pdf'});
+    if (navigator.canShare && navigator.canShare({files: [file]})){ try { await navigator.share({files: [file], title: 'Bon de commande n° ' + o.numero}); return; } catch(e){ if (e && e.name === 'AbortError') return; } }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = nom; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    toast('Bon de commande téléchargé');
   }
 
   function bindCopy(root){
