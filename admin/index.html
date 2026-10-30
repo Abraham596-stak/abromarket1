@@ -881,6 +881,11 @@ function nettoyerHtml(h){
   } catch(e){}
   const CAL = '<svg class="cal" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>';
   const fmt = (n, d) => (Number(n)||0).toLocaleString('fr-FR', {maximumFractionDigits: 2}).replace(/[  ]/g, ' ') + (d ? ' ' + d : '');
+  // Comme Shopify : à partir d'un million, « 3,26 M FCFA » (3 chiffres utiles)
+  const fmtM = (n, d) => { n = Number(n) || 0; const a = Math.abs(n);
+    if (a < 1e6) return fmt(n, d);
+    const [v, u] = a >= 1e9 ? [n / 1e9, ' Md'] : [n / 1e6, ' M'];
+    return v.toLocaleString('fr-FR', {maximumSignificantDigits: 3}).replace(/[  ]/g, ' ') + u + (d ? ' ' + d : ''); };
   const short = n => { n = Number(n)||0; return n >= 1e6 ? (n/1e6).toFixed(1).replace('.0','') + ' M' : n >= 1e3 ? Math.round(n/1e3) + ' k' : String(Math.round(n)); };
 
   const SS = { get(k){ try{return sessionStorage.getItem(k)}catch(e){return null} }, set(k,v){ try{sessionStorage.setItem(k,v)}catch(e){} } };
@@ -2090,7 +2095,7 @@ function nettoyerHtml(h){
         ${pushBanner()}
         <div class="kpis" role="tablist">
           <button class="kpi dvgo" data-go="direct"><small>En direct</small><b><span class="pulse"></span>${D.live}</b></button>
-          <button class="kpi ${metric==='ventes'?'on':''}" data-m="ventes"><small>Ventes totales</small><b>${esc(fmt(ca, dev))}</b>${pct(ca, caP)}</button>
+          <button class="kpi ${metric==='ventes'?'on':''}" data-m="ventes"><small>Ventes totales</small><b>${esc(fmtM(ca, dev))}</b>${pct(ca, caP)}</button>
           <button class="kpi ${metric==='commandes'?'on':''}" data-m="commandes"><small>Commandes</small><b>${c.commandes}</b>${pct(c.commandes, p.commandes)}</button>
           <button class="kpi ${metric==='visites'?'on':''}" data-m="visites"><small>Visites</small><b>${c.visites}</b>${pct(c.visites, p.visites)}</button>
           <div class="kpi"><small>Taux de conversion</small><b>${conv.toFixed(1).replace('.', ',')} %</b>${p.visites ? `<span class="d ${conv >= convP ? 'up' : 'down'}">${conv >= convP ? '+' : ''}${(conv-convP).toFixed(1).replace('.', ',')} pt</span>` : ''}</div>
@@ -2175,7 +2180,7 @@ function nettoyerHtml(h){
   const quandCmd = o => { const [d, m, y] = String(o.date).split('/').map(Number); const h = String(o.heure || '').match(/(\d{1,2}):(\d{2})/); return new Date(y, m - 1, d, h ? +h[1] : 0, h ? +h[2] : 0).getTime(); };
   const telCle = t => String(t || '').replace(/\D/g, '').slice(-8);
   function dvPct(a, b){ if (!b) return a ? '<span class="dvd up">↗ nouveau</span>' : ''; const p = Math.round((a - b) / b * 100); return `<span class="dvd ${p >= 0 ? 'up' : 'down'}">${p >= 0 ? '↗' : '↘'} ${Math.abs(p)} %</span>`; }
-  function dvMontant(n, dev){ n = Number(n) || 0; return (n >= 1e5 ? (n / 1e3).toFixed(1).replace('.', ',') + ' k' : fmt(n)) + ' ' + (dev === 'FCFA' ? 'XOF' : dev); }
+  function dvMontant(n, dev){ n = Number(n) || 0; return (n >= 1e6 ? fmtM(n) : n >= 1e5 ? (n / 1e3).toFixed(1).replace('.', ',') + ' k' : fmt(n)) + ' ' + (dev === 'FCFA' ? 'XOF' : dev); }
 
   function direct(){
     if (!document.getElementById('dvRoot')){
