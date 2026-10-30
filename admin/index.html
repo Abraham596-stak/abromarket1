@@ -2705,8 +2705,19 @@ function nettoyerHtml(h){
       if (!PR && view === 'products'){ const pl = document.getElementById('pl'); if (pl) pl.innerHTML = /introuvable|inconnu/i.test(e.message) ? 'Mets à jour le code Apps Script (Code.gs), puis crée une nouvelle version.' : 'Connexion impossible. Réessaie.'; }
     } finally { prBusy = false; }
   }
+  // Un seul prix par produit et par boutique (les pays de la boutique utilisent la même monnaie) :
+  // plus de « prix par pays » à remplir. Si une boutique vend dans plusieurs monnaies, on garde les prix par pays.
+  function prixBoutique(){
+    const actifs = ((PR && PR.pays) || []).filter(p => p.actif), devs = [...new Set(actifs.map(p => p.devise))];
+    return {actifs, devise: devs[0] || ((PR && PR.pays && PR.pays[0]) || {}).devise || '', simple: actifs.length > 0 && devs.length === 1};
+  }
+  function prixMaitre(liste){
+    const B = prixBoutique(), l = (liste || []).filter(x => String(x.p1 || '').trim());
+    return l.find(x => B.actifs.some(a => a.nom.toLowerCase() === String(x.pays).toLowerCase())) || l.find(x => { const q = PR.pays.find(a => a.nom.toLowerCase() === String(x.pays).toLowerCase()); return q && q.devise === B.devise; }) || l[0] || null;
+  }
   function prixResume(p){
     if (!PR) return '';
+    if (prixBoutique().simple){ const m = prixMaitre(p.prix); return m ? fmt(String(m.p1).replace(/[^\d.,]/g, ''), prixBoutique().devise) : 'Aucun prix'; }
     const l = (p.prix || []).filter(x => Number(String(x.p1).replace(/[^\d.]/g, '')) > 0);
     if (!l.length) return 'Aucun prix';
     return l.slice(0, 2).map(x => { const pp = PR.pays.find(q => q.nom.toLowerCase() === String(x.pays).toLowerCase()); return `${x.pays} : ${fmt(String(x.p1).replace(/[^\d.,]/g, ''), pp ? pp.devise : '')}`; }).join(' · ') + (l.length > 2 ? ` +${l.length - 2}` : '');
@@ -3154,6 +3165,7 @@ function nettoyerHtml(h){
     let faq = String(P.faq || '').split(/\n/).map(l => l.split('>>')).filter(x => x[0].trim()).map(x => ({q: x[0].trim(), r: x.slice(1).join('>>').trim()}));
     const paysTous = PR.pays.filter(p => p.actif || P.prix.some(x => x.pays.toLowerCase() === p.nom.toLowerCase()));
     const prixDe = nom => P.prix.find(x => x.pays.toLowerCase() === nom.toLowerCase());
+    const PB = prixBoutique(), M = PB.simple ? Object.assign({}, prixMaitre(P.prix) || {}) : null;   // prix unique de la boutique
     let sale = false, base = null, sigCourante = null;
     const ed = document.createElement('div'); ed.className = 'editor'; ed.setAttribute('role', 'dialog'); ed.setAttribute('aria-modal', 'true');
     document.body.appendChild(ed); document.body.style.overflow = 'hidden';
@@ -3200,14 +3212,17 @@ function nettoyerHtml(h){
             <div class="rtezone" id="eDesc" contenteditable="true" spellcheck="true"></div>
           </div></div>
 
-        <div class="card"><h3>Prix par pays</h3><p class="tag">Laisse vide un pays où tu ne vends pas ce produit.</p>
+        ${M ? `<div class="card"><h3>Prix</h3><p class="tag">Le prix de ce produit dans cette boutique (${esc(PB.devise)}). Pour le vendre dans une autre boutique : copie-le, colle-le là-bas et change le prix.</p>
+            <div class="g2"><label>Prix 1 pièce<input class="field" inputmode="numeric" data-pm="p1" value="${esc(M.p1 || '')}"></label><label>Ancien prix (barré)<input class="field" inputmode="numeric" data-pm="ancien" value="${esc(M.ancien || '')}"></label>
+            <label>Prix 2 pièces (ou %)<input class="field" data-pm="p2" value="${esc(M.p2 || '')}" placeholder="ex : 35000 ou 10%"></label><label>Prix 3 pièces (ou %)<input class="field" data-pm="p3" value="${esc(M.p3 || '')}" placeholder="ex : 50000 ou 15%"></label>
+            <label>Réduction si livré aujourd'hui<input class="field" inputmode="numeric" data-pm="jour" value="${esc(M.jour || '')}"></label><label>Offre : achetés<input class="field" inputmode="numeric" data-pm="oa" value="${esc(M.oa || '')}" placeholder="ex : 2"></label>
+            <label>Offre : offerts<input class="field" inputmode="numeric" data-pm="oo" value="${esc(M.oo || '')}" placeholder="ex : 1"></label><label>Offre : prix<input class="field" inputmode="numeric" data-pm="op" value="${esc(M.op || '')}" placeholder="auto"></label></div></div>` : `        <div class="card"><h3>Prix par pays</h3><p class="tag">Laisse vide un pays où tu ne vends pas ce produit.</p>
           ${paysTous.map(p => { const x = prixDe(p.nom) || {}; const k = esc(p.nom); return `<details class="pays1" data-p="${k}" ${x.p1 || ouverts.includes(p.nom) ? 'open' : ''}><summary><b>${esc(p.nom)}</b>${p.actif ? '' : ' <span class="tag">(pays inactif)</span>'}<span class="tag">${x.p1 ? esc(fmt(String(x.p1).replace(/[^\d.,]/g, ''), p.devise)) : 'pas de prix'}</span></summary>
             <div class="g2"><label>Prix 1 pièce<input class="field" inputmode="numeric" data-px="${k}|p1" value="${esc(x.p1 || '')}"></label><label>Ancien prix (barré)<input class="field" inputmode="numeric" data-px="${k}|ancien" value="${esc(x.ancien || '')}"></label>
             <label>Prix 2 pièces (ou %)<input class="field" data-px="${k}|p2" value="${esc(x.p2 || '')}" placeholder="ex : 35000 ou 10%"></label><label>Prix 3 pièces (ou %)<input class="field" data-px="${k}|p3" value="${esc(x.p3 || '')}" placeholder="ex : 50000 ou 15%"></label>
             <label>Réduction si livré aujourd'hui<input class="field" inputmode="numeric" data-px="${k}|jour" value="${esc(x.jour || '')}"></label><label>Offre : achetés<input class="field" inputmode="numeric" data-px="${k}|oa" value="${esc(x.oa || '')}" placeholder="ex : 2"></label>
             <label>Offre : offerts<input class="field" inputmode="numeric" data-px="${k}|oo" value="${esc(x.oo || '')}" placeholder="ex : 1"></label><label>Offre : prix<input class="field" inputmode="numeric" data-px="${k}|op" value="${esc(x.op || '')}" placeholder="auto"></label></div>
-            <button class="lnk" data-cp="${k}">Copier ces prix dans tous les pays ${esc(p.devise)}</button></details>`; }).join('')}</div>
-
+            <button class="lnk" data-cp="${k}">Copier ces prix dans tous les pays ${esc(p.devise)}</button></details>`; }).join('')}</div>`}
         <div class="card"><div class="iah"><h3>Avantages</h3><button class="iab" data-ia="avantages">✨ IA</button></div><textarea class="field" id="eAv" rows="4" placeholder="Un avantage par ligne">${esc(P.avantages)}</textarea>
           <div class="iah"><label class="lbl" for="eBo">Dans la boîte</label><button class="iab" data-ia="boite">✨ IA</button></div><textarea class="field" id="eBo" rows="2" placeholder="Un élément par ligne">${esc(P.boite)}</textarea>
           <label class="lbl" for="eSt">Compteur « Plus que 3 → 2 → 1 en stock »</label><select class="field" id="eSt">${/^(non|0|cach)/i.test(String(P.stock || '').trim()) ? '<option value="">Afficher sur ce produit</option><option value="NON" selected>Cacher sur ce produit</option>' : `<option value="${esc(P.stock || '')}" selected>Afficher sur ce produit</option><option value="NON">Cacher sur ce produit</option>`}</select></div>
@@ -3252,6 +3267,7 @@ function nettoyerHtml(h){
       ed.querySelectorAll('[data-aag]').forEach(t => P.avis[t.dataset.aag].age = t.value);
       ed.querySelectorAll('[data-aver]').forEach(t => P.avis[t.dataset.aver].verifie = t.checked);
       ed.querySelectorAll('[data-ano]').forEach(t => P.avis[t.dataset.ano].note = Number(t.value));
+      ed.querySelectorAll('[data-pm]').forEach(t => { M[t.dataset.pm] = t.value.trim(); });
       ed.querySelectorAll('[data-px]').forEach(t => {
         const [pays, champ] = t.dataset.px.split('|');
         let x = prixDe(pays); if (!x){ if (!t.value.trim()) return; x = {pays}; P.prix.push(x); }
@@ -3635,7 +3651,9 @@ function nettoyerHtml(h){
         photos: P.photos.filter(Boolean),
         description: descVide(descHtml) ? '' : descHtml,
         faq: faq.filter(f => f.q.trim() && f.r.trim()).map(f => f.q.trim().replace(/>>/g, '>') + ' >> ' + f.r.trim().replace(/\n+/g, ' ')).join('\n'),
-        prix: P.prix.filter(x => String(x.p1 || '').trim())
+        // Prix unique : la même ligne de prix pour chaque pays de la boutique (le site et les commandes la retrouvent comme avant) ;
+        // les autres lignes déjà présentes (pays non actifs dans cette boutique) restent telles quelles
+        prix: M ? (String(M.p1 || '').trim() ? PB.actifs.map(a => Object.assign({}, M, {pays: a.nom})) : []).concat(P.prix.filter(x => String(x.p1 || '').trim() && !PB.actifs.some(a => a.nom.toLowerCase() === String(x.pays).toLowerCase()))) : P.prix.filter(x => String(x.p1 || '').trim())
       });
       if (neuf) PR.produits.push(fait); else PR.produits[PR.produits.findIndex(p => p.id === src.id)] = fait;
       memoPR();
@@ -3644,7 +3662,7 @@ function nettoyerHtml(h){
       toast(fait.enLigne ? '✅ Enregistré · en ligne sur le site dans quelques secondes' : '📝 Enregistré en brouillon');
     }
     // « Enregistrer » et « Annuler » n'apparaissent que s'il y a vraiment une modification
-    const signature = () => { lire(); return JSON.stringify([P, descHtml, faq]); };
+    const signature = () => { lire(); return JSON.stringify([P, descHtml, faq, M]); };
     function majActions(){
       if (!ed.isConnected){ clearInterval(suivi); return; }
       if (base == null) return;
