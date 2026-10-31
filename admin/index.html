@@ -100,6 +100,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
 .prod{content-visibility:auto;contain-intrinsic-size:auto 120px}
 .promo{content-visibility:auto;contain-intrinsic-size:auto 190px}
 .nav,.toast,.sync,.savebadge,.vueflot{will-change:transform}
+.toast{touch-action:none;user-select:none;-webkit-user-select:none;cursor:pointer}
 html{-webkit-text-size-adjust:100%}
 body{touch-action:manipulation}
 button,.btn,.chip,.nav button,.order,.prod{transition:transform .08s ease}
@@ -1064,7 +1065,7 @@ function nettoyerHtml(h){
     chime();
     const t = document.createElement('div'); t.className = 'toast'; t.setAttribute('role','status');
     t.innerHTML = `<div class="e">🛒</div><div><b>Nouvelle commande n°${esc(o.numero)}</b>${esc(fmt(o.total, o.devise))} · ${esc(o.pays)}</div>`;
-    t.onclick = () => { t.remove(); go('orders'); };
+    t.onclick = () => { t.remove(); go('orders'); if (D && D.commandes && D.commandes.some(x => x.numero === o.numero)) detail(o.numero); };
     document.body.appendChild(t); setTimeout(() => t.remove(), 7000);
     try {
       if ('Notification' in window && Notification.permission === 'granted'){
@@ -3894,6 +3895,28 @@ function nettoyerHtml(h){
       ov.querySelector('[data-r="0"]').focus();
     });
   }
+  /* Bandeaux (commande, relance, messages) : on les balaie à gauche, à droite ou vers le haut pour les faire partir tout de suite.
+     Un simple appui garde son action (ouvrir la commande, la relance…). */
+  (() => {
+    let el = null, x0 = 0, y0 = 0, dx = 0, dy = 0, t0 = 0, sens = null, id = null;
+    const fin = vite => { const e = el; el = null; if (!e) return;
+      e.dataset.bouge = '1'; setTimeout(() => { delete e.dataset.bouge; }, 350);
+      const w = innerWidth, part = sens === 'h' ? (Math.abs(dx) > w * .25 || (vite && Math.abs(dx) > 25)) : (dy < -30 || (vite && dy < -12));
+      e.style.transition = 'transform .2s ease-out, opacity .2s ease-out';
+      if (part){ e.dataset.balaye = '1'; e.style.transform = sens === 'h' ? `translate3d(${dx < 0 ? -w : w}px,0,0)` : 'translate3d(0,-140%,0)'; e.style.opacity = '0'; setTimeout(() => e.remove(), 200); }
+      else { e.style.transform = ''; e.style.opacity = ''; } };
+    document.addEventListener('pointerdown', e => { const t = e.target.closest('.toast'); if (!t || el) return;
+      el = t; id = e.pointerId; x0 = e.clientX; y0 = e.clientY; dx = dy = 0; t0 = performance.now(); sens = null;
+      t.style.animation = 'none'; t.style.transition = 'none'; try { t.setPointerCapture(id); } catch(x){} }, true);
+    document.addEventListener('pointermove', e => { if (!el || e.pointerId !== id) return; dx = e.clientX - x0; dy = e.clientY - y0;
+      if (!sens && (Math.abs(dx) > 6 || Math.abs(dy) > 6)) sens = Math.abs(dx) >= Math.abs(dy) ? 'h' : 'v';
+      if (sens === 'h'){ el.style.transform = `translate3d(${dx}px,0,0)`; el.style.opacity = String(Math.max(.2, 1 - Math.abs(dx) / innerWidth)); }
+      else if (sens === 'v'){ el.style.transform = `translate3d(0,${Math.min(0, dy)}px,0)`; } }, true);
+    const lacher = e => { if (!el || e.pointerId !== id) return; const v = Math.hypot(dx, dy) / Math.max(1, performance.now() - t0); if (sens) fin(v > .5); else { el.style.transform = ''; el = null; } };
+    document.addEventListener('pointerup', lacher, true); document.addEventListener('pointercancel', lacher, true);
+    // après un balayage, pas d'ouverture par erreur
+    document.addEventListener('click', e => { const t = e.target.closest('.toast'); if (t && (t.dataset.balaye || t.dataset.bouge)) { e.stopPropagation(); e.preventDefault(); } }, true);
+  })();
   function toast(t){ const el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role', 'status'); el.innerHTML = `<div><b>${esc(t)}</b></div>`; document.body.appendChild(el); setTimeout(() => el.remove(), 3500); }
 
   /* ---------- Promotions TikTok ---------- */
