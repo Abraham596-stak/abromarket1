@@ -552,6 +552,9 @@ html.ordi .iapan{inset:auto 24px 24px auto;width:420px;height:min(680px,calc(100
 .vbloc img{border-radius:18px}
 .vbloc h1{font-size:24px;margin:16px 0 8px}
 .vbloc p{color:var(--soft);margin:0 0 20px}
+.vmbloc{overflow-y:auto;align-items:flex-start;padding-top:calc(40px + env(safe-area-inset-top))}
+.vmbloc .vmsteps{text-align:left;margin:0 0 22px;padding-left:20px;color:var(--ink);font-size:15px;line-height:1.5}.vmbloc .vmsteps li{margin-bottom:8px}
+.vmbloc .vmerr{margin:12px 0 0;color:var(--err);font-size:14px;min-height:1em}
 .vbloc .btn{display:flex;align-items:center;justify-content:center;text-decoration:none}
 .vstat{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:12px 0}
 .vstat div{background:var(--surface);border-radius:14px;padding:10px;text-align:center}
@@ -1957,6 +1960,7 @@ function nettoyerHtml(h){
     if (!j.ok && j.erreur === 'VENDOO_BLOQUE'){ vendooBloque(j.vendoo || {}); throw new Error('VENDOO_BLOQUE'); }
     if (!j.ok) throw new Error(frErr(j.erreur) || 'Erreur');
     if (j.vendoo) vendooBandeau(j.vendoo);
+    if (j.vmail) vmailExige(j.vmail);
     return j;
   }
   /* ---------- Abonnement Vendoo : alerte avant la fin, écran de coupure ---------- */
@@ -1983,6 +1987,31 @@ function nettoyerHtml(h){
       <button class="btn ghost" id="vRe" style="margin-top:10px">J’ai payé, réessayer</button></div>`;
     document.body.appendChild(ov); finDemarrage();
     ov.querySelector('#vRe').onclick = () => location.reload();
+  }
+  /* ---------- Abonné : envoi des e-mails depuis SON Gmail, obligatoire avant de continuer ---------- */
+  function vmailExige(M){
+    const ex = document.getElementById('vmbloc');
+    if (M.actif){ if (ex){ ex.remove(); toast('Envoi des e-mails activé'); } return; }
+    if (ex) return;
+    const ov = document.createElement('div'); ov.id = 'vmbloc'; ov.className = 'vbloc vmbloc';
+    ov.innerHTML = `<div><img src="../vendoo/icon-192.png" alt="" width="64" height="64">
+      <h1>${M.deja ? 'Réactive l’envoi des e-mails' : 'Active l’envoi des e-mails depuis ton Gmail'}</h1>
+      <p>${M.deja ? 'L’autorisation de ton Gmail' + (M.email ? ' (' + esc(M.email) + ')' : '') + ' ne répond plus. Réactive-la pour continuer.' : 'Étape obligatoire pour continuer.'} Les e-mails de ta boutique (nouvelles commandes, alertes et relances de ton agence) partent de ton propre Gmail : ta limite d’envoi n’est partagée avec personne et aucun e-mail n’est perdu.</p>
+      <ol class="vmsteps"><li>Touche «&nbsp;Activer avec mon Gmail&nbsp;».</li><li>Choisis ton compte Google, puis touche «&nbsp;Autoriser&nbsp;».</li>
+        <li>Si Google affiche «&nbsp;Google n’a pas validé cette application&nbsp;», touche «&nbsp;Paramètres avancés&nbsp;», puis «&nbsp;Accéder à Vendoo – Envoi des e-mails&nbsp;».</li>
+        <li>Reviens ici : l’application se débloque toute seule.</li></ol>
+      <a class="btn blue" id="vmGo" href="${esc(M.lien)}" target="_blank" rel="noopener">Activer avec mon Gmail</a>
+      <button class="btn ghost" id="vmRe" style="margin-top:10px">J’ai autorisé, vérifier</button>
+      <p class="vmerr" id="vmErr"></p></div>`;
+    document.body.appendChild(ov); try { finDemarrage(); } catch(e){}
+    const verifier = async () => { const b = ov.querySelector('#vmRe'); b.disabled = true; b.textContent = 'Vérification…';
+      try { const j = await call(dashBody()); if (j.vmail && !j.vmail.actif) ov.querySelector('#vmErr').textContent = 'Pas encore activé. Termine l’autorisation sur la page Google, puis reviens.'; else { D = j; render(); } }
+      catch(e){ ov.querySelector('#vmErr').textContent = 'Connexion impossible. Réessaie.'; }
+      if (document.getElementById('vmbloc')){ b.disabled = false; b.textContent = 'J’ai autorisé, vérifier'; } };
+    ov.querySelector('#vmRe').onclick = verifier;
+    // De retour sur l'application après l'autorisation : vérification automatique
+    const vis = () => { if (!document.getElementById('vmbloc')) { document.removeEventListener('visibilitychange', vis); return; } if (document.visibilityState === 'visible') verifier(); };
+    document.addEventListener('visibilitychange', vis);
   }
   async function refresh(silent){
     if (busy) return; busy = true;
