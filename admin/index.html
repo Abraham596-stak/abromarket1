@@ -870,7 +870,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
 .store{font:650 19px "Inter",sans-serif;letter-spacing:-.01em}
 .brandlogo{width:36px;height:36px;border-radius:9px;box-shadow:none}
 .stwrap{display:flex;align-items:center;gap:2px;min-width:0;flex:0 1 auto}
-.stico{width:30px;height:30px;border-radius:8px;background:#22E728;color:#000;display:flex;align-items:center;justify-content:center;flex:0 0 auto;line-height:0}.stico svg{width:21px;height:21px;display:block;flex:0 0 auto}
+.stico{width:30px;height:30px;border-radius:8px;background:#22E728;color:#000;display:flex;align-items:center;justify-content:center;flex:0 0 auto;line-height:0}.stico svg{width:22px;height:22px;display:block;flex:0 0 auto}
 .store .stn{display:flex;align-items:center;min-width:0}
 .stmask{display:inline-flex;align-items:center;gap:5px;height:22px}
 .stmask i{display:block;height:11px;border-radius:6px;background:linear-gradient(90deg,rgba(255,255,255,.16) 0%,rgba(255,255,255,.34) 50%,rgba(255,255,255,.16) 100%);background-size:220% 100%;animation:stmk 2.4s ease-in-out infinite}
@@ -4431,7 +4431,7 @@ function nettoyerHtml(h){
     chevron: '<path d="M9 6l6 6-6 6"/>', retour: '<path d="M15 18l-6-6 6-6"/>', loupe: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>'
   };
   const ic = n => IC(ICONES[n] || '');
-  const VERSION_APP = '103';
+  const VERSION_APP = '104';
   function settings(){
     const proprio = D.vendoo && D.vendoo.statut === 'proprietaire', abonne = VENDOO && D.vendoo && D.vendoo.statut !== 'proprietaire';
     const m = (id, icone, titre) => `<button class="mrow" data-mn="${id}">${ic(icone)}<span>${titre}</span></button>`;
