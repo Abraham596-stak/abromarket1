@@ -107,6 +107,10 @@ button,.btn,.chip,.nav button,.order,.prod{transition:transform .08s ease}
 button:active,.btn:active,.chip:active,.order:active,.prod:active{transform:scale(.97)}
 
 .chart{margin-top:10px;height:200px;position:relative;touch-action:pan-y;overflow:hidden}
+.cstrip{display:flex;height:100%;will-change:transform}.cpane{flex:0 0 auto;height:100%}.cpane svg{display:block}
+.kpiz{overflow:visible}.kpiz>.kpi{flex:0 0 auto;position:relative;z-index:1}
+.kpivue{flex:1 1 auto;min-width:0;overflow:hidden;touch-action:pan-y}
+.kpipiste{display:flex;gap:10px;will-change:transform}
 .chart svg{width:100%;height:100%;display:block;overflow:visible}
 .legend{display:flex;gap:16px;font-size:13px;color:var(--onDeepSoft);margin-top:2px}
 .legend span::before{content:"";display:inline-block;width:16px;height:3px;border-radius:2px;background:var(--sun);vertical-align:middle;margin-right:6px}
@@ -2293,12 +2297,9 @@ function nettoyerHtml(h){
         </div>
 
         ${pushBanner()}
-        <div class="kpis" role="tablist">
+        <div class="kpis kpiz" role="tablist">
           <button class="kpi dvgo" data-go="direct"><small>En direct</small><b><span class="pulse"></span>${D.live}</b></button>
-          <button class="kpi ${metric==='visites'?'on':''}" data-m="visites" role="tab" aria-selected="${metric==='visites'}"><small>Visites</small><b>${c.visites}</b>${pct(c.visites, p.visites)}</button>
-          <button class="kpi ${metric==='ventes'?'on':''}" data-m="ventes" role="tab" aria-selected="${metric==='ventes'}"><small>Ventes totales</small><b>${esc(fmtM(ca, dev))}</b>${pct(ca, caP)}</button>
-          <button class="kpi ${metric==='commandes'?'on':''}" data-m="commandes" role="tab" aria-selected="${metric==='commandes'}"><small>Commandes</small><b>${c.commandes}</b>${pct(c.commandes, p.commandes)}</button>
-          <button class="kpi ${metric==='conversion'?'on':''}" data-m="conversion" role="tab" aria-selected="${metric==='conversion'}"><small>Taux de conversion</small><b>${conv.toFixed(1).replace('.', ',')} %</b>${p.visites ? `<span class="d ${conv >= convP ? 'up' : 'down'}">${conv >= convP ? '+' : ''}${(conv-convP).toFixed(1).replace('.', ',')} pt</span>` : ''}</button>
+          <div class="kpivue"><div class="kpipiste" id="kpiPiste"></div></div>
         </div>
         <div class="chart" id="chart"></div>
         <div class="legend"><span>${esc(libelle(periode))}</span><span class="p">${periode === 'jour' ? 'Hier' : 'Période précédente'}</span></div>
@@ -2326,7 +2327,12 @@ function nettoyerHtml(h){
         </div>
       </div>`;
     drawChart();
-    app.querySelectorAll('[data-m]').forEach(b => b.onclick = () => choisirMetrique(b.dataset.m, b));
+    KPIH = {
+      visites: `<small>Visites</small><b>${c.visites}</b>${pct(c.visites, p.visites)}`,
+      ventes: `<small>Ventes totales</small><b>${esc(fmtM(ca, dev))}</b>${pct(ca, caP)}`,
+      commandes: `<small>Commandes</small><b>${c.commandes}</b>${pct(c.commandes, p.commandes)}`,
+      conversion: `<small>Taux de conversion</small><b>${conv.toFixed(1).replace('.', ',')} %</b>${p.visites ? `<span class="d ${conv >= convP ? 'up' : 'down'}">${conv >= convP ? '+' : ''}${(conv-convP).toFixed(1).replace('.', ',')} pt</span>` : ''}`};
+    pisteKpi();
     glisserGraphique();
     document.getElementById('eyeBtn').onclick = basculerNom;
     document.getElementById('pdBtn').onclick = () => choisirPeriode(periode, false, async k => {
@@ -2358,45 +2364,71 @@ function nettoyerHtml(h){
     if (m === 'conversion') return serieConv(S.commandes || [], S.visites || []);
     return S[m] || [];
   }
-  function choisirMetrique(m, bouton){
-    if (m === metric) return;
-    metric = m;
-    document.querySelectorAll('.kpis [data-m]').forEach(b => { const on = b.dataset.m === m; b.classList.toggle('on', on); b.setAttribute('aria-selected', String(on)); });
-    if (bouton) try { bouton.scrollIntoView({behavior: 'smooth', inline: 'center', block: 'nearest'}); } catch(e){}
-    drawChart(true);
-  }
-  /* Glisser sur le graphique (gauche / droite) : indicateur suivant / précédent, en boucle sans fin, comme sur Shopify */
+  /* Indicateurs + graphique synchronisés (comme Shopify) : l'indicateur choisi est toujours le premier après « En direct »,
+     la liste tourne en boucle, et en glissant, indicateurs et graphique bougent ensemble. */
   const ORDRE_M = ['visites', 'ventes', 'commandes', 'conversion'];
+  let KPIH = {};
+  const voisinM = (m, k) => { const n = ORDRE_M.length; return ORDRE_M[((ORDRE_M.indexOf(m) + k) % n + n) % n]; };
+  function pisteKpi(){
+    const pi = document.getElementById('kpiPiste'); if (!pi) return;
+    const liste = [-1, 0, 1, 2, 3].map(k => voisinM(metric, k));   // précédent (caché à gauche), choisi, puis les suivants
+    pi.style.transition = 'none';
+    pi.innerHTML = liste.map((m, i) => `<button class="kpi ${i === 1 ? 'on' : ''}" data-m="${m}" role="tab" aria-selected="${i === 1}" ${i === 0 ? 'tabindex="-1" aria-hidden="true"' : ''}>${KPIH[m] || ''}</button>`).join('');
+    const p0 = pi.children[0]; pi.style.transform = `translate3d(${-(p0.offsetWidth + 10)}px,0,0)`;
+    pi.querySelectorAll('[data-m]').forEach(b => b.onclick = () => { if (pi.dataset.bouge) return; choisirMetrique(b.dataset.m); });
+  }
+  function choisirMetrique(m){
+    if (m === metric) return;
+    metric = m; pisteKpi(); drawChart(true);
+  }
   function glisserGraphique(){
-    const z = document.getElementById('chart'); if (!z) return;
-    let x0 = 0, y0 = 0, dx = 0, sens = null, actif = false, anim = false, pts = [];
-    const svg = () => z.querySelector('svg');
-    z.addEventListener('touchstart', e => { if (anim || e.touches.length > 1) return; x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; dx = 0; sens = null; actif = true; pts = [[x0, performance.now()]]; }, {passive: true});
-    z.addEventListener('touchmove', e => { if (!actif) return;
-      dx = e.touches[0].clientX - x0; const dy = e.touches[0].clientY - y0;
+    const z = document.getElementById('chart'), zk = document.querySelector('.kpiz .kpivue'); if (!z) return;
+    let x0 = 0, y0 = 0, dx = 0, sens = null, actif = false, anim = false, pts = [], W = 300, wp = 0, wc = 0, base = 0;
+    const strip = () => z.querySelector('.cstrip'), pi = () => document.getElementById('kpiPiste');
+    const placer = (d, ms) => {   // d : déplacement du doigt en px ; indicateurs et graphique avancent au même rythme
+      const f = Math.max(-1, Math.min(1, d / W)), tr = ms ? `transform ${ms}ms cubic-bezier(.25,.8,.25,1)` : 'none';
+      const st = strip(), k = pi();
+      if (st){ st.style.transition = tr; st.style.transform = `translate3d(${-W + f * W}px,0,0)`; }
+      if (k){ k.style.transition = tr; k.style.transform = `translate3d(${base + (f < 0 ? f * wc : f * wp)}px,0,0)`; }
+    };
+    const debut = (X, Y) => { if (anim) return; x0 = X; y0 = Y; dx = 0; sens = null; actif = true; pts = [[X, performance.now()]];
+      W = z.clientWidth || 300; const k = pi(); if (k){ wp = k.children[0].offsetWidth + 10; wc = k.children[1].offsetWidth + 10; base = -wp; } };
+    const bouge = (e, X, Y) => { if (!actif) return; dx = X - x0; const dy = Y - y0;
       if (!sens && (Math.abs(dx) > 6 || Math.abs(dy) > 6)) sens = Math.abs(dx) > Math.abs(dy) ? 'h' : 'v';
       if (sens !== 'h') return; if (e.cancelable) e.preventDefault();
-      const t = performance.now(); pts.push([e.touches[0].clientX, t]); while (pts.length > 2 && t - pts[0][1] > 90) pts.shift();
-      const s = svg(); if (s){ s.style.transition = 'none'; s.style.transform = `translate3d(${dx}px,0,0)`; s.style.opacity = String(Math.max(.3, 1 - Math.abs(dx) / (z.clientWidth || 300) * .8)); } }, {passive: false});
-    const fin = () => { if (!actif) return; actif = false; const s = svg(); if (sens !== 'h' || !s) return;
-      const W = z.clientWidth || 300, p0 = pts[0], v = p0 ? (x0 + dx - p0[0]) / Math.max(1, performance.now() - p0[1]) : 0;   // vitesse des derniers instants (px/ms)
-      if (!(Math.abs(dx) > 40 || (Math.abs(dx) > 14 && Math.abs(v) > .3))){ s.style.transition = 'transform .16s ease-out, opacity .16s ease-out'; s.style.transform = ''; s.style.opacity = ''; return; }
-      const n = ORDRE_M.length, i = ORDRE_M.indexOf(metric), j = ((i + (dx < 0 ? 1 : -1)) % n + n) % n;   // après le dernier on revient au premier, et inversement
-      anim = true; s.style.transition = 'transform .11s cubic-bezier(.4,0,1,1), opacity .11s linear'; s.style.transform = `translate3d(${dx < 0 ? -W * .6 : W * .6}px,0,0)`; s.style.opacity = '0';
-      setTimeout(() => {
-        const m = ORDRE_M[j]; choisirMetrique(m, document.querySelector(`.kpis [data-m="${m}"]`));
-        const nv = svg(); if (nv){ nv.style.transition = 'none'; nv.style.transform = `translate3d(${dx < 0 ? W * .25 : -W * .25}px,0,0)`; nv.style.opacity = '0'; nv.getBoundingClientRect();
-          nv.style.transition = 'transform .17s cubic-bezier(.2,.9,.3,1), opacity .14s ease-out'; nv.style.transform = ''; nv.style.opacity = '1'; }
-        setTimeout(() => { anim = false; }, 90);
-      }, 110); };
-    z.addEventListener('touchend', fin, {passive: true}); z.addEventListener('touchcancel', fin, {passive: true});
+      const t = performance.now(); pts.push([X, t]); while (pts.length > 2 && t - pts[0][1] > 90) pts.shift();
+      const k = pi(); if (k) k.dataset.bouge = '1';
+      placer(dx, 0); };
+    const fin = () => { if (!actif) return; actif = false; const k = pi(); if (sens !== 'h'){ return; }
+      setTimeout(() => { if (k) delete k.dataset.bouge; }, 50);
+      const p0 = pts[0], v = p0 ? (x0 + dx - p0[0]) / Math.max(1, performance.now() - p0[1]) : 0;
+      if (!(Math.abs(dx) > W * .18 || (Math.abs(dx) > 14 && Math.abs(v) > .3))) return placer(0, 160);
+      anim = true; const sensM = dx < 0 ? 1 : -1, ms = Math.max(110, Math.min(200, (W - Math.abs(dx)) / Math.max(Math.abs(v), 1.4)));
+      placer(sensM > 0 ? -W : W, ms);
+      setTimeout(() => { metric = voisinM(metric, sensM); pisteKpi(); drawChart(false); anim = false; }, ms + 10);
+    };
+    [z, zk].filter(Boolean).forEach(el => {
+      el.addEventListener('touchstart', e => { if (e.touches.length > 1) return; debut(e.touches[0].clientX, e.touches[0].clientY); }, {passive: true});
+      el.addEventListener('touchmove', e => bouge(e, e.touches[0].clientX, e.touches[0].clientY), {passive: false});
+      el.addEventListener('touchend', fin, {passive: true}); el.addEventListener('touchcancel', fin, {passive: true});
+    });
   }
   function drawChart(anime){
     const el = document.getElementById('chart'); if (!el) return;
+    const W = el.clientWidth || 340, ms = [voisinM(metric, -1), metric, voisinM(metric, 1)];
+    el.innerHTML = `<div class="cstrip" style="width:${W * 3}px;transform:translate3d(${-W}px,0,0)">${ms.map((m, i) => `<div class="cpane${i === 1 ? ' cur' : ''}" style="width:${W}px"${i === 1 ? '' : ' aria-hidden="true"'}>${svgGraphique(m, W)}</div>`).join('')}</div>`;
+    if (anime){   // la courbe se dessine de gauche à droite, comme sur Shopify
+      const P = el.querySelector('.cpane.cur'), l = P.querySelector('.cligne'), ar = P.querySelector('.caire');
+      try { const Lg = l.getTotalLength(); l.style.strokeDasharray = Lg; l.style.strokeDashoffset = Lg; l.getBoundingClientRect();
+        l.style.transition = 'stroke-dashoffset .32s cubic-bezier(.3,.7,.2,1)'; l.style.strokeDashoffset = '0'; } catch(e){}
+      if (ar){ ar.style.opacity = '0'; ar.getBoundingClientRect(); ar.style.transition = 'opacity .25s ease .1s'; ar.style.opacity = '1'; }
+    }
+  }
+  function svgGraphique(metric, W){
     const b = serieDe(metric, true), n = b.length;
     let a = serieDe(metric, false);
     if (D.partiel) a = a.slice(0, D.partiel); else if (periode === 'jour') a = a.slice(0, new Date().getHours() + 1);
-    const W = el.clientWidth || 340, H = 200, L = 58, R = 6, T = 12, B = 26;
+    const H = 200, L = 58, R = 6, T = 12, B = 26;
     const max = Math.max(1, ...a, ...b);
     const xn = n;
     const step = (v => { const m = Math.pow(10, Math.floor(Math.log10(v))); const k = v / m; return (k <= 1 ? 1 : k <= 2 ? 2 : k <= 5 ? 5 : 10) * m; })(max / 3);
@@ -2412,21 +2444,14 @@ function nettoyerHtml(h){
     const labels = D.etiquettes ? [...new Set([0, Math.floor((n-1)/2), n-1])].map(i => ({i, t: D.etiquettes[i] || ''}))
       : D.parJour ? [0, Math.floor((n-1)/2), n-1].map(i => ({i, t: (() => { const [dd, mm] = D.debut.split('/').map(Number); const d = new Date(new Date().getFullYear(), mm-1, dd + i); return d.getDate() + '/' + (d.getMonth()+1); })()}))
       : [0, 10, 20].map(i => ({i, t: String(i).padStart(2,'0') + ':00'}));
-    const xl = labels.map(l => `<text x="${x(l.i)}" y="${H - 6}" text-anchor="middle" fill="rgba(255,255,255,.66)" font-size="12" font-family="Figtree, sans-serif",sans-serif>${l.t}</text>`).join('');
+    const xl = labels.map((l, q) => `<text x="${x(l.i)}" y="${H - 6}" text-anchor="${q === labels.length - 1 && labels.length > 1 ? 'end' : 'middle'}" fill="rgba(255,255,255,.66)" font-size="12" font-family="Figtree, sans-serif",sans-serif>${l.t}</text>`).join('');
     const unit = metric === 'ventes' ? D.devise : metric === 'conversion' ? '%' : metric;
     const nomM = {ventes: 'des ventes', commandes: 'des commandes', visites: 'des visites', conversion: 'du taux de conversion'}[metric] || metric;
     const aire = a.length ? path(a) + ` L${x(a.length - 1)},${y(0)} L${x(0)},${y(0)} Z` : '';
-    el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Évolution ${esc(nomM)} (${esc(unit)})"><defs><linearGradient id="cgr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7EA2FF" stop-opacity=".28"/><stop offset="1" stop-color="#7EA2FF" stop-opacity="0"/></linearGradient></defs>${grid}
+    return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Évolution ${esc(nomM)} (${esc(unit)})"><defs><linearGradient id="cgr-${metric}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7EA2FF" stop-opacity=".28"/><stop offset="1" stop-color="#7EA2FF" stop-opacity="0"/></linearGradient></defs>${grid}
       <path d="${path(b)}" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="2" stroke-dasharray="4 4"/>
-      <path class="caire" d="${aire}" fill="url(#cgr)"/>
+      <path class="caire" d="${aire}" fill="url(#cgr-${metric})"/>
       <path class="cligne" d="${path(a)}" fill="none" stroke="#7EA2FF" stroke-width="2.5" stroke-linecap="round"/>${xl}</svg>`;
-    if (anime){   // la courbe se dessine de gauche à droite, comme sur Shopify
-      const l = el.querySelector('.cligne'), ar = el.querySelector('.caire');
-      try { const L = l.getTotalLength(); l.style.strokeDasharray = L; l.style.strokeDashoffset = L; l.getBoundingClientRect();
-        l.style.transition = 'stroke-dashoffset .32s cubic-bezier(.3,.7,.2,1)'; l.style.strokeDashoffset = '0'; } catch(e){}
-      if (ar){ ar.style.opacity = '0'; ar.getBoundingClientRect(); ar.style.transition = 'opacity .25s ease .1s'; ar.style.opacity = '1'; }
-      el.querySelectorAll('text').forEach(t => { t.style.opacity = '0'; t.getBoundingClientRect(); t.style.transition = 'opacity .15s ease'; t.style.opacity = '1'; });
-    }
   }
 
   /* ---------- Vue en direct (comme Shopify) ---------- */
@@ -4387,7 +4412,7 @@ function nettoyerHtml(h){
     chevron: '<path d="M9 6l6 6-6 6"/>', retour: '<path d="M15 18l-6-6 6-6"/>', loupe: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>'
   };
   const ic = n => IC(ICONES[n] || '');
-  const VERSION_APP = '99';
+  const VERSION_APP = '100';
   function settings(){
     const proprio = D.vendoo && D.vendoo.statut === 'proprietaire', abonne = VENDOO && D.vendoo && D.vendoo.statut !== 'proprietaire';
     const m = (id, icone, titre) => `<button class="mrow" data-mn="${id}">${ic(icone)}<span>${titre}</span></button>`;
