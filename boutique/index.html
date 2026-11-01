@@ -82,7 +82,10 @@ header{display:flex;align-items:center;justify-content:center;gap:10px;padding:1
 .pricetag{margin:16px 18px 0;background:var(--sun);border-radius:18px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;position:relative}
 .pricetag .now{font-family:"Bricolage Grotesque",sans-serif;font-size:32px;font-weight:800;line-height:1}
 .pricetag .old{text-decoration:line-through;color:#6B5A1E;font-size:15px;margin-top:4px}
-.pricetag .off{background:var(--ink);color:#fff;font-weight:700;border-radius:999px;padding:6px 12px;font-size:15px;white-space:nowrap}
+.pricetag .now{white-space:nowrap}
+.pricetag .off{flex:0 0 auto;background:var(--ink);color:#fff;border-radius:14px;padding:9px 13px 8px;white-space:nowrap;text-align:center;display:flex;flex-direction:column;align-items:center;box-shadow:0 6px 16px rgba(20,26,46,.22)}
+.pricetag .off b{font-size:27px;font-weight:800;line-height:1;letter-spacing:-.02em}
+.pricetag .off small{font-size:9.5px;font-weight:600;letter-spacing:.07em;line-height:1.25;text-transform:uppercase;margin-top:5px;opacity:.85}
 .stock{margin:12px 18px 0;font-size:15px;color:var(--err);font-weight:600}
 .stk{margin:12px 18px 0;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
 .stk .sl{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:15px;font-weight:700;color:var(--ink)}
@@ -375,6 +378,9 @@ input[type=tel],input[type=text],textarea,select.in,.country select{border-width
     get(k){ try { return localStorage.getItem(k); } catch(e){ return null; } },
     set(k,v){ try { localStorage.setItem(k,v); } catch(e){} }
   };
+  // Prix barré affiché partout : toujours −40 % (prix ÷ 0,6, arrondi à la centaine au-dessus).
+  // Le prix de vente ne change jamais ; le prix barré est calculé pour que « −40 % » soit exact.
+  function barre40(d){ (d.produits || []).forEach(P => Object.values(P.prix || {}).forEach(px => (px.offres || []).forEach(o => { const p = Number(o.prix) || 0; if (p > 0) o.ancien = Math.ceil(p / 0.6 / 100) * 100; }))); }
   let D = null, country = null, touched = false, pixelsOn = false, checkoutSent = false;
 
   /* ---------- Origine du client (quelle pub) ---------- */
@@ -647,7 +653,7 @@ input[type=tel],input[type=text],textarea,select.in,.country select{border-width
     let priceBlock = '', form = '';
     if (px){
       const off = o1.ancien > o1.prix ? Math.round((1 - o1.prix/o1.ancien)*100) : 0;
-      priceBlock = `<div class="pricetag"><div><div class="now">${money(o1.prix, dev)}</div>${off?`<div class="old">${money(o1.ancien, dev)}</div>`:''}</div>${off?`<div class="off">−${off} %</div>`:''}</div>
+      priceBlock = `<div class="pricetag"><div><div class="now">${money(o1.prix, dev)}</div>${off?`<div class="old">${money(o1.ancien, dev)}</div>`:''}</div>${off?`<div class="off"><b>−${off} %</b><small>Aujourd’hui<br>seulement</small></div>`:''}</div>
         ${P.stock === 'non' ? '' : `<div class="stk" id="stk" aria-live="polite"><div class="sl"><span class="st">🔥 Forte demande</span><span class="sn"><span id="stkTxt">Plus que <b id="stkN">${STK.n}</b> en stock</span></span></div><div class="bar"><i id="stkBar" style="width:${STK.n / 3 * 100}%"></i></div><small id="stkSub">Stock très limité : ${esc(P.nom.length > 40 ? P.nom.slice(0, 38).trim() + '…' : P.nom)} part très vite.</small></div>`}`;
       const promo = Number(px.promoJour) || 0;
       form = `<section id="commande"><h2>Passer ma commande</h2><p class="sub">Remplissez ce formulaire, ça prend moins d'une minute.</p>
@@ -1100,7 +1106,7 @@ Heure de la livraison : ${r.livraison}`;
     const use = (fresh, save) => {
       if (fresh && fresh.indisponible){ indispo = true; D = null; try { localStorage.removeItem(K_DATA); } catch(e){} app.innerHTML = '<div class="empty">Cette boutique est momentanément indisponible.</div>'; return; }
       if (!fresh || !fresh.produits) return;
-      completerPrix(fresh);
+      completerPrix(fresh); barre40(fresh);
       if (fresh.imgs){ Object.assign(IMG, fresh.imgs); try { localStorage.setItem('imgs', JSON.stringify(IMG)); } catch(e){} }
       if (fresh.imgsM){ Object.assign(IMGM, fresh.imgsM); try { localStorage.setItem('imgsM', JSON.stringify(IMGM)); } catch(e){} }
       if (save) store.set(K_DATA, JSON.stringify(fresh));
