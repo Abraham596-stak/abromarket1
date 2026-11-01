@@ -555,6 +555,43 @@ html.ordi .iapan{inset:auto 24px 24px auto;width:420px;height:min(680px,calc(100
 .vmbloc{overflow-y:auto;align-items:flex-start;padding-top:calc(40px + env(safe-area-inset-top))}
 .vmbloc .vmsteps{text-align:left;margin:0 0 22px;padding-left:20px;color:var(--ink);font-size:15px;line-height:1.5}.vmbloc .vmsteps li{margin-bottom:8px}
 .vmbloc .vmerr{margin:12px 0 0;color:var(--err);font-size:14px;min-height:1em}
+/* Menu ≡ et Paramètres (comme Shopify) */
+.menu{padding:calc(14px + env(safe-area-inset-top)) 10px calc(190px + env(safe-area-inset-bottom));max-width:640px;margin:0 auto;background:var(--bg);min-height:100vh;min-height:100dvh}
+body.v-settings{background:var(--bg)}
+.mrow{display:flex;align-items:center;gap:16px;width:100%;padding:13px 14px;border-radius:12px;font-size:17px;font-weight:500;color:var(--ink);background:none;text-align:left;text-decoration:none}
+.mrow:active{background:var(--surface)}.mrow svg{width:24px;height:24px;flex:0 0 auto;color:var(--ink)}
+.mhd{font-size:15px;font-weight:650;color:var(--ink);margin:24px 14px 4px}
+.mgear{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(86px + env(safe-area-inset-bottom));z-index:29;display:flex;align-items:center;gap:10px;padding:13px 22px;border-radius:999px;background:var(--card);color:var(--ink);border:1px solid var(--line);box-shadow:0 8px 28px rgba(0,0,0,.14);font-size:16px;font-weight:600}
+.mgear svg{width:21px;height:21px}
+.pgp{position:fixed;inset:0;z-index:35;background:var(--bg);overflow-y:auto;overscroll-behavior:contain;animation:pgIn .22s ease-out}
+.pgp.sort{animation:pgOut .18s ease-in forwards}
+@keyframes pgIn{from{transform:translateY(24px);opacity:0}}@keyframes pgOut{to{transform:translateY(24px);opacity:0}}
+.pghd{position:sticky;top:0;z-index:2;background:var(--bg);padding:calc(8px + env(safe-area-inset-top)) 10px 0;display:flex;align-items:center;height:56px}
+.pgback{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;color:var(--ink);background:none}.pgback:active{background:var(--surface)}.pgback svg{width:24px;height:24px}
+.pgbody{padding:0 20px calc(40px + env(safe-area-inset-bottom));max-width:640px;margin:0 auto}
+.pgbody.in-d{animation:pgD .22s ease-out}.pgbody.in-g{animation:pgG .22s ease-out}
+@keyframes pgD{from{transform:translateX(36px);opacity:0}}@keyframes pgG{from{transform:translateX(-36px);opacity:0}}
+.pgt{font-size:30px;font-weight:700;letter-spacing:-.02em;margin:2px 0 16px;color:var(--ink)}
+.pgsrch{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:999px;padding:0 16px;height:50px;box-shadow:0 2px 10px rgba(0,0,0,.05);background:var(--card)}
+.pgsrch svg{width:21px;height:21px;color:var(--soft);flex:0 0 auto}
+.pgsrch input{flex:1;border:0;outline:0;background:none;font-size:16px;color:var(--ink);min-width:0;padding:0}
+.psec h3{font-size:16px;font-weight:650;color:var(--ink);margin:26px 2px 4px}
+.psec[hidden],.prow[hidden]{display:none}
+.prow{display:flex;align-items:center;gap:14px;width:100%;padding:13px 2px;background:none;color:var(--ink);text-align:left;border-radius:10px}
+.prow:active{background:var(--surface)}
+.prow .pic svg{width:22px;height:22px;color:var(--soft);display:block}
+.prow .ptx{flex:1;min-width:0}.prow .ptx b{display:block;font-size:16.5px;font-weight:500}
+.prow .ptx small{display:block;font-size:13.5px;color:var(--soft);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prow .pch svg{width:18px;height:18px;color:var(--soft);display:block}
+.prow.danger,.prow.danger .pic svg{color:var(--err)}
+.pver{text-align:center;color:var(--soft);font-size:13px;margin:30px 0 10px}
+.rsbox{max-width:440px;text-align:left;max-height:88vh;overflow-y:auto}.rsbox h2{text-align:left}.rsbox>p{text-align:left;color:var(--soft);margin:4px 0 12px}
+.rslist{display:flex;flex-direction:column;gap:2px;margin-bottom:10px}
+.rsit{display:flex;align-items:center;gap:12px;padding:10px 4px;border-radius:10px;font-size:15px;color:var(--ink);cursor:pointer;text-align:left}
+.rsit input{width:20px;height:20px;accent-color:var(--err);flex:0 0 auto}
+.rsbox textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit;font-size:15px;resize:vertical;background:var(--card);color:var(--ink)}
+.rserr{color:var(--err);font-size:13px;min-height:1em;margin:6px 0 4px}
+.btn[disabled]{opacity:.45}
 .vbloc .btn{display:flex;align-items:center;justify-content:center;text-decoration:none}
 .vstat{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:12px 0}
 .vstat div{background:var(--surface);border-radius:14px;padding:10px;text-align:center}
@@ -1139,7 +1176,7 @@ function nettoyerHtml(h){
       ov.innerHTML = `<div class="detail bqsheet" role="dialog" aria-modal="true" aria-label="Mes boutiques"><div class="grab"></div>
         <h2>Mes boutiques</h2><p class="sub">Boutique principale + ${n} / ${max} boutiques · Une boutique = une agence (ses commandes ne se mélangent pas). Une pub sur plusieurs pays peut utiliser la principale : chaque commande part toute seule dans la boutique de son pays.</p>
         ${msg ? `<div class="okmsg">${msg}</div>` : ''}
-        ${presse ? `<div class="bqclip">📋 ${presse.ids.length} produit${presse.ids.length > 1 ? 's' : ''} copié${presse.ids.length > 1 ? 's' : ''} de « ${esc(presse.nom)} » · ouvre l’autre boutique, puis Réglages (≡) → « Coller les produits ».</div>` : ''}
+        ${presse ? `<div class="bqclip">📋 ${presse.ids.length} produit${presse.ids.length > 1 ? 's' : ''} copié${presse.ids.length > 1 ? 's' : ''} de « ${esc(presse.nom)} » · ouvre l’autre boutique, puis ≡ → Paramètres → « Produits entre boutiques ».</div>` : ''}
         ${!BQS ? '<div class="empty">Chargement…</div>' : l.map(b => `<div class="bqrow ${(b.code || '') === BQ ? 'on' : ''}">
           <div class="bqi"><b>${esc(b.nom)}</b><small>${b.principale ? 'Boutique principale' + (b.pays ? ' · ' + esc(nomsPaysBq(b.pays)) : '') + ' · pubs multi-pays' : esc(nomsPaysBq(b.pays))}${b.agence ? ' · agence : ' + esc(b.agence) : ''}${!b.active ? ' · <span style="color:var(--err)">désactivée</span>' : ''}${(b.code || '') === BQ ? ' · <span class="bqcur">Ouverte</span>' : ''}</small></div>
           <span class="bqgo" data-bm="${esc(b.code || '')}" aria-hidden="true">›</span></div>`).join('')}
@@ -1363,9 +1400,11 @@ function nettoyerHtml(h){
 
   async function supprimerBq(b, retour){
     const code = b.code;
-    if (!(await confirmer({titre: 'Supprimer cette boutique ?', texte: `Tu vas supprimer <b>« ${esc(b.nom)} »</b> : son site, ses produits, ses commandes et le fichier de son agence.<br><br>Son Google Sheets part dans la <b>corbeille de ton Google Drive</b> (récupérable pendant 30 jours). Le lien de son site ne marchera plus.`, ok: 'Oui, supprimer la boutique'}))) return;
+    if (!(await confirmer({titre: 'Supprimer cette boutique ?', texte: `Tu vas supprimer <b>« ${esc(b.nom)} »</b> : son site, ses produits, ses commandes et le fichier de son agence.<br><br>Son Google Sheets part dans la <b>corbeille de ton Google Drive</b> (récupérable pendant 30 jours). Le lien de son site ne marchera plus.`, ok: 'Oui, continuer'}))) return;
+    const R = await raisonsSuppression(b.nom); if (!R) return;
     try {
-      await bqAppel({action: 'supprimer', code});
+      await bqAppel({action: 'supprimer', code, nom: b.nom, raisons: R.raisons, commentaire: R.commentaire});
+      const pg = document.getElementById('pgp'); if (pg) { pg.remove(); document.body.style.overflow = ''; }
       if (BQS) BQS.boutiques = BQS.boutiques.filter(x => x.code !== code);
       try { localStorage.setItem(K_BQS, JSON.stringify(BQS)); Object.keys(localStorage).filter(k => k.indexOf('adm_' + code + '_') === 0).forEach(k => localStorage.removeItem(k)); } catch(e){}
       if (code === BQ) { ouvrirBoutique(''); return; }
@@ -1407,7 +1446,7 @@ function nettoyerHtml(h){
       box.querySelector('#cpGo').onclick = () => {
         const ids = P.map(p => p.id).filter(id => sel.has(id));
         try { localStorage.setItem(K_PP, JSON.stringify({source: code, nom: b.nom, ids, quand: Date.now()})); } catch(e){}
-        o.remove(); retour(`📋 ${ids.length} produit${ids.length > 1 ? 's' : ''} copié${ids.length > 1 ? 's' : ''}. Ouvre l’autre boutique, puis Réglages (≡) → « Coller les produits ».`);
+        o.remove(); retour(`📋 ${ids.length} produit${ids.length > 1 ? 's' : ''} copié${ids.length > 1 ? 's' : ''}. Ouvre l’autre boutique, puis ≡ → Paramètres → « Produits entre boutiques ».`);
       };
     };
     dess();
@@ -2171,7 +2210,7 @@ function nettoyerHtml(h){
   function render(){
     if (D || view === 'products' || view === 'tiktok' || view === 'apercu') finDemarrage();
     if (!D && view !== 'products' && view !== 'tiktok' && view !== 'apercu') { app.innerHTML = '<div class="loading">Chargement…</div>'; return; }
-    appliquerVue();
+    appliquerVue(); document.body.classList.toggle('v-settings', view === 'settings');
     [...nav.children].forEach(b => b.classList.toggle('on', b.dataset.v === view));
     ({home, orders, abandons, products, settings, tiktok, apercu, direct}[view])();
     if (view === 'direct' && !pubData) loadPub().then(() => { if (view === 'direct') dvRemplir(); });
@@ -4315,81 +4354,193 @@ function nettoyerHtml(h){
   addEventListener('resize', () => { if (innerWidth === largeurApercu) return; largeurApercu = innerWidth; if (view === 'apercu') ajusterApercu(); });
 
   /* ---------- Réglages ---------- */
+  /* ---------- Menu ≡ (comme Shopify) : les sections de l'application, et « Paramètres » en bas ---------- */
+  const IC = (p, w) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w || 1.8}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
+  const ICONES = {
+    accueil: '<path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
+    commandes: '<path d="M4 4h16v16H4z"/><path d="M4 13h4l2 3h4l2-3h4"/>',
+    relances: '<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/>',
+    produits: '<path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/>',
+    direct: '<circle cx="12" cy="12" r="2"/><path d="M16.2 7.8a6 6 0 0 1 0 8.4M7.8 16.2a6 6 0 0 1 0-8.4M19 5a10 10 0 0 1 0 14M5 19A10 10 0 0 1 5 5"/>',
+    tiktok: '<path d="M14 3v11.5a3.5 3.5 0 1 1-3.5-3.5"/><path d="M14 3c.4 2.6 2.4 4.6 5 4.8"/>',
+    pubs: '<path d="M3 11v2a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/>',
+    point: '<path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/>',
+    site: '<path d="M4 9.5 5.5 4h13L20 9.5"/><path d="M4 9.5a2.7 2.7 0 0 0 5.3 0 2.7 2.7 0 0 0 5.4 0 2.7 2.7 0 0 0 5.3 0"/><path d="M5 12v8h14v-8"/><path d="M10 20v-4h4v4"/>',
+    apercu: '<rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/>',
+    lien: '<path d="M10 13a5 5 0 0 0 7.1 0l3-3a5 5 0 0 0-7.1-7.1l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.1 0l-3 3a5 5 0 0 0 7.1 7.1l1.7-1.7"/>',
+    boutiques: '<path d="M3 7l9-4 9 4-9 4z"/><path d="M3 12l9 4 9-4"/><path d="M3 17l9 4 9-4"/>',
+    abonnes: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.7-3.4 3.3-5.3 6.5-5.3s5.8 1.9 6.5 5.3"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18.5 14.9c1.6.7 2.7 2.3 3 5.1"/>',
+    carte: '<rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19M6.5 15h4"/>',
+    reglages: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
+    cloche: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
+    son: '<path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/>',
+    installer: '<rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M12 7v7M9 11l3 3 3-3"/>',
+    general: '<path d="M4 9.5 5.5 4h13L20 9.5"/><path d="M4 9.5a2.7 2.7 0 0 0 5.3 0 2.7 2.7 0 0 0 5.4 0 2.7 2.7 0 0 0 5.3 0"/><path d="M5 12v8h14v-8"/>',
+    pays: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>',
+    pixels: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2"/>',
+    agences: '<path d="M2 6h11v10H2z"/><path d="M13 9h4l4 4v3h-8"/><circle cx="6" cy="18" r="2"/><circle cx="17" cy="18" r="2"/>',
+    copier: '<rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/>',
+    ia: '<path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>',
+    sheets: '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 9h16M4 15h16M10 9v12"/>',
+    sortie: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/>',
+    corbeille: '<path d="M3 6h18M8 6V4h8v2M6 6l1 14a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-14M10 11v6M14 11v6"/>',
+    chevron: '<path d="M9 6l6 6-6 6"/>', retour: '<path d="M15 18l-6-6 6-6"/>', loupe: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>'
+  };
+  const ic = n => IC(ICONES[n] || '');
+  const VERSION_APP = '98';
   function settings(){
-    const perm = 'Notification' in window ? Notification.permission : 'unsupported';
-    const bqI = BQS && (BQS.boutiques || []).find(x => (x.code || '') === (BQ || '')), ppI = pressePapier();
-    if (!BQS) fetch(API, {method: 'POST', body: JSON.stringify({type: 'boutiques', key, v: VID})}).then(r => r.json()).then(j => { if (j.ok){ BQS = j; try { localStorage.setItem(K_BQS, JSON.stringify(j)); } catch(e){} if (view === 'settings') render(); } }).catch(() => {});
-    const ligneBq = (id, t, p, danger) => `<button class="set setrow" data-bq="${id}"><div><b${danger ? ' style="color:var(--err)"' : ''}>${t}</b>${p ? `<p>${p}</p>` : ''}</div><span class="setgo">›</span></button>`;
-    app.innerHTML = `<div class="page"><h1>Réglages</h1>
-      <h3 class="sethd">Boutique · ${esc((bqI && bqI.nom) || (D && D.boutique) || 'Ma boutique')}</h3>
-      ${!bqI ? '<div class="empty">Chargement…</div>' : [
-        ligneBq('renommer', 'Renommer la boutique', ''),
-        ligneBq('pays', 'Pays de vente', esc(nomsPaysBq(bqI.pays)) || ''),
-        ligneBq('reglages', 'Pixels, WhatsApp et commandes', 'Meta, TikTok, numéro qui reçoit les commandes…'),
-        ligneBq('copier', 'Copier les produits', 'Pour les coller dans une autre boutique'),
-        ppI && ppI.ids && ppI.ids.length && (ppI.source || '') !== (bqI.code || '') ? ligneBq('coller', 'Coller les produits', ppI.ids.length + ' produit' + (ppI.ids.length > 1 ? 's' : '') + ' de « ' + esc(ppI.nom) + ' »') : '',
-        ligneBq('lien', 'Copier le lien du site', ''),
-        bqI.sheetUrl ? `<a class="set setrow" href="${esc(bqI.sheetUrl)}" target="_blank" rel="noopener"><div><b>Ouvrir le Google Sheets</b></div><span class="setgo">↗</span></a>` : '',
-        bqI.principale ? '' : ligneBq('suppr', 'Supprimer la boutique', 'Son site, ses produits et ses commandes', true)
-      ].join('')}
-      <h3 class="sethd">Général</h3>
-      ${D.vendoo && D.vendoo.statut === 'proprietaire' ? `<div class="set"><div><b>Vendoo – abonnés et paiements</b><p>Valider les paiements MoMo, voir les abonnés, codes promo.</p></div><button class="chip" style="background:#5B2EE6;border-color:#5B2EE6" id="vAdm">Ouvrir</button></div>` : ''}
-      ${VENDOO && D.vendoo && D.vendoo.statut !== 'proprietaire' ? `<div class="set"><div><b>Mon abonnement Vendoo</b><p>${D.vendoo.statut === 'essai' ? 'Essai gratuit jusqu’au ' + esc(D.vendoo.expire || '') + ' (' + D.vendoo.jours + ' j)' : D.vendoo.statut === 'actif' ? 'Actif jusqu’au ' + esc(D.vendoo.expire || '') + ' (' + D.vendoo.jours + ' j)' : D.vendoo.statut === 'grace' ? 'Terminé : coupure dans ' + D.vendoo.grace + ' j' : esc(D.vendoo.statut || '')}</p></div><a class="chip" style="background:#5B2EE6;border-color:#5B2EE6" href="${PAYER}" target="_blank" rel="noopener">Gérer</a></div>` : ''}
-      <div class="set"><div><b>🚚 Agences de livraison</b><p>L’e-mail de l’agence qui reçoit les commandes de chaque pays : l’ajouter, le changer ou le retirer.</p></div><button class="chip" style="background:var(--main);border-color:var(--main)" id="agSet">Ouvrir</button></div>
-      <div class="set"><div><b>📣 Analyse publicitaire</b><p>Quelles publicités t’apportent des commandes : celles à refaire et celles à ne plus reprendre.</p></div><button class="chip" style="background:var(--main);border-color:var(--main)" id="apSet">Ouvrir</button></div>
-      <div class="set"><div><b>🤖 Assistant IA</b><p>Pour les boutons ✨ IA des produits : écrire, reformuler, noter ta page. Gratuit avec ta clé Gemini.</p></div><button class="chip" style="background:var(--main);border-color:var(--main)" id="iaSet">Brancher</button></div>
-      <div class="set"><div><b>💰 Point hebdomadaire</b><p>Ce que l’agence te verse, tes pubs, tes abonnements, tes achats : ton bénéfice net de la semaine.</p></div><button class="chip" style="background:var(--main);border-color:var(--main)" id="ptSet">Ouvrir</button></div>
-      <div class="set"><div><b>Mes boutiques${VENDOO ? '' : ' (Vendoo)'}</b><p>Jusqu'à 30 boutiques : une par agence ou par pays. Chacune a ses produits, ses commandes et son lien.</p></div><button class="chip" style="background:var(--main);border-color:var(--main)" id="bqSet">Ouvrir</button></div>
-      <div class="set"><div><b>Son des nouvelles commandes</b><p>Un « ding » à chaque commande, quand l'application est ouverte.</p></div><button class="switch ${sound?'on':''}" id="sw" role="switch" aria-checked="${sound}" aria-label="Son des nouvelles commandes"></button></div>
-      <div class="set"><div><b>Tester le son</b><p>Vérifie que le volume de ton téléphone est assez fort.</p></div><button class="chip" style="background:var(--surface);color:var(--ink);border-color:var(--line)" id="test">Écouter</button></div>
-      <div class="set"><div><b>Notifications (même application fermée)</b><p>${!D.onesignal ? 'À configurer : ajoute l’App ID OneSignal dans ton Google Sheets.' : pushOn ? 'Activées sur ce téléphone ✓' : perm === 'denied' ? 'Bloquées : autorise les notifications pour ce site dans les réglages de Chrome.' : 'Reçois chaque commande même téléphone verrouillé.'}</p></div>${D.onesignal && !pushOn && perm !== 'denied' ? '<button class="chip" style="background:var(--main);border-color:var(--main)" id="notifOS">Activer</button>' : ''}</div>
-      <div class="set"><div><b>Tester les notifications</b><p>Envoie une notification à l'application et un message WhatsApp de test. Verrouille ton téléphone juste après avoir appuyé.</p></div><button class="chip" style="background:var(--main);border-color:var(--main)" id="testPush">Tester</button></div>
-      <div class="help" id="diag" style="margin-top:6px;font-size:13px;word-break:break-word">Diagnostic : appuie sur « Tester ».</div>
-      <div class="set"><div><b>Tester le son des relances</b><p>Un « ding-dong » différent, 5 minutes après chaque abandon.</p></div><button class="chip" style="background:var(--surface);color:var(--ink);border-color:var(--line)" id="testRel">Écouter</button></div>
-      <div class="set"><div><b>Sons pour les notifications</b><p>Télécharge-les, puis choisis-les comme sons de notification dans les réglages Android.</p></div><span style="display:flex;gap:6px"><a class="chip" style="background:var(--surface);color:var(--ink);border-color:var(--line)" href="commande.mp3" download="ABROMARKET-commande.mp3">Commande</a><a class="chip" style="background:var(--surface);color:var(--ink);border-color:var(--line)" href="relance.mp3" download="ABROMARKET-relance.mp3">Relance</a></span></div>
-      <div class="set"><div><b>Google Sheets</b><p>Produits, prix, pays, agences et commandes.</p></div><a class="chip" style="background:var(--surface);color:var(--ink);border-color:var(--line)" href="${esc(D.sheetUrl)}" target="_blank" rel="noopener">Ouvrir</a></div>
-      <div class="set"><div><b>Aperçu du site</b><p>Voir ta boutique comme sur ordinateur ou sur mobile.</p></div><button class="chip" style="background:var(--surface);color:var(--ink);border-color:var(--line)" data-go2="apercu">Voir</button></div>
-      <div class="set"><div><b>Ma boutique</b><p>La page que voient tes clients.</p></div><a class="chip" style="background:var(--surface);color:var(--ink);border-color:var(--line)" href="${esc(lienSite(''))}" target="_blank" rel="noopener">Ouvrir</a></div>
-      <div class="help"><b>Installer l'application sur ton téléphone</b><br>Android (Chrome) : menu ⋮ → « Ajouter à l'écran d'accueil » ou « Installer l'application ».<br>iPhone (Safari) : bouton Partager → « Sur l'écran d'accueil » (obligatoire sur iPhone pour les notifications).</div>
-      <button class="btn ghost" id="out" style="margin-top:18px">Se déconnecter</button></div>`;
-    document.getElementById('sw').onclick = () => { sound = !sound; S.set('adm_sound', sound ? '1' : '0'); if (sound) chime(); settings(); };
-    document.getElementById('test').onclick = () => { const s = sound; sound = true; chime(); sound = s; };
-    document.getElementById('testRel').onclick = () => { const s = sound; sound = true; chime('relance'); sound = s; };
-    document.getElementById('out').onclick = () => logout();
-    document.getElementById('bqSet').onclick = () => mesBoutiques();
-    document.getElementById('ptSet').onclick = () => pointHebdo();
-    document.getElementById('iaSet').onclick = () => brancherIA();
-    document.getElementById('apSet').onclick = () => analysePubUI();
-    app.querySelectorAll('[data-bq]').forEach(btn => btn.onclick = async () => {
-      const b = BQS && (BQS.boutiques || []).find(x => (x.code || '') === (BQ || '')); if (!b) return;
-      const retour = msg => { if (msg) toast(String(msg).replace(/<[^>]+>/g, '')); if (view === 'settings') render(); };
-      const o = btn.dataset.bq;
-      if (o === 'renommer') return renommerBq(b, retour);
-      if (o === 'pays') return paysBq(b, retour);
-      if (o === 'reglages') return reglagesBq(b);
-      if (o === 'copier') return copierBq(b, retour);
-      if (o === 'coller') return collerBq(b, retour);
-      if (o === 'suppr') return supprimerBq(b, retour);
-      if (o === 'lien'){ const u = siteDe(b.code || ''); try { await navigator.clipboard.writeText(u); toast('Lien du site copié'); } catch(x){ prompt('Lien du site :', u); } }
+    const proprio = D.vendoo && D.vendoo.statut === 'proprietaire', abonne = VENDOO && D.vendoo && D.vendoo.statut !== 'proprietaire';
+    const m = (id, icone, titre) => `<button class="mrow" data-mn="${id}">${ic(icone)}<span>${titre}</span></button>`;
+    app.innerHTML = `<div class="menu">
+      ${m('home', 'accueil', 'Accueil')}${m('orders', 'commandes', 'Commandes')}${m('abandons', 'relances', 'Relances (paniers abandonnés)')}${m('products', 'produits', 'Produits')}
+      ${m('direct', 'direct', 'Vue en direct')}${m('tiktok', 'tiktok', 'Promotions TikTok')}${m('pubs', 'pubs', 'Analyse publicitaire')}${m('point', 'point', 'Point du jour et de la semaine')}
+      <h3 class="mhd">Canaux de vente</h3>
+      <a class="mrow" href="${esc(lienSite(''))}" target="_blank" rel="noopener">${ic('site')}<span>Boutique en ligne</span></a>
+      ${m('apercu', 'apercu', 'Aperçu du site')}${m('lien', 'lien', 'Copier le lien du site')}
+      <h3 class="mhd">Boutiques</h3>
+      ${m('boutiques', 'boutiques', 'Mes boutiques')}
+      ${proprio ? m('vendoo', 'abonnes', 'Vendoo : abonnés et paiements') : ''}
+      ${abonne ? `<a class="mrow" href="${PAYER}" target="_blank" rel="noopener">${ic('carte')}<span>Mon abonnement Vendoo</span></a>` : ''}
+    </div>
+    <button class="mgear" id="mGear">${ic('reglages')}<span>Paramètres</span></button>`;
+    app.querySelectorAll('[data-mn]').forEach(b => b.onclick = async () => {
+      const k = b.dataset.mn;
+      if (['home', 'orders', 'abandons', 'products', 'direct', 'tiktok', 'apercu'].includes(k)) return go(k);
+      if (k === 'pubs') return analysePubUI();
+      if (k === 'point') return pointHebdo();
+      if (k === 'boutiques') return mesBoutiques();
+      if (k === 'vendoo') return vendooAdmin();
+      if (k === 'lien'){ const u = lienSite(''); try { await navigator.clipboard.writeText(u); toast('Lien du site copié'); } catch(x){ prompt('Lien du site :', u); } }
     });
-    document.getElementById('agSet').onclick = () => { const ov = document.createElement('div'); ov.className = 'overlay'; ov.onclick = e => { if (e.target === ov) ov.remove(); }; document.body.appendChild(ov); agences(ov, BQ, (D && D.boutique) || 'Ma boutique', () => ov.remove()); };
-    const va = document.getElementById('vAdm'); if (va) va.onclick = () => vendooAdmin();
-    app.querySelectorAll('[data-go2]').forEach(b => b.onclick = () => go(b.dataset.go2));
-    document.getElementById('testPush').onclick = async e => {
-      const b = e.target, dg = document.getElementById('diag'); b.textContent = '…';
-      let regs = [];
-      try { regs = (await navigator.serviceWorker.getRegistrations()).map(r => r.scope.replace(location.origin, '') + ' (' + ((r.active && r.active.scriptURL) || '').split('/').pop().split('?')[0] + ')'); } catch(x){}
-      const os = window.OneSignal && OneSignal.User ? OneSignal.User.PushSubscription : null;
-      const lignes = [
-        'Permission du téléphone : ' + ('Notification' in window ? Notification.permission : 'non disponible'),
-        'Module OneSignal : ' + (window.OneSignal && OneSignal.User ? 'chargé' : 'NON chargé') + (osErr ? ' – erreur : ' + osErr : ''),
-        'Abonné : ' + (os ? (os.optedIn ? 'oui' : 'non') + (os.id ? ' (id ' + os.id.slice(0, 8) + '…)' : ' (aucun id)') : '?'),
-        'Services : ' + (regs.join(', ') || 'aucun')
-      ];
-      try { const r = await call({type: 'testpush'}); lignes.push('Envoi : ' + (r.resultat || r.code)); if (r.whatsapp) lignes.push('WhatsApp (test) : ' + r.whatsapp); if (r.dernierWhatsapp) lignes.push('WhatsApp (dernière commande) : ' + r.dernierWhatsapp); if (r.dernierPush) lignes.push('Notification (dernière commande) : ' + r.dernierPush); if (r.green) lignes.push('WhatsApp perso (test) : ' + r.green); if (r.dernierGreen) lignes.push('WhatsApp perso (dernier envoi) : ' + r.dernierGreen); }
-      catch(err){ lignes.push('Envoi : erreur ' + err.message); }
-      dg.innerHTML = lignes.map(esc).join('<br>'); b.textContent = 'Tester';
-    };
+    document.getElementById('mGear').onclick = () => parametres();
+    if (!BQS) fetch(API, {method: 'POST', body: JSON.stringify({type: 'boutiques', key, v: VID})}).then(r => r.json()).then(j => { if (j.ok){ BQS = j; try { localStorage.setItem(K_BQS, JSON.stringify(j)); } catch(e){} } }).catch(() => {});
+  }
+
+  /* ---------- Paramètres (plein écran, comme Shopify) : on touche une ligne, son contenu s'ouvre ---------- */
+  function parametres(){
+    if (document.getElementById('pgp')) return;
+    const pan = document.createElement('div'); pan.className = 'pgp'; pan.id = 'pgp'; pan.setAttribute('role', 'dialog'); pan.setAttribute('aria-label', 'Paramètres');
+    document.body.appendChild(pan); document.body.style.overflow = 'hidden';
+    const pile = [];
+    const fermer = () => { pan.classList.add('sort'); setTimeout(() => { pan.remove(); document.body.style.overflow = ''; if (view === 'settings') render(); }, 180); };
+    const bqCourante = () => BQS && (BQS.boutiques || []).find(x => (x.code || '') === (BQ || ''));
+    const ret = msg => { if (msg) toast(String(msg).replace(/<[^>]+>/g, '')); dessiner(); };
+    const L = (id, icone, titre, sous, danger) => `<button class="prow${danger ? ' danger' : ''}" data-p="${id}" data-q="${esc((titre + ' ' + (sous || '')).toLowerCase())}"><span class="pic">${ic(icone)}</span><span class="ptx"><b>${titre}</b>${sous ? `<small>${sous}</small>` : ''}</span><span class="pch">${ic('chevron')}</span></button>`;
+    function accueilParam(){
+      const b = bqCourante(), pp = pressePapier(), abonne = VENDOO && D.vendoo && D.vendoo.statut !== 'proprietaire';
+      return `<div class="pgsrch">${ic('loupe')}<input id="pgQ" type="search" placeholder="Rechercher dans les paramètres" aria-label="Rechercher dans les paramètres"></div>
+        <section class="psec"><h3>Paramètres de l’appli</h3>
+          ${L('notifs', 'cloche', 'Notifications push', pushOn ? 'Activées sur ce téléphone' : 'Commandes même téléphone verrouillé')}
+          ${L('sons', 'son', 'Sons', sound ? 'Son des commandes activé' : 'Son des commandes coupé')}
+          ${L('installer', 'installer', 'Installer l’application')}</section>
+        <section class="psec"><h3>Paramètres de la boutique</h3>
+          ${L('general', 'general', 'Général', 'Nom, lien du site, Google Sheets')}
+          ${b ? L('pays', 'pays', 'Pays de vente', esc(nomsPaysBq(b.pays)) || '') : ''}
+          ${b ? L('reglages', 'pixels', 'Pixels, WhatsApp et commandes', 'Meta, TikTok, numéro qui reçoit les commandes') : ''}
+          ${L('agences', 'agences', 'Agences de livraison', 'L’e-mail de l’agence de chaque pays')}
+          ${b ? L('produitsBq', 'copier', 'Produits entre boutiques', pp && pp.ids && pp.ids.length && (pp.source || '') !== (b.code || '') ? pp.ids.length + ' produit' + (pp.ids.length > 1 ? 's' : '') + ' prêt' + (pp.ids.length > 1 ? 's' : '') + ' à coller' : 'Copier, puis coller dans une autre boutique') : ''}
+          ${L('ia', 'ia', 'Assistant IA', 'Clés gratuites Gemini et Groq')}
+          ${abonne ? L('abo', 'carte', 'Abonnement Vendoo', D.vendoo.statut === 'essai' ? 'Essai gratuit jusqu’au ' + esc(D.vendoo.expire || '') : D.vendoo.statut === 'actif' ? 'Actif jusqu’au ' + esc(D.vendoo.expire || '') : '') : ''}
+          ${L('sheets', 'sheets', 'Google Sheets', 'Produits, prix, pays, agences et commandes')}</section>
+        <section class="psec">${L('sortie', 'sortie', 'Se déconnecter')}
+          ${b && !b.principale ? L('suppr', 'corbeille', 'Supprimer cette boutique', 'Son site, ses produits et ses commandes', true) : ''}</section>
+        <p class="pver">ABROMARKET · version ${esc(VERSION_APP)}</p>`;
+    }
+    function sousPage(id){
+      if (id === 'notifs') return `<div class="set"><div><b>Notifications (même application fermée)</b><p>${!D.onesignal ? 'À configurer : ajoute l’App ID OneSignal dans ton Google Sheets.' : pushOn ? 'Activées sur ce téléphone.' : ('Notification' in window && Notification.permission === 'denied') ? 'Bloquées : autorise les notifications pour ce site dans les réglages de Chrome.' : 'Reçois chaque commande même téléphone verrouillé.'}</p></div>${D.onesignal && !pushOn && !('Notification' in window && Notification.permission === 'denied') ? '<button class="chip" style="background:var(--main);border-color:var(--main)" id="notifOS">Activer</button>' : ''}</div>
+        <div class="set"><div><b>Tester les notifications</b><p>Envoie une notification à l’application et un message WhatsApp de test. Verrouille ton téléphone juste après avoir appuyé.</p></div><button class="chip" style="background:var(--main);border-color:var(--main)" id="testPush">Tester</button></div>
+        <div class="help" id="diag" style="margin-top:6px;font-size:13px;word-break:break-word">Diagnostic : appuie sur « Tester ».</div>`;
+      if (id === 'sons') return `<div class="set"><div><b>Son des nouvelles commandes</b><p>Un « ding » à chaque commande, quand l’application est ouverte.</p></div><button class="switch ${sound ? 'on' : ''}" id="sw" role="switch" aria-checked="${sound}" aria-label="Son des nouvelles commandes"></button></div>
+        <div class="set"><div><b>Tester le son des commandes</b><p>Vérifie que le volume de ton téléphone est assez fort.</p></div><button class="chip" style="background:var(--surface);color:var(--ink);border-color:var(--line)" id="test">Écouter</button></div>
+        <div class="set"><div><b>Tester le son des relances</b><p>Un « ding-dong » différent, 5 minutes après chaque abandon.</p></div><button class="chip" style="background:var(--surface);color:var(--ink);border-color:var(--line)" id="testRel">Écouter</button></div>
+        <div class="set"><div><b>Sons pour les notifications</b><p>Télécharge-les, puis choisis-les comme sons de notification dans les réglages Android.</p></div><span style="display:flex;gap:6px"><a class="chip" style="background:var(--surface);color:var(--ink);border-color:var(--line)" href="commande.mp3" download="ABROMARKET-commande.mp3">Commande</a><a class="chip" style="background:var(--surface);color:var(--ink);border-color:var(--line)" href="relance.mp3" download="ABROMARKET-relance.mp3">Relance</a></span></div>`;
+      if (id === 'installer') return `<div class="help"><b>Android (Chrome)</b><br>Menu ⋮ → « Ajouter à l’écran d’accueil » ou « Installer l’application ».<br><br><b>iPhone (Safari)</b><br>Bouton Partager → « Sur l’écran d’accueil » (obligatoire sur iPhone pour les notifications).</div>`;
+      if (id === 'general'){ const b = bqCourante();
+        return `<div class="set"><div><b>Nom de la boutique</b><p>${esc((b && b.nom) || D.boutique || 'Ma boutique')}</p></div>${b ? '<button class="chip" style="background:var(--surface);color:var(--ink);border-color:var(--line)" data-a="renommer">Renommer</button>' : ''}</div>
+        <div class="set"><div><b>Lien du site</b><p style="word-break:break-all">${esc(lienSite(''))}</p></div><button class="chip" style="background:var(--surface);color:var(--ink);border-color:var(--line)" data-a="lien">Copier</button></div>
+        <div class="set"><div><b>Google Sheets de la boutique</b><p>Produits, prix, pays, agences et commandes.</p></div><a class="chip" style="background:var(--surface);color:var(--ink);border-color:var(--line)" href="${esc((b && b.sheetUrl) || D.sheetUrl)}" target="_blank" rel="noopener">Ouvrir</a></div>`; }
+      if (id === 'produitsBq'){ const b = bqCourante(), pp = pressePapier(), peutColler = b && pp && pp.ids && pp.ids.length && (pp.source || '') !== (b.code || '');
+        return `<div class="set"><div><b>Copier les produits</b><p>Pour les coller ensuite dans une autre boutique, puis y changer les prix.</p></div><button class="chip" style="background:var(--main);border-color:var(--main)" data-a="copier">Copier</button></div>
+        ${peutColler ? `<div class="set"><div><b>Coller les produits</b><p>${pp.ids.length} produit${pp.ids.length > 1 ? 's' : ''} de « ${esc(pp.nom)} »</p></div><button class="chip" style="background:var(--main);border-color:var(--main)" data-a="coller">Coller</button></div>` : '<p class="sub" style="margin-top:12px">Pour coller : copie les produits ici, ouvre l’autre boutique, puis reviens dans Paramètres → Produits entre boutiques.</p>'}`; }
+      return '';
+    }
+    const TITRES = {notifs: 'Notifications push', sons: 'Sons', installer: 'Installer l’application', general: 'Général', produitsBq: 'Produits entre boutiques'};
+    function dessiner(sens){
+      const id = pile[pile.length - 1];
+      pan.innerHTML = `<div class="pghd">${id ? `<button class="pgback" id="pgBack" aria-label="Retour">${ic('retour')}</button>` : `<button class="pgback" id="pgBack" aria-label="Fermer">${ic('retour')}</button>`}</div>
+        <div class="pgbody ${sens ? 'in-' + sens : ''}"><h1 class="pgt">${id ? esc(TITRES[id] || '') : 'Paramètres'}</h1>${id ? sousPage(id) : accueilParam()}</div>`;
+      pan.querySelector('#pgBack').onclick = () => { if (pile.length){ pile.pop(); dessiner('g'); } else fermer(); };
+      const q = pan.querySelector('#pgQ');
+      if (q) q.oninput = () => { const t = q.value.trim().toLowerCase();
+        pan.querySelectorAll('.prow').forEach(r => r.hidden = !!t && !r.dataset.q.includes(t));
+        pan.querySelectorAll('.psec').forEach(s => s.hidden = ![...s.querySelectorAll('.prow')].some(r => !r.hidden)); };
+      pan.querySelectorAll('[data-p]').forEach(r => r.onclick = () => action(r.dataset.p));
+      pan.querySelectorAll('[data-a]').forEach(r => r.onclick = () => action(r.dataset.a));
+      lierSousPage(id);
+    }
+    async function action(k){
+      const b = bqCourante();
+      if (TITRES[k]){ pile.push(k); return dessiner('d'); }
+      if (k === 'pays') return b && paysBq(b, ret);
+      if (k === 'reglages') return b && reglagesBq(b);
+      if (k === 'renommer') return b && renommerBq(b, ret);
+      if (k === 'copier') return b && copierBq(b, ret);
+      if (k === 'coller') return b && collerBq(b, ret);
+      if (k === 'agences'){ const ov = document.createElement('div'); ov.className = 'overlay'; ov.onclick = e => { if (e.target === ov) ov.remove(); }; document.body.appendChild(ov); return agences(ov, BQ, (D && D.boutique) || 'Ma boutique', () => ov.remove()); }
+      if (k === 'ia') return brancherIA();
+      if (k === 'abo') return open(PAYER, '_blank');
+      if (k === 'sheets') return open((b && b.sheetUrl) || D.sheetUrl, '_blank');
+      if (k === 'lien'){ const u = lienSite(''); try { await navigator.clipboard.writeText(u); toast('Lien du site copié'); } catch(x){ prompt('Lien du site :', u); } return; }
+      if (k === 'sortie'){ if (await confirmer({titre: 'Se déconnecter ?', texte: 'Tu devras entrer à nouveau le mot de passe de l’application.', ok: 'Se déconnecter', danger: false, icone: '↩'})){ pan.remove(); document.body.style.overflow = ''; logout(); } return; }
+      if (k === 'suppr') return b && supprimerBq(b, msg => { ret(msg); });
+    }
+    function lierSousPage(id){
+      if (id === 'sons'){
+        pan.querySelector('#sw').onclick = () => { sound = !sound; S.set('adm_sound', sound ? '1' : '0'); if (sound) chime(); dessiner(); };
+        pan.querySelector('#test').onclick = () => { const s = sound; sound = true; chime(); sound = s; };
+        pan.querySelector('#testRel').onclick = () => { const s = sound; sound = true; chime('relance'); sound = s; };
+      }
+      if (id === 'notifs'){
+        pan.querySelector('#testPush').onclick = async e => {
+          const bt = e.target, dg = pan.querySelector('#diag'); bt.textContent = '…';
+          let regs = [];
+          try { regs = (await navigator.serviceWorker.getRegistrations()).map(r => r.scope.replace(location.origin, '') + ' (' + ((r.active && r.active.scriptURL) || '').split('/').pop().split('?')[0] + ')'); } catch(x){}
+          const os = window.OneSignal && OneSignal.User ? OneSignal.User.PushSubscription : null;
+          const lignes = ['Permission du téléphone : ' + ('Notification' in window ? Notification.permission : 'non disponible'),
+            'Module OneSignal : ' + (window.OneSignal && OneSignal.User ? 'chargé' : 'NON chargé') + (osErr ? ' – erreur : ' + osErr : ''),
+            'Abonné : ' + (os ? (os.optedIn ? 'oui' : 'non') + (os.id ? ' (id ' + os.id.slice(0, 8) + '…)' : ' (aucun id)') : '?'),
+            'Services : ' + (regs.join(', ') || 'aucun')];
+          try { const r = await call({type: 'testpush'}); lignes.push('Envoi : ' + (r.resultat || r.code)); if (r.whatsapp) lignes.push('WhatsApp (test) : ' + r.whatsapp); if (r.dernierWhatsapp) lignes.push('WhatsApp (dernière commande) : ' + r.dernierWhatsapp); if (r.dernierPush) lignes.push('Notification (dernière commande) : ' + r.dernierPush); if (r.green) lignes.push('WhatsApp perso (test) : ' + r.green); if (r.dernierGreen) lignes.push('WhatsApp perso (dernier envoi) : ' + r.dernierGreen); }
+          catch(err){ lignes.push('Envoi : erreur ' + err.message); }
+          dg.innerHTML = lignes.map(esc).join('<br>'); bt.textContent = 'Tester';
+        };
+      }
+    }
+    pan.__redessiner = () => dessiner();
+    dessiner();
+  }
+
+  /* Suppression d'une boutique : confirmation, puis raisons obligatoires (cases + texte libre) */
+  const RAISONS_SUPPR = ['Je n’ai plus besoin de cette boutique', 'Je l’ai créée par erreur ou pour tester', 'Je regroupe mes produits dans une autre boutique', 'Je n’ai pas eu assez de ventes', 'Mon agence de livraison a arrêté', 'L’application est trop compliquée pour moi', 'Autre raison'];
+  function raisonsSuppression(nom){
+    return new Promise(fin => {
+      const ov = document.createElement('div'); ov.className = 'cfov';
+      ov.innerHTML = `<div class="cfbox rsbox" role="dialog" aria-modal="true" aria-labelledby="rsT">
+        <h2 id="rsT">Pourquoi supprimes-tu « ${esc(nom)} » ?</h2><p>Coche au moins une raison. Elles nous aident à améliorer l’application.</p>
+        <div class="rslist">${RAISONS_SUPPR.map((r, i) => `<label class="rsit"><input type="checkbox" value="${esc(r)}" data-i="${i}"><span>${esc(r)}</span></label>`).join('')}</div>
+        <textarea id="rsTxt" rows="3" placeholder="Tu peux préciser ici (obligatoire si « Autre raison »)"></textarea>
+        <p class="rserr" id="rsErr"></p>
+        <div class="cfbtns"><button class="btn dang" id="rsOk" disabled>Supprimer définitivement</button><button class="btn ghost" id="rsNo">Annuler</button></div></div>`;
+      document.body.appendChild(ov);
+      const cases = [...ov.querySelectorAll('input[type=checkbox]')], txt = ov.querySelector('#rsTxt'), ok = ov.querySelector('#rsOk'), err = ov.querySelector('#rsErr');
+      const etat = () => { const c = cases.filter(x => x.checked), autre = cases[cases.length - 1].checked;
+        const valide = c.length > 0 && (!autre || txt.value.trim().length >= 5);
+        ok.disabled = !valide; err.textContent = autre && txt.value.trim().length < 5 ? 'Précise ta raison en quelques mots.' : ''; return valide; };
+      cases.forEach(x => x.onchange = etat); txt.oninput = etat;
+      const fermer = r => { ov.remove(); fin(r); };
+      ov.querySelector('#rsNo').onclick = () => fermer(null);
+      ok.onclick = () => { if (!etat()) return; fermer({raisons: cases.filter(x => x.checked).map(x => x.value), commentaire: txt.value.trim()}); };
+    });
   }
 
   /* ---------- Assistant IA (comme Sidekick de Shopify) ---------- */
