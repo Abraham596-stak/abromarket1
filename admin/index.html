@@ -2365,30 +2365,30 @@ function nettoyerHtml(h){
     if (bouton) try { bouton.scrollIntoView({behavior: 'smooth', inline: 'center', block: 'nearest'}); } catch(e){}
     drawChart(true);
   }
-  /* Glisser sur le graphique (gauche / droite) : indicateur suivant / précédent, comme sur Shopify */
+  /* Glisser sur le graphique (gauche / droite) : indicateur suivant / précédent, en boucle sans fin, comme sur Shopify */
   const ORDRE_M = ['visites', 'ventes', 'commandes', 'conversion'];
   function glisserGraphique(){
     const z = document.getElementById('chart'); if (!z) return;
-    let x0 = 0, y0 = 0, dx = 0, sens = null, actif = false, anim = false;
+    let x0 = 0, y0 = 0, dx = 0, sens = null, actif = false, anim = false, pts = [];
     const svg = () => z.querySelector('svg');
-    z.addEventListener('touchstart', e => { if (anim || e.touches.length > 1) return; x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; dx = 0; sens = null; actif = true; }, {passive: true});
+    z.addEventListener('touchstart', e => { if (anim || e.touches.length > 1) return; x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; dx = 0; sens = null; actif = true; pts = [[x0, performance.now()]]; }, {passive: true});
     z.addEventListener('touchmove', e => { if (!actif) return;
       dx = e.touches[0].clientX - x0; const dy = e.touches[0].clientY - y0;
-      if (!sens && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) sens = Math.abs(dx) > Math.abs(dy) ? 'h' : 'v';
+      if (!sens && (Math.abs(dx) > 6 || Math.abs(dy) > 6)) sens = Math.abs(dx) > Math.abs(dy) ? 'h' : 'v';
       if (sens !== 'h') return; if (e.cancelable) e.preventDefault();
-      const i = ORDRE_M.indexOf(metric), bord = (dx < 0 && i >= ORDRE_M.length - 1) || (dx > 0 && i <= 0);
-      const s = svg(); if (s){ s.style.transition = 'none'; s.style.transform = `translateX(${bord ? dx * .25 : dx}px)`; s.style.opacity = String(Math.max(.25, 1 - Math.abs(dx) / (z.clientWidth || 300))); } }, {passive: false});
+      const t = performance.now(); pts.push([e.touches[0].clientX, t]); while (pts.length > 2 && t - pts[0][1] > 90) pts.shift();
+      const s = svg(); if (s){ s.style.transition = 'none'; s.style.transform = `translate3d(${dx}px,0,0)`; s.style.opacity = String(Math.max(.3, 1 - Math.abs(dx) / (z.clientWidth || 300) * .8)); } }, {passive: false});
     const fin = () => { if (!actif) return; actif = false; const s = svg(); if (sens !== 'h' || !s) return;
-      const i = ORDRE_M.indexOf(metric), j = i + (dx < 0 ? 1 : -1), W = z.clientWidth || 300;
-      if (Math.abs(dx) < 50 || j < 0 || j >= ORDRE_M.length){ s.style.transition = 'transform .25s ease, opacity .25s ease'; s.style.transform = ''; s.style.opacity = ''; return; }
-      anim = true; s.style.transition = 'transform .18s ease-in, opacity .18s ease-in'; s.style.transform = `translateX(${dx < 0 ? -W : W}px)`; s.style.opacity = '0';
+      const W = z.clientWidth || 300, p0 = pts[0], v = p0 ? (x0 + dx - p0[0]) / Math.max(1, performance.now() - p0[1]) : 0;   // vitesse des derniers instants (px/ms)
+      if (!(Math.abs(dx) > 40 || (Math.abs(dx) > 14 && Math.abs(v) > .3))){ s.style.transition = 'transform .16s ease-out, opacity .16s ease-out'; s.style.transform = ''; s.style.opacity = ''; return; }
+      const n = ORDRE_M.length, i = ORDRE_M.indexOf(metric), j = ((i + (dx < 0 ? 1 : -1)) % n + n) % n;   // après le dernier on revient au premier, et inversement
+      anim = true; s.style.transition = 'transform .11s cubic-bezier(.4,0,1,1), opacity .11s linear'; s.style.transform = `translate3d(${dx < 0 ? -W * .6 : W * .6}px,0,0)`; s.style.opacity = '0';
       setTimeout(() => {
-        const m = ORDRE_M[j], b = document.querySelector(`.kpis [data-m="${m}"]`);
-        choisirMetrique(m, b);
-        const n = svg(); if (n){ n.style.transition = 'none'; n.style.transform = `translateX(${dx < 0 ? W * .35 : -W * .35}px)`; n.style.opacity = '0'; n.getBoundingClientRect();
-          n.style.transition = 'transform .28s cubic-bezier(.2,.8,.2,1), opacity .28s ease'; n.style.transform = ''; n.style.opacity = '1'; }
-        setTimeout(() => { anim = false; }, 300);
-      }, 180); };
+        const m = ORDRE_M[j]; choisirMetrique(m, document.querySelector(`.kpis [data-m="${m}"]`));
+        const nv = svg(); if (nv){ nv.style.transition = 'none'; nv.style.transform = `translate3d(${dx < 0 ? W * .25 : -W * .25}px,0,0)`; nv.style.opacity = '0'; nv.getBoundingClientRect();
+          nv.style.transition = 'transform .17s cubic-bezier(.2,.9,.3,1), opacity .14s ease-out'; nv.style.transform = ''; nv.style.opacity = '1'; }
+        setTimeout(() => { anim = false; }, 90);
+      }, 110); };
     z.addEventListener('touchend', fin, {passive: true}); z.addEventListener('touchcancel', fin, {passive: true});
   }
   function drawChart(anime){
@@ -2423,9 +2423,9 @@ function nettoyerHtml(h){
     if (anime){   // la courbe se dessine de gauche à droite, comme sur Shopify
       const l = el.querySelector('.cligne'), ar = el.querySelector('.caire');
       try { const L = l.getTotalLength(); l.style.strokeDasharray = L; l.style.strokeDashoffset = L; l.getBoundingClientRect();
-        l.style.transition = 'stroke-dashoffset .7s cubic-bezier(.3,.7,.2,1)'; l.style.strokeDashoffset = '0'; } catch(e){}
-      if (ar){ ar.style.opacity = '0'; ar.getBoundingClientRect(); ar.style.transition = 'opacity .6s ease .25s'; ar.style.opacity = '1'; }
-      el.querySelectorAll('text').forEach(t => { t.style.opacity = '0'; t.getBoundingClientRect(); t.style.transition = 'opacity .35s ease'; t.style.opacity = '1'; });
+        l.style.transition = 'stroke-dashoffset .32s cubic-bezier(.3,.7,.2,1)'; l.style.strokeDashoffset = '0'; } catch(e){}
+      if (ar){ ar.style.opacity = '0'; ar.getBoundingClientRect(); ar.style.transition = 'opacity .25s ease .1s'; ar.style.opacity = '1'; }
+      el.querySelectorAll('text').forEach(t => { t.style.opacity = '0'; t.getBoundingClientRect(); t.style.transition = 'opacity .15s ease'; t.style.opacity = '1'; });
     }
   }
 
@@ -2756,7 +2756,7 @@ function nettoyerHtml(h){
     const aller = (n, s) => { if (!n || anime) return; anime = true;
       const c = n === suiv ? 1 : -1, w = ov.clientWidth || innerWidth;
       if (!voisins[c]) { detail(n, s, ov); return; }
-      placer(-c * w, 280); setTimeout(() => detail(n, null, ov), 290); };
+      placer(-c * w, 200); setTimeout(() => detail(n, null, ov), 205); };
     ov.querySelectorAll('[data-aller]').forEach(b => b.onclick = () => aller(b.dataset.aller, b.dataset.aller === suiv ? 'g' : 'd'));
     ov.querySelector('#cmdBack').onclick = () => close();
     ov.querySelector('#cmdPdf').onclick = async e => { const b = e.currentTarget; b.disabled = true; try { await bonDeCommande(o); } catch(x){ alert('PDF impossible : ' + x.message); } b.disabled = false; };
@@ -2776,9 +2776,9 @@ function nettoyerHtml(h){
       const dx = x1 - x0, w = ov.clientWidth || innerWidth, p0 = pts[0], dt = performance.now() - p0[1];
       const v = dt > 0 ? (x1 - p0[0]) / dt : 0;   // px/ms
       const c = dx < 0 ? 1 : -1, ok = voisins[c] && (Math.abs(dx) > w * .3 || (Math.abs(v) > .35 && Math.sign(v) === -c && Math.abs(dx) > 20));
-      if (ok){ anime = true; const reste = w - Math.abs(dx), ms = Math.max(140, Math.min(300, reste / Math.max(Math.abs(v), 1.2)));
+      if (ok){ anime = true; const reste = w - Math.abs(dx), ms = Math.max(110, Math.min(210, reste / Math.max(Math.abs(v), 1.6)));
         placer(-c * w, ms); setTimeout(() => detail(c === 1 ? suiv : prec, null, ov), ms + 10); }
-      else placer(0, 220); };
+      else placer(0, 160); };
     boite.addEventListener('touchend', finGeste, {passive: true});
     boite.addEventListener('touchcancel', finGeste, {passive: true});
     ov.querySelector('#close').onclick = close;
@@ -4387,7 +4387,7 @@ function nettoyerHtml(h){
     chevron: '<path d="M9 6l6 6-6 6"/>', retour: '<path d="M15 18l-6-6 6-6"/>', loupe: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>'
   };
   const ic = n => IC(ICONES[n] || '');
-  const VERSION_APP = '98';
+  const VERSION_APP = '99';
   function settings(){
     const proprio = D.vendoo && D.vendoo.statut === 'proprietaire', abonne = VENDOO && D.vendoo && D.vendoo.statut !== 'proprietaire';
     const m = (id, icone, titre) => `<button class="mrow" data-mn="${id}">${ic(icone)}<span>${titre}</span></button>`;
