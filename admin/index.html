@@ -828,6 +828,19 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
 .avatar{background:#2C2F36;color:#fff;font:600 15px "Inter",sans-serif;width:40px;height:40px}
 .store{font:650 19px "Inter",sans-serif;letter-spacing:-.01em}
 .brandlogo{width:36px;height:36px;border-radius:9px;box-shadow:none}
+.stwrap{display:flex;align-items:center;gap:2px;min-width:0;flex:0 1 auto}
+.stico{width:30px;height:30px;border-radius:8px;background:#22E728;color:#000;display:grid;place-items:center;flex:0 0 auto}.stico svg{width:19px;height:19px}
+.store .stn{display:flex;align-items:center;min-width:0}
+.stmask{display:inline-flex;align-items:center;gap:5px;height:22px}
+.stmask i{display:block;height:11px;border-radius:6px;background:linear-gradient(90deg,rgba(255,255,255,.16) 0%,rgba(255,255,255,.34) 50%,rgba(255,255,255,.16) 100%);background-size:220% 100%;animation:stmk 2.4s ease-in-out infinite}
+.stmask i:nth-child(1){width:44px}.stmask i:nth-child(2){width:26px;animation-delay:.15s}.stmask i:nth-child(3){width:36px;animation-delay:.3s}
+@keyframes stmk{0%{background-position:100% 0}100%{background-position:-120% 0}}
+.stnom{animation:stnin .28s ease-out;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;display:block}
+.stwrap .store{min-width:0;max-width:100%}
+@keyframes stnin{from{opacity:0;filter:blur(6px)}to{opacity:1;filter:none}}
+.eyebtn{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;color:rgba(255,255,255,.72);background:none;flex:0 0 auto}
+.eyebtn:active{background:rgba(255,255,255,.08)}.eyebtn svg{width:20px;height:20px}
+@media (prefers-reduced-motion:reduce){.stmask i{animation:none}}
 .iconbtn{background:rgba(255,255,255,.06);width:40px;height:40px}
 .iconbtn svg{width:20px;height:20px}
 .chip{border-radius:8px;font-weight:500;font-size:14px}
@@ -1019,6 +1032,11 @@ function nettoyerHtml(h){
   document.addEventListener('click', e => { const b = e.target.closest('[data-vue]'); if (!b) return; S.set('adm_affichage', b.dataset.vue); appliquerVue(); if (typeof render === 'function' && D !== undefined) render(); });
   grandEcran.addEventListener ? grandEcran.addEventListener('change', () => { appliquerVue(); render(); }) : 0;
   const vueDemandee = new URLSearchParams(location.search).get('v');
+  /* Nom de la boutique masqué par défaut (comme un compte bancaire) : l'œil l'affiche */
+  let nomVisible = false;
+  const ICO_BOUTIQUE = '<svg viewBox="0 0 20 20" fill="currentColor"><path d="M4.1 3h11.8c.4 0 .7.2.9.6l1.5 3.7c.6 1.6-.6 3.2-2.3 3.2-1 0-1.9-.6-2.3-1.4-.4.8-1.3 1.4-2.3 1.4s-1.9-.6-2.3-1.4c-.4.8-1.3 1.4-2.3 1.4-1.7 0-2.9-1.6-2.3-3.2l1.5-3.7c.2-.4.5-.6.9-.6z"/><path d="M4 11.9c.4.1.8.1 1.2.1.7 0 1.4-.2 2-.5V15h2.3v-2.6c0-.4.3-.7.7-.7h1.6c.4 0 .7.3.7.7V15h2.3v-3.5c.6.3 1.3.5 2 .5.4 0 .8 0 1.2-.1V16c0 .6-.4 1-1 1H5c-.6 0-1-.4-1-1v-4.1z"/></svg>';
+  const ICO_OEIL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+  const ICO_OEIL_BARRE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M10.6 5.1A9.7 9.7 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-2.6 3.4M6.6 6.6C3.7 8.4 2 12 2 12s3.6 7 10 7c1.9 0 3.5-.6 4.9-1.4"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/><path d="M3 3l18 18"/></svg>';
   let key = S.get('adm_key') || '', D = null, view = VUES.includes(vueDemandee) ? vueDemandee : (VUES.includes(SS.get('adm_view')) ? SS.get('adm_view') : 'home'), metric = 'ventes', periode = SS.get('adm_periode') || 'jour', filtre = SS.get('adm_filtre') || 'Toutes', q = '';
   let scrollAReprendre = Number(SS.get('adm_scroll')) || 0;
   addEventListener('pagehide', () => { SS.set('adm_view', view); SS.set('adm_scroll', String(Math.round(scrollY))); SS.set('adm_filtre', filtre); SS.set('adm_periode', periode); });
@@ -2228,8 +2246,9 @@ function nettoyerHtml(h){
     app.innerHTML = `
       <div class="top">
         <div class="bar">
-          <div class="avatar" aria-hidden="true">${esc((D.boutique || 'AB').slice(0,2).toUpperCase())}</div>
-          <button class="store" id="bqBtn" aria-label="Changer de boutique"><img class="brandlogo" src="icon-192.png" alt="" aria-hidden="true"><span class="stn">${esc(D.boutique || 'Ma boutique')}</span><span class="stv">▾</span></button>
+          <div class="avatar" aria-hidden="true">${nomVisible ? esc((D.boutique || 'AB').slice(0,2).toUpperCase()) : '<svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><circle cx="12" cy="8.2" r="3.8"/><path d="M4.5 19.5c.8-3.6 3.9-5.6 7.5-5.6s6.7 2 7.5 5.6c.1.5-.3.9-.8.9H5.3c-.5 0-.9-.4-.8-.9z"/></svg>'}</div>
+          <div class="stwrap"><button class="store" id="bqBtn" aria-label="Changer de boutique"><span class="stico" aria-hidden="true">${ICO_BOUTIQUE}</span><span class="stn">${nomVisible ? '<span class="stnom">' + esc(D.boutique || 'Ma boutique') + '</span>' : '<span class="stmask" aria-label="Nom masqué"><i></i><i></i><i></i></span>'}</span></button>
+          <button class="eyebtn" id="eyeBtn" aria-label="${nomVisible ? 'Masquer' : 'Afficher'} le nom de la boutique" aria-pressed="${nomVisible}">${nomVisible ? ICO_OEIL_BARRE : ICO_OEIL}</button></div>
           <button class="iconbtn refbtn" id="refBtn" aria-label="Actualiser" title="Actualiser (F5)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button>
           <button class="iconbtn nfbtn" id="nfBtn" aria-label="Notifications${D.notifs ? ' : ' + D.notifs + ' non lue' + (D.notifs > 1 ? 's' : '') : ''}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>${D.notifs ? `<span class="nfbadge">${D.notifs > 99 ? '99+' : D.notifs}</span>` : ''}</button>
         </div>
@@ -2237,10 +2256,10 @@ function nettoyerHtml(h){
         ${pushBanner()}
         <div class="kpis" role="tablist">
           <button class="kpi dvgo" data-go="direct"><small>En direct</small><b><span class="pulse"></span>${D.live}</b></button>
-          <button class="kpi ${metric==='ventes'?'on':''}" data-m="ventes"><small>Ventes totales</small><b>${esc(fmtM(ca, dev))}</b>${pct(ca, caP)}</button>
-          <button class="kpi ${metric==='commandes'?'on':''}" data-m="commandes"><small>Commandes</small><b>${c.commandes}</b>${pct(c.commandes, p.commandes)}</button>
-          <button class="kpi ${metric==='visites'?'on':''}" data-m="visites"><small>Visites</small><b>${c.visites}</b>${pct(c.visites, p.visites)}</button>
-          <div class="kpi"><small>Taux de conversion</small><b>${conv.toFixed(1).replace('.', ',')} %</b>${p.visites ? `<span class="d ${conv >= convP ? 'up' : 'down'}">${conv >= convP ? '+' : ''}${(conv-convP).toFixed(1).replace('.', ',')} pt</span>` : ''}</div>
+          <button class="kpi ${metric==='visites'?'on':''}" data-m="visites" role="tab" aria-selected="${metric==='visites'}"><small>Visites</small><b>${c.visites}</b>${pct(c.visites, p.visites)}</button>
+          <button class="kpi ${metric==='ventes'?'on':''}" data-m="ventes" role="tab" aria-selected="${metric==='ventes'}"><small>Ventes totales</small><b>${esc(fmtM(ca, dev))}</b>${pct(ca, caP)}</button>
+          <button class="kpi ${metric==='commandes'?'on':''}" data-m="commandes" role="tab" aria-selected="${metric==='commandes'}"><small>Commandes</small><b>${c.commandes}</b>${pct(c.commandes, p.commandes)}</button>
+          <button class="kpi ${metric==='conversion'?'on':''}" data-m="conversion" role="tab" aria-selected="${metric==='conversion'}"><small>Taux de conversion</small><b>${conv.toFixed(1).replace('.', ',')} %</b>${p.visites ? `<span class="d ${conv >= convP ? 'up' : 'down'}">${conv >= convP ? '+' : ''}${(conv-convP).toFixed(1).replace('.', ',')} pt</span>` : ''}</button>
         </div>
         <div class="chart" id="chart"></div>
         <div class="legend"><span>${esc(libelle(periode))}</span><span class="p">${periode === 'jour' ? 'Hier' : 'Période précédente'}</span></div>
@@ -2268,7 +2287,8 @@ function nettoyerHtml(h){
         </div>
       </div>`;
     drawChart();
-    app.querySelectorAll('[data-m]').forEach(b => b.onclick = () => { metric = b.dataset.m; home(); });
+    app.querySelectorAll('[data-m]').forEach(b => b.onclick = () => choisirMetrique(b.dataset.m, b));
+    document.getElementById('eyeBtn').onclick = basculerNom;
     document.getElementById('pdBtn').onclick = () => choisirPeriode(periode, false, async k => {
       periode = k; SS.set('adm_periode', k); const c = fromCache(periode);
       if (c){ D = c; home(); } else { const b = document.getElementById('pdBtn'); if (b) b.innerHTML = CAL + ' ' + esc(libelle(k)) + ' …'; }
@@ -2282,10 +2302,33 @@ function nettoyerHtml(h){
     document.getElementById('nfBtn').onclick = () => ouvrirNotifs();
   }
 
-  function drawChart(){
+  function basculerNom(){
+    nomVisible = !nomVisible;
+    const st = document.querySelector('.top .stn'), av = document.querySelector('.top .avatar'), eb = document.getElementById('eyeBtn');
+    if (!st || !eb || !D) return home();
+    st.innerHTML = nomVisible ? `<span class="stnom">${esc(D.boutique || 'Ma boutique')}</span>` : '<span class="stmask" aria-label="Nom masqué"><i></i><i></i><i></i></span>';
+    if (av) av.innerHTML = nomVisible ? esc((D.boutique || 'AB').slice(0,2).toUpperCase()) : '<svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><circle cx="12" cy="8.2" r="3.8"/><path d="M4.5 19.5c.8-3.6 3.9-5.6 7.5-5.6s6.7 2 7.5 5.6c.1.5-.3.9-.8.9H5.3c-.5 0-.9-.4-.8-.9z"/></svg>';
+    eb.innerHTML = nomVisible ? ICO_OEIL_BARRE : ICO_OEIL; eb.setAttribute('aria-pressed', String(nomVisible));
+    eb.setAttribute('aria-label', (nomVisible ? 'Masquer' : 'Afficher') + ' le nom de la boutique');
+  }
+  // Taux de conversion par point du graphique (commandes / visites)
+  function serieConv(cmd, vis){ return cmd.map((c, i) => vis[i] ? Math.round(c / vis[i] * 1000) / 10 : 0); }
+  function serieDe(m, prec){
+    const S = prec ? D.serieP : D.serie;
+    if (m === 'conversion') return serieConv(S.commandes || [], S.visites || []);
+    return S[m] || [];
+  }
+  function choisirMetrique(m, bouton){
+    if (m === metric) return;
+    metric = m;
+    document.querySelectorAll('.kpis [data-m]').forEach(b => { const on = b.dataset.m === m; b.classList.toggle('on', on); b.setAttribute('aria-selected', String(on)); });
+    if (bouton) try { bouton.scrollIntoView({behavior: 'smooth', inline: 'center', block: 'nearest'}); } catch(e){}
+    drawChart(true);
+  }
+  function drawChart(anime){
     const el = document.getElementById('chart'); if (!el) return;
-    const b = D.serieP[metric], n = b.length;
-    let a = D.serie[metric];
+    const b = serieDe(metric, true), n = b.length;
+    let a = serieDe(metric, false);
     if (D.partiel) a = a.slice(0, D.partiel); else if (periode === 'jour') a = a.slice(0, new Date().getHours() + 1);
     const W = el.clientWidth || 340, H = 200, L = 58, R = 6, T = 12, B = 26;
     const max = Math.max(1, ...a, ...b);
@@ -2298,16 +2341,26 @@ function nettoyerHtml(h){
     let grid = '';
     for (let v = 0; v <= top + 1e-9; v += step){
       grid += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="rgba(255,255,255,.12)"/>
-        <text x="${L - 8}" y="${y(v) + 4}" text-anchor="end" fill="rgba(255,255,255,.66)" font-size="12" font-family="Figtree, sans-serif",sans-serif>${metric === 'ventes' ? short(v) : Math.round(v)}</text>`;
+        <text x="${L - 8}" y="${y(v) + 4}" text-anchor="end" fill="rgba(255,255,255,.66)" font-size="12" font-family="Figtree, sans-serif",sans-serif>${metric === 'ventes' ? short(v) : metric === 'conversion' ? (Math.round(v * 10) / 10).toString().replace('.', ',') + ' %' : Math.round(v)}</text>`;
     }
     const labels = D.etiquettes ? [...new Set([0, Math.floor((n-1)/2), n-1])].map(i => ({i, t: D.etiquettes[i] || ''}))
       : D.parJour ? [0, Math.floor((n-1)/2), n-1].map(i => ({i, t: (() => { const [dd, mm] = D.debut.split('/').map(Number); const d = new Date(new Date().getFullYear(), mm-1, dd + i); return d.getDate() + '/' + (d.getMonth()+1); })()}))
       : [0, 10, 20].map(i => ({i, t: String(i).padStart(2,'0') + ':00'}));
     const xl = labels.map(l => `<text x="${x(l.i)}" y="${H - 6}" text-anchor="middle" fill="rgba(255,255,255,.66)" font-size="12" font-family="Figtree, sans-serif",sans-serif>${l.t}</text>`).join('');
-    const unit = metric === 'ventes' ? D.devise : metric;
-    el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Évolution des ${esc(metric)} (${esc(unit)})">${grid}
+    const unit = metric === 'ventes' ? D.devise : metric === 'conversion' ? '%' : metric;
+    const nomM = {ventes: 'des ventes', commandes: 'des commandes', visites: 'des visites', conversion: 'du taux de conversion'}[metric] || metric;
+    const aire = a.length ? path(a) + ` L${x(a.length - 1)},${y(0)} L${x(0)},${y(0)} Z` : '';
+    el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Évolution ${esc(nomM)} (${esc(unit)})"><defs><linearGradient id="cgr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7EA2FF" stop-opacity=".28"/><stop offset="1" stop-color="#7EA2FF" stop-opacity="0"/></linearGradient></defs>${grid}
       <path d="${path(b)}" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="2" stroke-dasharray="4 4"/>
-      <path d="${path(a)}" fill="none" stroke="#7EA2FF" stroke-width="2.5" stroke-linecap="round"/>${xl}</svg>`;
+      <path class="caire" d="${aire}" fill="url(#cgr)"/>
+      <path class="cligne" d="${path(a)}" fill="none" stroke="#7EA2FF" stroke-width="2.5" stroke-linecap="round"/>${xl}</svg>`;
+    if (anime){   // la courbe se dessine de gauche à droite, comme sur Shopify
+      const l = el.querySelector('.cligne'), ar = el.querySelector('.caire');
+      try { const L = l.getTotalLength(); l.style.strokeDasharray = L; l.style.strokeDashoffset = L; l.getBoundingClientRect();
+        l.style.transition = 'stroke-dashoffset .7s cubic-bezier(.3,.7,.2,1)'; l.style.strokeDashoffset = '0'; } catch(e){}
+      if (ar){ ar.style.opacity = '0'; ar.getBoundingClientRect(); ar.style.transition = 'opacity .6s ease .25s'; ar.style.opacity = '1'; }
+      el.querySelectorAll('text').forEach(t => { t.style.opacity = '0'; t.getBoundingClientRect(); t.style.transition = 'opacity .35s ease'; t.style.opacity = '1'; });
+    }
   }
 
   /* ---------- Vue en direct (comme Shopify) ---------- */

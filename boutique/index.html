@@ -41,7 +41,7 @@ a{color:inherit}
 .defile span{padding:0 28px}
 .defile .promo{color:#FFD54A;font-weight:800}
 @keyframes defile{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-header{display:flex;align-items:center;justify-content:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);position:sticky;top:0;background:rgba(255,255,255,.96);z-index:15;box-shadow:0 2px 14px rgba(18,48,143,.06)}
+header{display:flex;align-items:center;justify-content:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);position:sticky;top:0;background:#fff;z-index:15;box-shadow:0 2px 14px rgba(18,48,143,.06)}
 .brand{display:flex;align-items:center;justify-content:center;gap:10px;text-decoration:none;font:800 clamp(16px,5vw,21px) "Bricolage Grotesque",sans-serif;letter-spacing:.03em;color:var(--main);min-width:0}
 .brand img{height:36px;width:auto}
 .brand span{background:linear-gradient(90deg,#12308F,#2350D8);-webkit-background-clip:text;background-clip:text;color:transparent}
@@ -100,9 +100,36 @@ header{display:flex;align-items:center;justify-content:center;gap:10px;padding:1
 .urg .ut span{font-size:13px;color:var(--soft)}
 .urg .ub{background:var(--main);color:#fff;font-weight:800;font-size:14px;border-radius:999px;padding:9px 14px;text-decoration:none;white-space:nowrap}
 .urg .ux{background:none;border:0;color:var(--soft);font-size:22px;line-height:1;cursor:pointer;padding:0 2px}
-.valider{display:flex;gap:10px;align-items:flex-start;background:var(--surface);border-left:4px solid var(--main);border-radius:10px;padding:11px 13px;margin:14px 0 10px;font-size:14px;line-height:1.4;color:var(--ink)}
+/* Rappel « dernière étape » : apparaît dès que le client commence à remplir, juste au-dessus du bouton */
+.valider{position:relative;margin:16px 0 12px;padding:14px 16px 6px;border-radius:14px;color:var(--ink);font-size:14.5px;line-height:1.45;
+  background:linear-gradient(#fff,#fff) padding-box,linear-gradient(110deg,#1736A6,#5B8CFF,#1736A6,#5B8CFF) border-box;background-size:100% 100%,300% 100%;
+  border:1.5px solid transparent;box-shadow:0 8px 24px rgba(23,54,166,.12);animation:vEntre .45s cubic-bezier(.2,.9,.3,1.2) both,vBord 3s linear infinite}
 .valider[hidden]{display:none}
-.valider .vi{font-size:18px;line-height:1.2}
+@keyframes vEntre{from{opacity:0;transform:translateY(-8px) scale(.98)}}
+@keyframes vBord{to{background-position:0 0,-300% 0}}
+.valider .vtop{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.valider .vdot{width:9px;height:9px;border-radius:50%;background:#1736A6;box-shadow:0 0 0 0 rgba(23,54,166,.5);animation:vPouls 1.6s ease-out infinite;flex:0 0 auto}
+@keyframes vPouls{70%{box-shadow:0 0 0 9px rgba(23,54,166,0)}100%{box-shadow:0 0 0 0 rgba(23,54,166,0)}}
+.valider .vlab{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#1736A6}
+.valider .vprog{margin-left:auto;width:64px;height:5px;border-radius:5px;background:#E6EBF8;overflow:hidden}
+.valider .vprog i{display:block;height:100%;width:0;border-radius:5px;background:linear-gradient(90deg,#1736A6,#5B8CFF);transition:width .5s ease}
+.valider .vtxt{margin:0}
+.valider .vfl{display:flex;flex-direction:column;align-items:center;margin-top:4px;height:30px}
+.valider .vfl svg{width:22px;height:12px;margin-top:-3px;fill:none;stroke:#1736A6;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;opacity:.15;animation:vFleche 1.4s ease-in-out infinite}
+.valider .vfl svg:nth-child(2){animation-delay:.18s}.valider .vfl svg:nth-child(3){animation-delay:.36s}
+@keyframes vFleche{0%,100%{opacity:.15;transform:translateY(-2px)}40%{opacity:1;transform:translateY(2px)}}
+.valider.pret{background:linear-gradient(#fff,#fff) padding-box,linear-gradient(110deg,#128C4A,#3FD07A,#128C4A,#3FD07A) border-box;background-size:100% 100%,300% 100%;box-shadow:0 8px 24px rgba(18,140,74,.14)}
+.valider.pret .vdot{background:#128C4A;animation-name:vPoulsV}.valider.pret .vlab{color:#128C4A}
+.valider.pret .vprog i{background:linear-gradient(90deg,#128C4A,#3FD07A)}
+.valider.pret .vfl svg{stroke:#128C4A}
+@keyframes vPoulsV{0%{box-shadow:0 0 0 0 rgba(18,140,74,.5)}70%{box-shadow:0 0 0 9px rgba(18,140,74,0)}100%{box-shadow:0 0 0 0 rgba(18,140,74,0)}}
+.valider.secoue{animation:vSecoue .6s ease both,vBord 3s linear infinite}
+@keyframes vSecoue{15%,55%{transform:translateX(-5px)}35%,75%{transform:translateX(5px)}90%{transform:translateX(-2px)}}
+#sendBtn.rappel{animation:vAnneau 1.6s ease-out infinite}
+@keyframes vAnneau{0%{box-shadow:0 0 0 0 rgba(23,54,166,.55)}75%,100%{box-shadow:0 0 0 14px rgba(23,54,166,0)}}
+#sendBtn.rappel.pret{background:#128C4A;border-color:#128C4A;animation-name:vAnneauV}
+@keyframes vAnneauV{0%{box-shadow:0 0 0 0 rgba(18,140,74,.55)}75%,100%{box-shadow:0 0 0 14px rgba(18,140,74,0)}}
+@media (prefers-reduced-motion:reduce){.valider,.valider .vdot,.valider .vfl svg,#sendBtn.rappel{animation:none}.valider .vfl svg{opacity:.6}}
 .retour{margin:12px 18px 0;background:var(--surface);border-left:4px solid var(--main);color:var(--ink);border-radius:12px;padding:13px 15px;display:flex;flex-direction:column;gap:3px;font-size:14px;line-height:1.35}
 .retour b{font-size:15.5px}
 .retour span{color:var(--soft)}
@@ -653,7 +680,11 @@ input[type=tel],input[type=text],textarea,select.in,.country select{border-width
             <div class="row"><span>Offre</span><span id="tOff"></span></div>
             <div class="row"><span>Livraison</span><span id="tDay">${esc(LIVRAISON)}</span></div>
             <div class="row total"><span>À payer à la livraison</span><span id="tTotal"></span></div></div>
-          <div class="valider" id="valider" hidden><span class="vi">⏳</span><div><b>Votre commande n'est pas encore validée.</b> Appuyez sur « Je commande maintenant » pour la confirmer, sinon elle ne sera pas enregistrée.</div></div>
+          <div class="valider" id="valider" hidden role="status" aria-live="polite">
+            <div class="vtop"><span class="vdot" aria-hidden="true"></span><span class="vlab" id="vLab">Dernière étape</span><span class="vprog" aria-hidden="true"><i></i></span></div>
+            <p class="vtxt" id="vTxt"><b>Votre commande n'est pas encore envoyée.</b> Appuyez sur «&nbsp;Je commande maintenant&nbsp;» ci&#8209;dessous pour la valider.</p>
+            <div class="vfl" aria-hidden="true"><svg viewBox="0 0 24 14"><path d="M3 3l9 8 9-8"/></svg><svg viewBox="0 0 24 14"><path d="M3 3l9 8 9-8"/></svg><svg viewBox="0 0 24 14"><path d="M3 3l9 8 9-8"/></svg></div>
+          </div>
           <button type="submit" class="cta attn" id="sendBtn">Je commande maintenant</button>
           <p class="reassure">Aucun paiement en ligne. Vous payez au livreur.</p>
           <div class="senderr" id="sendErr"></div>
@@ -763,9 +794,32 @@ input[type=tel],input[type=text],textarea,select.in,.country select{border-width
     /* Rappel « validez votre commande » : dès que le client a commencé à remplir, et brouillon gardé sur son téléphone */
     const K_BR = 'brouillon_' + (BQ || '') + '_' + P.id;
     const commence = () => ($('nom').value.trim().length >= 2 || $('tel').value.replace(/\D/g,'').length >= 6 || $('adr').value.trim().length >= 3);
+    // Progression du formulaire : quand tout est rempli, le rappel passe au vert « Tout est prêt »
+    const etapes = () => {
+      const vl = $('ville') ? $('ville').value : '', autre = $('villeAutre') ? $('villeAutre').value.trim() : '';
+      return [$('nom').value.trim().length >= 2, $('tel').value.replace(/\D/g, '').length >= 8, !!vl && (vl !== '__autre' || autre.length >= 2), $('adr').value.trim().length >= 3, !!($('ok') && $('ok').checked)];
+    };
+    let vIdle = null, vDernier = 0;
     const rappel = () => {
       const on = !ordered && !dejaPour(P.id) && commence();
       const v = $('valider'); if (v) v.hidden = !on;
+      if (v){
+        const E = etapes(), n = E.filter(Boolean).length, pret = n === E.length;
+        const pg = v.querySelector('.vprog i'); if (pg) pg.style.width = Math.round(n / E.length * 100) + '%';
+        if (v.classList.contains('pret') !== pret){
+          v.classList.toggle('pret', pret);
+          $('vLab').textContent = pret ? 'Tout est prêt' : 'Dernière étape';
+          $('vTxt').innerHTML = pret ? '<b>Il ne reste qu’une chose à faire :</b> appuyez sur «&nbsp;Je commande maintenant&nbsp;» pour envoyer votre commande.' : '<b>Votre commande n’est pas encore envoyée.</b> Appuyez sur «&nbsp;Je commande maintenant&nbsp;» ci&#8209;dessous pour la valider.';
+        }
+        const sb = $('sendBtn'); if (sb){ sb.classList.toggle('rappel', on); sb.classList.toggle('pret', on && pret); }
+        // Tout est rempli mais le client n'appuie pas : petit rappel animé après quelques secondes d'inactivité
+        clearTimeout(vIdle);
+        if (on && pret) vIdle = setTimeout(function relancer(){
+          if (ordered || v.hidden || !v.classList.contains('pret')) return;
+          if (Date.now() - vDernier > 9000){ vDernier = Date.now(); v.classList.remove('secoue'); void v.offsetWidth; v.classList.add('secoue'); setTimeout(() => v.classList.remove('secoue'), 700); }
+          vIdle = setTimeout(relancer, 12000);
+        }, 6000);
+      }
       const st = $('sticky'); if (st) st.classList.toggle('brou', on);
       const c = $('stCta'); if (c) c.textContent = on ? 'Valider ma commande' : 'Je commande';
     };
