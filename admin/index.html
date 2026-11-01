@@ -932,6 +932,25 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
   .btn{background:#EDEDED;color:#111}.btn.ghost,.btn.blue2{background:#242424;color:#EDEDED;border-color:#303030}.btn.blue{background:var(--main);color:#fff}
   .nav{background:#1A1A1A;box-shadow:0 6px 24px rgba(0,0,0,.6)}.toast,.pushban{background:#1A1A1A;color:#EDEDED}
   .ph:first-child::before{background:#EDEDED;color:#111}.iabtn,.iahd .av{background:#EDEDED;color:#111}}
+/* Tailles de texte alignées sur l'application Shopify (plus petites, plus fines) */
+body{font-size:15px}
+.store{font-size:17px}
+.kpi{padding:8px 11px;min-width:0}.kpi small{font-size:12.5px}.kpi b{font:600 18px "Inter",sans-serif;letter-spacing:-.02em}.kpi .d{font-size:11.5px;margin-left:4px}
+.chart text{font-size:11px}.legend{font-size:12.5px}
+.chip{font-size:13.5px;padding:8px 12px}
+.sheet h2{font-size:19px;line-height:1.25;margin-bottom:14px}.sheet h2 span{font-weight:500}
+.tile{padding:12px 13px}.tile small{font-size:13px;font-weight:500}.tile b{font:600 19px "Inter",sans-serif;letter-spacing:-.02em;margin-top:3px}
+.block h3{font-size:16px}.block h3 button{font-size:13.5px}
+.money div{font-size:14px;padding:9px 13px}
+.ptile b{font-size:15px}.ptile small{font-size:12.5px}
+.order .l1 b{font:600 16px "Inter",sans-serif}.order .l1 span{font-size:14px}.order .l2{font-size:14.5px}
+.filters button{font-size:14px}
+.set b{font-size:15px}.set p{font-size:13px}
+.btn{font-size:15px;padding:13px}
+.badge{font-size:12.5px}
+.detail h2{font-size:22px}.ticket .row{font-size:14.5px}
+.page h1{font-size:24px}
+.mrow{font-size:16px}.pgt{font-size:26px}.prow .ptx b{font-size:15.5px}.prow .ptx small{font-size:13px}
 </style>
 </head>
 <body>
@@ -4412,7 +4431,7 @@ function nettoyerHtml(h){
     chevron: '<path d="M9 6l6 6-6 6"/>', retour: '<path d="M15 18l-6-6 6-6"/>', loupe: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>'
   };
   const ic = n => IC(ICONES[n] || '');
-  const VERSION_APP = '100';
+  const VERSION_APP = '101';
   function settings(){
     const proprio = D.vendoo && D.vendoo.statut === 'proprietaire', abonne = VENDOO && D.vendoo && D.vendoo.statut !== 'proprietaire';
     const m = (id, icone, titre) => `<button class="mrow" data-mn="${id}">${ic(icone)}<span>${titre}</span></button>`;
