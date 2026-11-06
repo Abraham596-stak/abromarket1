@@ -1328,8 +1328,8 @@ function nettoyerHtml(h){
       <button class="btn blue" id="iaOk" style="margin-top:14px">Enregistrer</button>
       ${ok ? '<button class="btn ghost" id="iaTest" style="margin-top:8px">🧪 Tester l’assistant</button><div id="iaRes"></div><button class="btn ghost" id="iaDel" style="margin-top:8px">Retirer la clé</button>' : ''}
       <button class="btn ghost" data-x style="margin-top:8px">Fermer</button>
-      <div style="border-top:1px solid var(--line);margin:18px 0 6px;padding-top:14px"><b>⚡ IA de secours : Groq</b> ${okG ? '<span style="color:#067647;font-weight:700">✅ branchée</span>' : ''}
-        <p class="sub" style="margin:6px 0">Gratuite et très rapide. Elle écrit tes voix off en premier et prend le relais quand Gemini est saturé.</p>
+      <div style="border-top:1px solid var(--line);margin:18px 0 6px;padding-top:14px"><b>⚡ IA principale : Groq</b> ${okG ? '<span style="color:#067647;font-weight:700">✅ branchée</span>' : ''}
+        <p class="sub" style="margin:6px 0">Gratuite et très rapide : elle répond en premier (assistant, textes, voix off). Gemini prend le relais si elle ne répond pas, et c’est lui qui lit les photos.</p>
         <ol class="iasteps"><li>Ouvre <a href="https://console.groq.com/keys" target="_blank" rel="noopener"><b>console.groq.com/keys</b></a> et connecte-toi (avec Google, c’est le plus simple).</li><li>Appuie sur <b>« Create API Key »</b>, donne un nom (ex : boutique), puis <b>copie la clé</b> (elle commence par <b>gsk_</b>).</li><li>Colle-la ci-dessous et enregistre.</li></ol>
         <label class="lbl" for="iaG">Clé Groq</label><input class="field" id="iaG" type="password" autocomplete="off" placeholder="${okG ? 'Déjà enregistrée (colle une autre clé pour la changer)' : 'Colle ta clé gsk_… ici'}">
         <button class="btn blue" id="iaGOk" style="margin-top:12px">Enregistrer la clé Groq</button>
@@ -4564,7 +4564,7 @@ function nettoyerHtml(h){
     chevron: '<path d="M9 6l6 6-6 6"/>', retour: '<path d="M15 18l-6-6 6-6"/>', loupe: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>'
   };
   const ic = n => IC(ICONES[n] || '');
-  const VERSION_APP = '105';
+  const VERSION_APP = '106';
   function settings(){
     const proprio = D.vendoo && D.vendoo.statut === 'proprietaire', abonne = VENDOO && D.vendoo && D.vendoo.statut !== 'proprietaire';
     const m = (id, icone, titre) => `<button class="mrow" data-mn="${id}">${ic(icone)}<span>${titre}</span></button>`;
