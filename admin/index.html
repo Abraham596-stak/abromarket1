@@ -681,7 +681,20 @@ body.v-settings{background:var(--bg)}
 .pmsheet .danger{color:#B42318}
 .pmsheet .annul{text-align:center;background:var(--surface);margin-top:6px}
 .prod .pname{text-align:left;padding:0}
-.pst{color:#B45309;font-weight:700}.pst.on{color:#0B6B35}
+.pst{color:#B45309;font-weight:700}.pst.on{color:#0B6B35}.pst.off{color:#6B7280}.pst.pause{color:#8A5A00}
+.pxl{display:flex;align-items:flex-start;gap:8px;padding:12px 0;border-bottom:1px solid var(--line)}
+.pxl.eteint .pxi>b,.pxl.eteint .pxi>small{opacity:.55}
+.pxi{flex:1;min-width:0}.pxi b{display:block;font-size:15px}.pxi small{display:block;color:var(--muted);font-size:12.5px;font-variant-numeric:tabular-nums;margin-top:1px}
+.pxtags{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+.pxt{font-size:11.5px;font-weight:600;padding:2px 7px;border-radius:6px;background:var(--surface);color:var(--ink)}.pxt.manque{color:#8A5A00;background:#FFF4D6}
+.pxe{font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:999px;display:inline-flex;align-items:center;gap:5px}
+.pxe::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.pxe.on{background:#E3F1DF;color:#256E2F}.pxe.pause{background:#FFF1D6;color:#8A5A00}.pxe.off{background:#ECEDEF;color:#5C6066}
+.pxresume{font-size:14px;margin:4px 0 2px;color:var(--ink)}
+.pxck{display:flex;align-items:center;gap:8px;font-size:14px;margin:-4px 0 10px}
+.pmsheet>button.petat{display:flex;flex-direction:column;align-items:flex-start;gap:5px}
+.pmsheet>button.petat small{font-weight:500;font-size:13px;color:var(--muted);line-height:1.35}
+.pmsheet>button.petat.cur{background:var(--surface);box-shadow:inset 0 0 0 1.5px var(--main)}
 .editor{position:fixed;inset:0;z-index:50;background:var(--surface);overflow-y:auto;-webkit-overflow-scrolling:touch}
 .edbar{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fff;padding:calc(env(safe-area-inset-top) + 10px) 12px 10px;border-bottom:1px solid var(--line)}
 .edbar b{font-size:17px;flex:1;text-align:center;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -803,7 +816,7 @@ html.ordi .apstage.ordi .apframe{height:calc(100vh - 230px)}
 .rgch{display:flex;flex-direction:column;gap:2px}
 .rgch>label{display:flex;align-items:center;gap:10px;padding:10px 4px;font-size:15px;font-weight:600}
 .rgch>label small{color:var(--soft);font-weight:500}
-.rgch input[type=radio]{width:20px;height:20px;accent-color:var(--main);flex:0 0 20px}
+.rgch input[type=radio],.rgch input[type=checkbox]{width:20px;height:20px;accent-color:var(--main);flex:0 0 20px}
 .rgch .field{margin:2px 0 6px}
 .rggar{margin-top:10px;padding:10px 12px;border-radius:14px;background:var(--surface)}
 .rggar .field{background:#fff}
@@ -1516,8 +1529,7 @@ function nettoyerHtml(h){
     o.querySelector('#rgB').innerHTML = `
       <h3 class="rgt">📣 Publicité : Meta (Facebook, Instagram)</h3>
       ${utmBloc('Meta', 'À coller dans ta pub Meta, case « Paramètres de l’URL » (pas dans le lien du site)', UTM_META)}
-      ${pixelBloc('fb', 'Pixel Meta')}
-      ${champ('fbj', 'Jeton API Conversions', 'Facultatif, recommandé : les achats arrivent même si le navigateur bloque le pixel', 'password')}
+      <button type="button" class="prow" id="rgPx" style="margin:6px 0 10px"><span class="pic">${ic('pixels')}</span><span class="ptx"><b>Pixels Meta</b><small>Plusieurs pixels, communs ou par pays, actif / en pause</small></span><span class="pch">${ic('chevron')}</span></button>
       ${champ('fbt', 'Code test des événements', 'Facultatif : seulement pendant un test dans le Gestionnaire d’événements')}
       <h3 class="rgt">🎵 Publicité : TikTok</h3>
       ${utmBloc('TikTok', 'À coller dans ta pub TikTok, case « Paramètres d’URL » (ou à la fin du lien après un ?)', UTM_TT)}
@@ -1551,6 +1563,7 @@ function nettoyerHtml(h){
       <button class="btn ghost" id="rgX" style="margin-top:8px">Fermer</button>`;
     const B = o.querySelector('#rgB');
     B.querySelector('#rgX').onclick = () => o.remove();
+    B.querySelector('#rgPx').onclick = () => pixelsMeta(b);
     B.querySelectorAll('[data-utm]').forEach(x => x.onclick = async () => { try { await navigator.clipboard.writeText(x.dataset.utm); x.textContent = '✓ Copié'; setTimeout(() => x.textContent = '📋 Copier', 1500); } catch(e){ prompt('Copie ce texte :', x.dataset.utm); } });
     const chargerPixels = async () => { if (PX) return PX; try { PX = (await bqAppel({action: 'pixels'})).pixels; } catch(e){ PX = []; } return PX; };
     B.querySelectorAll('.rgpx').forEach(bl => {
@@ -1574,6 +1587,122 @@ function nettoyerHtml(h){
       bt.disabled = true; bt.textContent = 'Enregistrement…';
       try { await bqAppel({action: 'reglagesSauver', code, valeurs: val}); o.remove(); toast('✅ Réglages enregistrés'); }
       catch(x){ bt.disabled = false; bt.textContent = 'Enregistrer'; alert('Impossible d’enregistrer : ' + x.message); }
+    };
+  }
+  /* ---------- Pixels Meta : plusieurs pixels actifs, communs à toutes les boutiques ou par pays ---------- */
+  const PX_ETAT = {'Actif': ['on', 'Actif', 'Reçoit les visites et les achats'], 'En pause': ['pause', 'En pause', 'Ne reçoit plus rien pour le moment, tu peux le réactiver'], 'Désactivé': ['off', 'Désactivé', 'Coupé (pixel abandonné ou compte publicitaire fermé)']};
+  async function pixelsMeta(b){
+    const code = b ? (b.code || '') : (BQ || ''), nomB = b ? b.nom : ((D && D.boutique) || 'Ma boutique');
+    const o = feuille(`<h2>Pixels Meta</h2><p class="sub">« ${esc(nomB)} »</p><div id="pxB"><div class="empty">Chargement…</div></div>`);
+    let R = null;
+    const appel = async x => { R = await call(Object.assign({type: 'pixels', b: code}, x)); return R; };
+    const nomPays = l => { const L = (BQS && BQS.paysListe) || []; return l.map(c => (L.find(p => p.code === c) || {nom: c}).nom).join(', '); };
+    const ligne = (p, lecture) => { const e = PX_ETAT[p.etat] || PX_ETAT['Actif'];
+      return `<div class="pxl${p.etat !== 'Actif' ? ' eteint' : ''}"><div class="pxi"><b>${esc(p.nom || 'Pixel')}</b><small>${esc(p.id)}</small>
+        <span class="pxtags"><span class="pxe ${e[0]}">${e[1]}</span>${p.portee === 'toutes' ? '<span class="pxt">Toutes les boutiques</span>' : ''}<span class="pxt">${p.pays && p.pays.length ? esc(nomPays(p.pays)) : 'Tous les pays'}</span><span class="pxt${p.jeton ? '' : ' manque'}">${p.jeton ? 'API Conversions' : 'Sans jeton API'}</span></span></div>
+        ${lecture ? '' : `<button class="pmenu" data-pxm="${esc(p.id)}" aria-label="Options du pixel ${esc(p.nom)}">⋮</button>`}</div>`; };
+    const dessiner = () => {
+      const z = o.querySelector('#pxB'); if (!z || !R) return;
+      const actifs = R.propres.filter(p => p.etat === 'Actif').length + (R.herite ? 0 : R.communs.filter(p => p.etat === 'Actif').length);
+      z.innerHTML = `<p class="pxresume">${R.herite ? 'Cette boutique utilise les pixels de la boutique principale tant que tu n’en ajoutes pas un à elle.' : `<b>${actifs} pixel${actifs > 1 ? 's' : ''} actif${actifs > 1 ? 's' : ''}</b> : chaque visite et chaque achat partent vers tous en même temps.`}</p>
+        <h3 class="rgt">${R.principale ? 'Pixels de la boutique principale' : 'Pixels de cette boutique'}</h3>
+        ${R.propres.length ? R.propres.map(p => ligne(p)).join('') : '<div class="empty" style="padding:14px 0">Aucun pixel à elle.</div>'}
+        <button class="btn blue" id="pxAdd" style="margin-top:10px">+ Ajouter un pixel</button>
+        ${R.communs.length ? `<h3 class="rgt">${R.herite ? 'Pixels utilisés (ceux de la principale)' : 'Pixels communs à toutes les boutiques'}</h3>${R.communs.map(p => ligne(p, true)).join('')}<p class="sub" style="margin-top:6px">Ils se changent dans la boutique principale.</p>` : ''}
+        ${R.principale ? '<p class="sub" style="margin-top:14px">« Toutes les boutiques » : le pixel reçoit aussi les visites et les achats de tes autres boutiques, en plus de leurs propres pixels.</p>' : ''}
+        <button class="btn ghost" id="pxX" style="margin-top:12px">Fermer</button>`;
+      z.querySelector('#pxX').onclick = () => o.remove();
+      z.querySelector('#pxAdd').onclick = () => formulaire(null);
+      z.querySelectorAll('[data-pxm]').forEach(x => x.onclick = () => menu(R.propres.find(p => p.id === x.dataset.pxm)));
+    };
+    const faire = async (x, msg) => { try { await appel(x); dessiner(); if (msg) toast(msg); return true; } catch(e){ alert(e.message); return false; } };
+    function menu(p){
+      if (!p) return;
+      const m = document.createElement('div'); m.className = 'overlay';
+      m.innerHTML = `<div class="detail pmsheet" role="dialog" aria-modal="true" aria-label="Options du pixel"><div class="grab"></div>
+        <div class="pmtete"><b>${esc(p.nom)}<br><small style="font-weight:500;color:var(--muted)">${esc(p.id)}</small></b></div>
+        <button data-x="edit">Modifier</button>
+        ${Object.keys(PX_ETAT).filter(k => k !== p.etat).map(k => `<button data-x="etat" data-e="${k}">${k === 'Actif' ? 'Activer' : k === 'En pause' ? 'Mettre en pause' : 'Désactiver'}</button>`).join('')}
+        <button data-x="copier">Copier l’ID</button>
+        <button data-x="suppr" class="danger">Retirer ce pixel</button>
+        <button data-x="non" class="annul">Annuler</button></div>`;
+      m.onclick = async e => { if (e.target === m) return m.remove(); const t = e.target.closest('[data-x]'); if (!t) return; m.remove(); const a = t.dataset.x;
+        if (a === 'edit') formulaire(p);
+        if (a === 'etat') faire({action: 'etat', id: p.id, etat: t.dataset.e}, 'Pixel « ' + p.nom + ' » : ' + t.dataset.e.toLowerCase());
+        if (a === 'copier'){ try { await navigator.clipboard.writeText(p.id); toast('ID copié'); } catch(x){ prompt('ID du pixel :', p.id); } }
+        if (a === 'suppr' && await confirmer({titre: 'Retirer ce pixel ?', texte: `<b>« ${esc(p.nom)} »</b> ne recevra plus les visites ni les achats ${p.portee === 'toutes' ? 'd’aucune de tes boutiques' : 'de cette boutique'}.<br><br>Pour l’arrêter un moment, utilise plutôt « Mettre en pause ».`, ok: 'Retirer'})) faire({action: 'supprimer', id: p.id}, 'Pixel retiré');
+      };
+      document.body.appendChild(m);
+    }
+    function formulaire(p){
+      const L = (BQS && BQS.paysListe) || [], bq = BQS && (BQS.boutiques || []).find(x => (x.code || '') === code);
+      const sep = v => String(v || '').toUpperCase().split(/[^A-Z]+/).filter(Boolean);
+      const codes = (R.principale ? [].concat(...((BQS && BQS.boutiques) || []).map(x => sep(x.pays))) : sep(bq && bq.pays)).filter((c, i, t) => t.indexOf(c) === i).concat(p ? p.pays : []).filter((c, i, t) => t.indexOf(c) === i);
+      const choisis = p ? p.pays : [], etat = p ? p.etat : 'Actif';
+      const f = feuille(`<h2>${p ? 'Modifier le pixel' : 'Ajouter un pixel'}</h2>
+        <div class="rgc"><label for="pxId">ID du pixel<small>Gestionnaire d’événements → ton pixel → Paramètres (15 à 16 chiffres)</small></label><input class="field" id="pxId" inputmode="numeric" autocomplete="off" value="${esc(p ? p.id : '')}"></div>
+        <div class="rgc"><label for="pxNom">Nom<small>Pour le reconnaître, ex : « Pixel 4 » ou « Compte Abmarket 6 »</small></label><input class="field" id="pxNom" maxlength="60" value="${esc(p ? p.nom : '')}"></div>
+        <div class="rgc"><label for="pxJt">Jeton API Conversions<small>Recommandé : les achats arrivent même si le téléphone du client bloque le pixel. Pixel → Paramètres → API Conversions → Générer un jeton d’accès.</small></label><input class="field" id="pxJt" type="password" autocomplete="off" placeholder="${p && p.jeton ? 'Déjà enregistré : vide = le garder' : 'Commence par EAA'}"></div>
+        ${p && p.jeton ? '<label class="pxck"><input type="checkbox" id="pxJtX"> <span>Retirer le jeton enregistré</span></label>' : ''}
+        ${R.principale ? `<div class="rgc"><label>Boutiques</label><div class="rgch">
+          <label><input type="radio" name="pxPo" value="boutique" ${!p || p.portee !== 'toutes' ? 'checked' : ''}> <span>Seulement la boutique principale</span></label>
+          <label><input type="radio" name="pxPo" value="toutes" ${p && p.portee === 'toutes' ? 'checked' : ''}> <span>Toutes les boutiques <small>(les ${(BQS && BQS.boutiques || []).length || 31} boutiques, en plus de leurs pixels)</small></span></label></div></div>` : ''}
+        <div class="rgc"><label>Pays<small>Aucun coché = tous les pays</small></label><div class="rgch pxpays">${codes.map(c => `<label><input type="checkbox" value="${esc(c)}" ${choisis.includes(c) ? 'checked' : ''}> <span>${esc((L.find(x => x.code === c) || {nom: c}).nom)}</span></label>`).join('') || '<span class="sub">Tous les pays de la boutique</span>'}</div></div>
+        <div class="rgc"><label>État</label><div class="rgch">${Object.keys(PX_ETAT).map(k => `<label><input type="radio" name="pxEt" value="${k}" ${k === etat ? 'checked' : ''}> <span>${k} <small>${PX_ETAT[k][2]}</small></span></label>`).join('')}</div></div>
+        <button class="btn blue" id="pxOk" style="margin-top:14px">${p ? 'Enregistrer' : 'Ajouter le pixel'}</button>
+        <button class="btn ghost" id="pxNo" style="margin-top:8px">Annuler</button>`);
+      f.querySelector('#pxNo').onclick = () => f.remove();
+      f.querySelector('#pxOk').onclick = async e => {
+        const bt = e.currentTarget, id = f.querySelector('#pxId').value.replace(/\D/g, '');
+        if (id.length < 10) return alert('Écris l’ID du pixel (15 à 16 chiffres).');
+        const px = {id, nom: f.querySelector('#pxNom').value.trim(), jeton: f.querySelector('#pxJt').value.trim(), ancienId: p ? p.id : '',
+          effacerJeton: !!(f.querySelector('#pxJtX') || {}).checked, portee: (f.querySelector('input[name=pxPo]:checked') || {}).value || 'boutique',
+          pays: [...f.querySelectorAll('.pxpays input:checked')].map(i => i.value), etat: (f.querySelector('input[name=pxEt]:checked') || {}).value || 'Actif'};
+        bt.disabled = true; bt.textContent = 'Enregistrement…';
+        if (await faire({action: 'sauver', pixel: px}, p ? 'Pixel enregistré' : 'Pixel ajouté : il reçoit les visites et les achats')) f.remove();
+        else { bt.disabled = false; bt.textContent = p ? 'Enregistrer' : 'Ajouter le pixel'; }
+      };
+    }
+    try { await appel({action: 'liste'}); } catch(e){ o.remove(); return alert('Impossible de charger les pixels : ' + e.message); }
+    dessiner();
+  }
+  /* ---------- État d'un produit : Actif / En pause / Désactivé (rupture de stock) ---------- */
+  const ETATS_P = {actif: ['Actif', 'En vente, avec tous les rappels'], pause: ['En pause', 'Reste sur le site, mais plus aucun rappel (point du jour, promo TikTok…)'], off: ['Désactivé', 'Rupture de stock : retiré du site, sans rappel. « Actif » le remet en ligne']};
+  const etatP = id => (PR && PR.etats && PR.etats[id]) || 'actif';
+  function choisirEtat(ids){
+    if (!PR) return;
+    const un = ids.length === 1, cur = un ? etatP(ids[0]) : '';
+    const m = document.createElement('div'); m.className = 'overlay';
+    m.innerHTML = `<div class="detail pmsheet" role="dialog" aria-modal="true" aria-label="État du produit"><div class="grab"></div>
+      <div class="pmtete"><b>État ${un ? 'du produit' : 'de ' + ids.length + ' produits'}</b></div>
+      ${Object.keys(ETATS_P).map(k => `<button data-et="${k}" class="petat${k === cur ? ' cur' : ''}"><span class="pxe ${k === 'actif' ? 'on' : k}">${ETATS_P[k][0]}</span><small>${ETATS_P[k][1]}</small></button>`).join('')}
+      <button data-et="x" class="annul">Annuler</button></div>`;
+    m.onclick = e => { if (e.target === m) return m.remove(); const t = e.target.closest('[data-et]'); if (!t) return; m.remove(); if (t.dataset.et !== 'x' && t.dataset.et !== cur) appliquerEtat(ids, t.dataset.et); };
+    document.body.appendChild(m);
+  }
+  function appliquerEtat(ids, etat){
+    PR.etats = PR.etats || {};
+    ids.forEach(id => { const p = PR.produits.find(x => x.id === id); const avant = etatP(id);
+      if (etat === 'actif') delete PR.etats[id]; else PR.etats[id] = etat;
+      if (p && etat === 'off') p.enLigne = false; else if (p && avant === 'off') p.enLigne = true; });
+    memoPR(); enfiler({action: 'etat', ids, etat}); prSel = null; drawProducts();
+    toast((ids.length > 1 ? ids.length + ' produits : ' : '') + ETATS_P[etat][0]);
+    autresBoutiques(ids, etat);
+  }
+  // Le même produit (même identifiant) dans d'autres boutiques : proposer le même état
+  async function autresBoutiques(ids, etat){
+    let L = [];
+    try { await new Promise(r => setTimeout(r, 300)); L = (await call({type: 'produits', action: 'ou', ids})).boutiques || []; } catch(e){ return; }
+    L = L.filter(b => b.produits.some(p => p.etat !== etat)); if (!L.length) return;
+    const f = feuille(`<h2>Aussi dans tes autres boutiques ?</h2><p class="sub">${ids.length > 1 ? 'Ces produits sont' : 'Ce produit est'} aussi dans ${L.length} autre${L.length > 1 ? 's' : ''} boutique${L.length > 1 ? 's' : ''}. Les mettre aussi « ${ETATS_P[etat][0]} » ?</p>
+      <div class="rgch" style="margin:10px 0">${L.map(b => `<label><input type="checkbox" value="${esc(b.code)}" checked> <span>${esc(b.nom)} <small>${b.produits.length > 1 ? b.produits.length + ' produits · ' : ''}${b.produits.map(p => ETATS_P[p.etat][0]).filter((x, i, t) => t.indexOf(x) === i).join(', ')}</small></span></label>`).join('')}</div>
+      <button class="btn blue" id="abOk">Appliquer</button><button class="btn ghost" id="abNo" style="margin-top:8px">Non, seulement ici</button>`);
+    f.querySelector('#abNo').onclick = () => f.remove();
+    f.querySelector('#abOk').onclick = async e => {
+      const bt = e.currentTarget, choix = [...f.querySelectorAll('input:checked')].map(i => i.value); if (!choix.length) return f.remove();
+      bt.disabled = true; bt.textContent = 'Application…'; let ok = 0;
+      for (const c of choix){ const b = L.find(x => x.code === c); try { await call({type: 'produits', b: c, action: 'etat', ids: b.produits.map(p => p.id), etat}); ok++; } catch(x){ console.error(x); } }
+      f.remove(); toast(ok === choix.length ? `Aussi « ${ETATS_P[etat][0]} » dans ${ok} boutique${ok > 1 ? 's' : ''}` : `Fait dans ${ok} boutique(s) sur ${choix.length} : réessaie pour les autres`);
     };
   }
   /* ---------- Vendoo : panneau du propriétaire (paiements MoMo, abonnés, codes promo) ---------- */
@@ -3118,7 +3247,7 @@ function nettoyerHtml(h){
       <div id="pl">${!liste ? '<div class="empty">Chargement…</div>' : vis.length ? vis.map(p => `<div class="prod ${sel && sel.has(p.id) ? 'sel' : ''}" data-row="${esc(p.id)}">
           ${sel ? `<span class="pck" aria-hidden="true">${sel.has(p.id) ? '✓' : ''}</span>` : ''}
           <img src="${esc(vignette(p.photos[0]))}" alt="" loading="lazy">
-          <div class="info"><b>${esc(p.nom)}</b><small>${p.enLigne ? '<span class="pst on">● En ligne</span>' : '<span class="pst">● Brouillon</span>'} ${esc(prixResume(p))}</small></div>
+          <div class="info"><b>${esc(p.nom)}</b><small>${etatP(p.id) === 'off' ? '<span class="pst off">● Désactivé</span>' : (p.enLigne ? '<span class="pst on">● En ligne</span>' : '<span class="pst">● Brouillon</span>') + (etatP(p.id) === 'pause' ? ' <span class="pst pause">❚❚ En pause</span>' : '')} ${esc(prixResume(p))}</small></div>
           ${sel ? '' : `<button class="pmenu" data-pm="${esc(p.id)}" aria-label="Options de ${esc(p.nom)}">⋮</button>`}</div>`).join('') : `<div class="empty">${prFiltre === 'brouillon' ? 'Aucun brouillon.' : 'Aucun produit. Appuie sur « + Ajouter ».'}</div>`}</div>
       ${sel ? `<div class="selact"><button id="selOpt" ${sel.size ? '' : 'disabled'}>${sel.size ? `Options pour ${sel.size} produit${sel.size > 1 ? 's' : ''} ▴` : 'Touche les produits à sélectionner'}</button></div>` : `<a class="btn ghost" style="margin-top:18px" href="${esc(D ? D.sheetUrl : '#')}" target="_blank" rel="noopener">Ouvrir le Google Sheets</a>`}</div>`;
     const pret = () => { if (!PR){ alert('Encore une seconde, les détails des produits arrivent…'); return false; } return true; };
@@ -3148,6 +3277,7 @@ function nettoyerHtml(h){
     const pc = document.getElementById('ppCol'); if (pc) pc.onclick = () => collerIci();
     async function actionSel(sa){
       const ids = [...prSel], ps2 = PR.produits.filter(p => ids.includes(p.id));
+      if (sa === 'etat') return choisirEtat(ids);
       if (sa === 'copier'){
         try { localStorage.setItem(K_PP, JSON.stringify({source: BQ || '', nom: (D && D.boutique) || 'cette boutique', ids, quand: Date.now()})); } catch(e){}
         prSel = null; drawProducts();
@@ -3170,6 +3300,7 @@ function nettoyerHtml(h){
       m.innerHTML = `<div class="detail pmsheet" role="dialog" aria-modal="true" aria-label="Options de la sélection"><div class="grab"></div>
         <div class="pmtete"><b>${n} produit${n > 1 ? 's' : ''} sélectionné${n > 1 ? 's' : ''}</b></div>
         <button data-sa="copier">📋 Copier (pour les coller dans une autre boutique)</button>
+        <button data-sa="etat">◐ Changer l’état (actif, en pause, désactivé)</button>
         ${ps2.some(p => !p.enLigne) ? '<button data-sa="ligne">● Mettre en ligne</button>' : ''}
         ${ps2.some(p => p.enLigne) ? '<button data-sa="brouillon">⏸ Passer en brouillon</button>' : ''}
         <button data-sa="suppr" class="danger">🗑 Supprimer</button>
@@ -3208,7 +3339,8 @@ function nettoyerHtml(h){
       <button data-o="voix">🎙️ Générer des voix off</button>
       <button data-o="lien">🔗 Copier le lien</button>
       <a href="${esc(url)}" target="_blank" rel="noopener">👁 Voir sur le site</a>
-      ${PR ? `<button data-o="statut">${p.enLigne ? '⏸ Passer en brouillon' : '● Mettre en ligne'}</button>` : ''}
+      ${PR ? `<button data-o="etat">◐ État : ${ETATS_P[etatP(id)][0]}</button>` : ''}
+      ${PR && etatP(id) !== 'off' ? `<button data-o="statut">${p.enLigne ? '⏸ Passer en brouillon' : '● Mettre en ligne'}</button>` : ''}
       <button data-o="sel">☑️ Sélectionner</button>
       <button data-o="suppr" class="danger">🗑 Supprimer</button>
       <button data-o="x" class="annul">Annuler</button></div>`;
@@ -3226,6 +3358,7 @@ function nettoyerHtml(h){
       if (o === 'dup') dupliquer(id);
       if (o === 'voix') voixOff(P);
       if (o === 'sel'){ prSel = new Set([id]); drawProducts(); }
+      if (o === 'etat') choisirEtat([id]);
       if (o === 'statut'){ P.enLigne = !P.enLigne; memoPR(); enfiler({action: 'sauver', produit: P, ancienId: P.id}); toast(P.enLigne ? '● En ligne' : 'Passé en brouillon'); drawProducts(); }
       if (o === 'suppr'){
         if (!(await confirmer({titre: 'Supprimer ce produit ?', texte: `<b>« ${esc(P.nom)} »</b> va disparaître du site et du Google Sheets, avec ses photos, ses prix et ses avis.<br><br><b>Irréversible :</b> son lien ne marchera plus.`, ok: 'Oui, supprimer'}))) return;
@@ -4431,7 +4564,7 @@ function nettoyerHtml(h){
     chevron: '<path d="M9 6l6 6-6 6"/>', retour: '<path d="M15 18l-6-6 6-6"/>', loupe: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>'
   };
   const ic = n => IC(ICONES[n] || '');
-  const VERSION_APP = '104';
+  const VERSION_APP = '105';
   function settings(){
     const proprio = D.vendoo && D.vendoo.statut === 'proprietaire', abonne = VENDOO && D.vendoo && D.vendoo.statut !== 'proprietaire';
     const m = (id, icone, titre) => `<button class="mrow" data-mn="${id}">${ic(icone)}<span>${titre}</span></button>`;
@@ -4480,7 +4613,8 @@ function nettoyerHtml(h){
         <section class="psec"><h3>Paramètres de la boutique</h3>
           ${L('general', 'general', 'Général', 'Nom, lien du site, Google Sheets')}
           ${b ? L('pays', 'pays', 'Pays de vente', esc(nomsPaysBq(b.pays)) || '') : ''}
-          ${b ? L('reglages', 'pixels', 'Pixels, WhatsApp et commandes', 'Meta, TikTok, numéro qui reçoit les commandes') : ''}
+          ${b ? L('pixelsMeta', 'pixels', 'Pixels Meta', 'Plusieurs pixels, communs ou par pays') : ''}
+          ${b ? L('reglages', 'reglages', 'Réglages de la boutique', 'TikTok, WhatsApp, commandes, apparence') : ''}
           ${L('agences', 'agences', 'Agences de livraison', 'L’e-mail de l’agence de chaque pays')}
           ${b ? L('produitsBq', 'copier', 'Produits entre boutiques', pp && pp.ids && pp.ids.length && (pp.source || '') !== (b.code || '') ? pp.ids.length + ' produit' + (pp.ids.length > 1 ? 's' : '') + ' prêt' + (pp.ids.length > 1 ? 's' : '') + ' à coller' : 'Copier, puis coller dans une autre boutique') : ''}
           ${L('ia', 'ia', 'Assistant IA', 'Clés gratuites Gemini et Groq')}
@@ -4527,6 +4661,7 @@ function nettoyerHtml(h){
       if (TITRES[k]){ pile.push(k); return dessiner('d'); }
       if (k === 'pays') return b && paysBq(b, ret);
       if (k === 'reglages') return b && reglagesBq(b);
+      if (k === 'pixelsMeta') return b && pixelsMeta(b);
       if (k === 'renommer') return b && renommerBq(b, ret);
       if (k === 'copier') return b && copierBq(b, ret);
       if (k === 'coller') return b && collerBq(b, ret);
