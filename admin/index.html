@@ -641,7 +641,7 @@ body.v-settings{background:var(--bg)}
 .avm.on button{align-self:flex-start;color:#9B1C1C;font-size:13px;font-weight:700}
 .avm audio,.avm video{width:100%;max-height:260px;border-radius:10px}
 /* Confirmation */
-.cfov{position:fixed;inset:0;z-index:90;background:rgba(18,48,143,.55);display:flex;align-items:center;justify-content:center;padding:20px;animation:fd .15s ease-out}
+.cfov{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:20px;animation:fd .15s ease-out}
 @keyframes fd{from{opacity:0}}
 .cfbox{background:#fff;border-radius:22px;padding:22px 20px 18px;width:100%;max-width:400px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.3);animation:up .2s ease-out}
 .cfic{width:56px;height:56px;border-radius:50%;margin:0 auto 12px;display:grid;place-items:center;font-size:26px;background:#DCE6FF}
@@ -964,6 +964,127 @@ body{font-size:15px}
 .detail h2{font-size:22px}.ticket .row{font-size:14.5px}
 .page h1{font-size:24px}
 .mrow{font-size:16px}.pgt{font-size:26px}.prow .ptx b{font-size:15.5px}.prow .ptx small{font-size:13px}
+
+/* Corbeille + colonnes de commandes (cachées sur téléphone) */
+.oc,.ohead{display:none}
+.phd{display:flex;align-items:center;justify-content:space-between;gap:12px}.phd h1{margin:0}
+.phbtn{display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 12px;border-radius:10px;background:var(--surface);color:var(--ink);font-size:14px;font-weight:600}
+.phbtn svg{width:17px;height:17px}
+.cbhd{display:flex;align-items:center;justify-content:space-between;gap:10px}.cbhd h2{margin:0}.cbhd .lnk{color:var(--err);font-weight:600;font-size:14px;background:none}
+.cbcount{font-size:12.5px;font-weight:600;color:var(--soft);text-transform:uppercase;letter-spacing:.04em;margin:14px 0 2px}
+.cbrow{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}
+.cbi{flex:1;min-width:0}.cbi b{display:block;font-size:15px;font-weight:600}.cbi small{display:block;color:var(--soft);font-size:13px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cbres{flex:0 0 auto;height:34px;padding:0 12px;border-radius:9px;background:var(--surface);color:var(--ink);font-weight:600;font-size:13.5px}
+.cbres[disabled]{opacity:.5}
+.cbvide{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;padding:36px 10px;color:var(--soft)}
+.cbvide svg{width:34px;height:34px;color:var(--soft)}.cbvide b{color:var(--ink);font-size:15.5px}
+
+/* ===================== VERSION ORDINATEUR (comme l'administration Shopify) ===================== */
+html.ordi{--pcbg:#F1F1F1;--pccard:#FFFFFF;--pcline:#E3E3E3;--pcside:#EBEBEB;--pchover:#F7F7F7}
+@media (prefers-color-scheme:dark){html.ordi{--pcbg:#111111;--pccard:#1A1A1A;--pcline:#2E2E2E;--pcside:#161616;--pchover:#222222}}
+html.ordi body{background:var(--pcbg);font-size:14px}
+/* Barre latérale */
+html.ordi .nav{width:236px;background:var(--pcside);border-right:1px solid var(--pcline);padding:14px 10px 120px;gap:1px}
+html.ordi .nav::before{font:650 15px "Inter",sans-serif;letter-spacing:-.01em;color:var(--ink);background-size:26px;padding:4px 10px 16px 46px!important;line-height:28px}
+html.ordi .nav button{height:34px;border-radius:8px;padding:0 10px;gap:10px;color:var(--ink)}
+html.ordi .nav button svg{width:18px;height:18px;color:var(--soft)}
+html.ordi .nav .nl{font-size:13.5px;font-weight:600}
+html.ordi .nav button:hover{background:rgba(0,0,0,.05)}
+html.ordi .nav button.on{background:var(--pccard);box-shadow:0 1px 0 rgba(0,0,0,.06),0 0 0 1px rgba(0,0,0,.04)}
+html.ordi .nav button.on svg{color:var(--ink)}
+@media (prefers-color-scheme:dark){html.ordi .nav button:hover{background:rgba(255,255,255,.06)}}
+html.ordi .nav .dot{min-width:20px;height:20px;font-size:11.5px}
+/* Pages : contenu centré, largeur maîtrisée */
+html.ordi .page{background:transparent;padding:28px 32px 64px}
+html.ordi .page>*{max-width:1120px}
+html.ordi .page>h1,html.ordi .phd h1{font-size:20px;font-weight:650;letter-spacing:-.01em}
+html.ordi .phd{margin-bottom:16px}
+html.ordi .phbtn{background:var(--pccard);border:1px solid var(--pcline);box-shadow:0 1px 0 rgba(0,0,0,.05);height:32px;font-size:13px}
+html.ordi .phbtn:hover{background:var(--pchover)}
+/* Commandes : tableau */
+html.ordi .otable{background:var(--pccard);border:1px solid var(--pcline);border-radius:12px;box-shadow:0 1px 0 rgba(0,0,0,.05);overflow:hidden}
+html.ordi .otools{display:flex;flex-direction:column;gap:2px;padding:12px 14px 4px;border-bottom:1px solid var(--pcline)}
+html.ordi .otools .search{height:36px;padding:0 12px;border-radius:8px;font-size:13.5px;border:1px solid var(--pcline);background:var(--pccard);font-family:"Inter",sans-serif}
+html.ordi .otools .filters{padding:8px 0 6px;gap:4px;flex-wrap:wrap}
+html.ordi .otools .filters button{height:30px;padding:0 11px;border-radius:8px;font-size:13px;font-weight:600;background:none;border:0;color:var(--soft)}
+html.ordi .otools .filters button:hover{background:var(--pchover);color:var(--ink)}
+html.ordi .otools .filters button.on{background:var(--surface);color:var(--ink)}
+html.ordi .ohead,html.ordi .order{display:grid;grid-template-columns:92px 150px minmax(150px,1.1fr) minmax(200px,2fr) 120px 140px 120px;column-gap:14px;align-items:center;padding:0 16px}
+html.ordi .ohead{height:38px;background:var(--surface);font-size:12.5px;font-weight:600;color:var(--soft);border-bottom:1px solid var(--pcline)}
+html.ordi .ohead span:last-child,html.ordi .oct{text-align:right}
+html.ordi .order{min-height:52px;border-bottom:1px solid var(--pcline);cursor:pointer;contain-intrinsic-size:auto 52px}
+html.ordi .order:hover{background:var(--pchover)}
+html.ordi .order .l1,html.ordi .order .l2,html.ordi .order .l3{display:none}
+html.ordi .oc{display:block;min-width:0;font-size:13.5px;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html.ordi .oc small{display:block;font-size:12.5px;color:var(--soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html.ordi .ocn{font-weight:650}html.ordi .ocd,html.ordi .ocy{color:var(--soft)}html.ordi .oct{font-weight:600;font-variant-numeric:tabular-nums}
+html.ordi .occ,html.ordi .ocp{padding:7px 0}
+html.ordi .daysep{margin:0;padding:7px 16px;font-size:12.5px;font-weight:600;background:var(--pccard);color:var(--soft);border-bottom:1px solid var(--pcline);text-transform:none}
+html.ordi #olist>.empty{padding:40px 16px}
+/* Page d'une commande : 2 colonnes, la barre latérale reste visible */
+html.ordi .overlay.plein.pcov{left:236px;background:var(--pcbg);padding:0;align-items:stretch;backdrop-filter:none}
+html.ordi .detail.pccmd{max-width:none;max-height:none;height:100%;border-radius:0;box-shadow:none;background:transparent;padding:0;animation:none;overflow-y:auto}
+html.ordi .pcin{max-width:1080px;margin:0 auto;padding:22px 32px 64px}
+html.ordi .pchd{display:flex;align-items:flex-start;gap:12px;margin-bottom:18px}
+html.ordi .pctit{flex:1;min-width:0}
+html.ordi .pctit h2{display:inline;font-size:20px;font-weight:650;letter-spacing:-.01em;margin:0 8px 0 0;vertical-align:middle}
+html.ordi .pctit .badge{vertical-align:middle}
+html.ordi .pctit p{margin:4px 0 0;font-size:13px;color:var(--soft)}
+html.ordi .pcact{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+html.ordi .pcico{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;background:var(--pccard);border:1px solid var(--pcline);color:var(--ink);box-shadow:0 1px 0 rgba(0,0,0,.05)}
+html.ordi .pcico svg{width:17px;height:17px}html.ordi .pcico[disabled]{opacity:.35;cursor:default}
+html.ordi .pcico:not([disabled]):hover,html.ordi .pcbtn:hover{background:var(--pchover)}
+html.ordi .pcnav{display:inline-flex;align-items:center;gap:6px;margin-left:4px}.pcnav>span{font-size:12.5px;color:var(--soft);min-width:44px;text-align:center}
+html.ordi .pcbtn{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:32px;padding:0 12px;border-radius:8px;background:var(--pccard);border:1px solid var(--pcline);box-shadow:0 1px 0 rgba(0,0,0,.05);color:var(--ink);font-size:13px;font-weight:600;text-decoration:none;white-space:nowrap}
+html.ordi .pcbtn svg{width:16px;height:16px}
+html.ordi .pcbtn.wa{background:#25D366;border-color:#1EBE5A;color:#06301A!important}
+html.ordi #dsup{color:var(--err)}
+html.ordi .pcgrid{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start}
+html.ordi .pccol{display:flex;flex-direction:column;gap:16px;min-width:0}
+html.ordi .pccard{background:var(--pccard);border:1px solid var(--pcline);border-radius:12px;box-shadow:0 1px 0 rgba(0,0,0,.05);padding:16px 18px}
+html.ordi .pccard h3{font-size:13.5px;font-weight:650;margin:0 0 12px;color:var(--ink)}
+html.ordi .pccard p{margin:0;font-size:13.5px;line-height:1.5;color:var(--ink)}
+html.ordi .pcsoft{color:var(--soft)!important}
+html.ordi .pcart{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;padding-bottom:14px;border-bottom:1px solid var(--pcline)}
+html.ordi .pcart b{display:block;font-size:14px;font-weight:600;line-height:1.4}.pcart small{display:block;font-size:13px;color:var(--soft);margin-top:3px}
+html.ordi .pcart>span{font-size:14px;font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums}
+html.ordi .pcsum{padding-top:10px}
+html.ordi .pcl{display:flex;justify-content:space-between;gap:16px;font-size:13.5px;padding:5px 0}
+html.ordi .pcl span{color:var(--soft)}html.ordi .pcl b{font-weight:500;text-align:right}
+html.ordi .pcl.tot{margin-top:6px;padding-top:10px;border-top:1px solid var(--pcline)}.pcl.tot span{color:var(--ink);font-weight:600}html.ordi .pcl.tot b{font-weight:650;font-size:15px}
+html.ordi .pcst{display:flex;gap:10px}
+html.ordi .pcst select{flex:1;height:36px;padding:0 10px;border-radius:8px;border:1px solid var(--pcline);background:var(--pccard);color:var(--ink);font:500 13.5px "Inter",sans-serif;margin:0}
+html.ordi .pcst .btn{width:auto;height:36px;padding:0 16px;font-size:13.5px;border-radius:8px}
+html.ordi .pcnom{font-weight:600;font-size:14px!important}
+html.ordi .pctel{color:var(--soft)!important;margin:2px 0 12px!important;font-variant-numeric:tabular-nums}
+html.ordi .pcbtns{display:flex;flex-wrap:wrap;gap:8px}
+html.ordi .pclien{display:inline-block;margin-top:10px;font-size:13.5px;font-weight:600;color:var(--main);text-decoration:none}.pclien:hover{text-decoration:underline}
+/* Fenêtres (feuilles, menus ⋮, confirmations) : centrées et à la bonne taille */
+html.ordi .overlay:not(.plein){background:rgba(0,0,0,.45)}
+html.ordi .detail{max-width:620px;border-radius:14px;padding:22px 26px 24px}
+html.ordi .detail h2{font-size:20px}
+html.ordi .detail.cbsheet{max-width:720px}
+html.ordi .pmsheet{max-width:380px;padding:10px}
+html.ordi .pmsheet>button,html.ordi .pmsheet>a{font-size:14px;padding:10px 12px}
+html.ordi .btn{font-size:14px;padding:11px 14px;border-radius:9px}
+/* Menu ≡ : une carte centrée */
+html.ordi body.v-settings{background:var(--pcbg)}
+html.ordi .menu{max-width:720px;min-height:0;margin:28px auto 100px;padding:10px;background:var(--pccard);border:1px solid var(--pcline);border-radius:12px;box-shadow:0 1px 0 rgba(0,0,0,.05)}
+html.ordi .mrow{font-size:14px;padding:9px 12px;border-radius:8px;gap:12px}.mrow:hover{background:var(--pchover)}
+html.ordi .mrow svg{width:19px;height:19px;color:var(--soft)}
+html.ordi .mhd{font-size:12.5px;color:var(--soft);text-transform:uppercase;letter-spacing:.04em;margin:18px 12px 4px}
+html.ordi .mgear{position:static;transform:none;margin:-84px auto 40px;width:max-content;box-shadow:0 1px 0 rgba(0,0,0,.05);border:1px solid var(--pcline);padding:9px 16px;font-size:14px}
+/* Paramètres : la barre latérale reste visible, contenu dans une carte */
+html.ordi .pgp{left:236px;background:var(--pcbg);animation:none}
+html.ordi .pghd{background:var(--pcbg);max-width:760px;margin:0 auto;padding:16px 8px 0;height:auto}
+html.ordi .pgbody{max-width:760px;padding:6px 20px 60px;background:var(--pccard);border:1px solid var(--pcline);border-radius:12px;margin:8px auto 60px;box-shadow:0 1px 0 rgba(0,0,0,.05)}
+html.ordi .pgt{font-size:20px;margin:16px 0 14px}
+html.ordi .pgsrch{height:38px;border-radius:8px;box-shadow:none}.pgsrch input{font-size:14px}
+html.ordi .prow{padding:10px 8px}.prow:hover{background:var(--pchover)}
+html.ordi .prow .ptx b{font-size:14px}html.ordi .prow .ptx small{font-size:12.5px}
+html.ordi .psec h3{font-size:13.5px;margin:20px 8px 4px}
+/* Produits */
+html.ordi #pl{background:var(--pccard);border:1px solid var(--pcline);border-radius:12px;padding:4px 16px;box-shadow:0 1px 0 rgba(0,0,0,.05)}
 </style>
 </head>
 <body>
@@ -2818,7 +2939,9 @@ function nettoyerHtml(h){
   const orderRow = o => `<button class="order" data-num="${esc(o.numero)}">
       <div class="l1"><b>#${esc(o.numero)}</b><span>${esc(fmt(o.total, o.devise))}</span></div>
       <div class="l2">${esc(o.nom || 'Sans nom')} · ${esc(o.qte)} article${Number(o.qte) > 1 ? 's' : ''} · ${esc(o.heure)}</div>
-      <div class="l3">${badge(o.statut)}<span class="tag">${esc(o.pays)}${o.pub ? ' · ' + esc(o.pub) : ''}</span></div></button>`;
+      <div class="l3">${badge(o.statut)}<span class="tag">${esc(o.pays)}${o.pub ? ' · ' + esc(o.pub) : ''}</span></div>
+      <span class="oc ocn">#${esc(o.numero)}</span><span class="oc ocd">${esc(dayName(o.date))} · ${esc(o.heure)}</span><span class="oc occ">${esc(o.nom || 'Sans nom')}<small>${esc(telJoli(o.tel))}</small></span>
+      <span class="oc ocp">${esc(o.produit)}<small>${esc(o.offre || (o.qte + ' pièce' + (Number(o.qte) > 1 ? 's' : '')))}</small></span><span class="oc ocy">${esc(o.pays)}</span><span class="oc ocs">${badge(o.statut)}</span><span class="oc oct">${esc(fmt(o.total, o.devise))}</span></button>`;
   // Ordre des commandes affichées : sert à passer de l'une à l'autre en glissant (comme Shopify)
   let listeDetail = [];
   function bindOrders(){
@@ -2852,10 +2975,12 @@ function nettoyerHtml(h){
     (window.requestIdleCallback || setTimeout)(suite);
   }
   function orders(){
-    app.innerHTML = `<div class="page"><h1>Commandes</h1>
-      <input class="search" id="q" type="search" placeholder="Rechercher un nom, un numéro…" value="${esc(q)}" aria-label="Rechercher">
-      <div class="filters">${['Toutes','Nouvelle','À rappeler','Confirmée','En livraison','Livrée','Annulée','Injoignable'].map(f => `<button class="${f===filtre?'on':''}" data-f="${f}">${f === 'Nouvelle' ? 'À traiter' : f}</button>`).join('')}</div>
-      <div id="olist"></div></div>`;
+    app.innerHTML = `<div class="page pcmd"><div class="phd"><h1>Commandes</h1><button class="phbtn" id="oCorb">${ic('corbeille')}<span>Corbeille</span></button></div>
+      <div class="otable"><div class="otools"><input class="search" id="q" type="search" placeholder="Rechercher un nom, un numéro, un téléphone…" value="${esc(q)}" aria-label="Rechercher">
+      <div class="filters">${['Toutes','Nouvelle','À rappeler','Confirmée','En livraison','Livrée','Annulée','Injoignable'].map(f => `<button class="${f===filtre?'on':''}" data-f="${f}">${f === 'Nouvelle' ? 'À traiter' : f}</button>`).join('')}</div></div>
+      <div class="ohead" aria-hidden="true"><span>Commande</span><span>Date</span><span>Client</span><span>Produit</span><span>Pays</span><span>Statut</span><span>Total</span></div>
+      <div id="olist"></div></div></div>`;
+    document.getElementById('oCorb').onclick = () => corbeille();
     remplirCommandes();
     const qi = document.getElementById('q');
     let tq; qi.oninput = () => { clearTimeout(tq); tq = setTimeout(() => { q = qi.value; remplirCommandes(); }, 120); };
@@ -2870,7 +2995,39 @@ function nettoyerHtml(h){
   }
   const SVGd = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
   // HTML d'une page de commande (utilisé pour la commande ouverte ET pour les voisines affichées pendant le glissement)
+  const estOrdi = () => document.documentElement.classList.contains('ordi');
+  function pageCommandePC(o){
+    const tel = String(o.tel).replace(/\D/g, ''), SVG = SVGd;
+    const i = listeDetail.indexOf(o.numero), prec = listeDetail[i - 1], suiv = listeDetail[i + 1];
+    const carte = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(String(o.adresse || '').replace(/\s+[–-]\s+/g, ', ') + ', ' + o.pays);
+    const lig = (k, v) => v ? `<div class="pcl"><span>${k}</span><b>${esc(v)}</b></div>` : '';
+    return `<div class="detail plein pccmd" role="dialog" aria-modal="true" aria-label="Commande ${esc(o.numero)}"><div class="pcin">
+      <div class="pchd">
+        <button class="pcico" id="cmdBack" aria-label="Retour aux commandes" title="Retour (Échap)">${SVG('<path d="M15 18l-6-6 6-6"/>')}</button>
+        <div class="pctit"><h2>Commande #${esc(o.numero)}</h2>${badge(o.statut)}<p>${esc(dayName(o.date))} à ${esc(o.heure)} · ${esc(o.pays)}${o.source ? ' · ' + esc(o.source) : ''}</p></div>
+        <div class="pcact">
+          <button class="pcbtn" id="cmdPdf">${SVG('<path d="M6 9V3h12v6"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v7H6z"/>')}<span>Bon de commande</span></button>
+          <button class="pcbtn" id="dsup">${ic('corbeille')}<span>Supprimer</span></button>
+          <span class="pcnav"><button class="pcico" data-aller="${esc(prec || '')}" ${prec ? '' : 'disabled'} aria-label="Commande précédente" title="Précédente (↑)">${SVG('<path d="M18 15l-6-6-6 6"/>')}</button><span>${i + 1} / ${listeDetail.length}</span><button class="pcico" data-aller="${esc(suiv || '')}" ${suiv ? '' : 'disabled'} aria-label="Commande suivante" title="Suivante (↓)">${SVG('<path d="M6 9l6 6 6-6"/>')}</button></span>
+        </div></div>
+      <div class="pcgrid"><div class="pccol">
+        <section class="pccard"><h3>Article</h3>
+          <div class="pcart"><div><b>${esc(o.produit)}</b><small>${esc(o.offre || (o.qte + ' pièce' + (Number(o.qte) > 1 ? 's' : '')))}</small></div><span>${esc(fmt(o.total, o.devise))}</span></div>
+          <div class="pcsum">${lig('Livraison', o.livraison)}<div class="pcl tot"><span>À encaisser à la livraison</span><b>${esc(fmt(o.total, o.devise))}</b></div></div></section>
+        <section class="pccard"><h3>Statut de la commande</h3>
+          <div class="pcst"><select class="st" id="st" aria-label="Statut">${D.statuts.map(x => `<option ${x === o.statut ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select><button class="btn blue" id="save">Enregistrer</button></div></section>
+        ${o.campagne || o.ensemble || o.pub ? `<section class="pccard"><h3>Publicité</h3>${lig('Campagne', o.campagne)}${lig('Ensemble de pub', o.ensemble)}${lig('Publicité', o.pub)}</section>` : ''}
+      </div><div class="pccol">
+        <section class="pccard"><h3>Client</h3><p class="pcnom">${esc(o.nom || 'Sans nom')}</p>
+          <p class="pctel">${esc(telJoli(tel))}</p>
+          <div class="pcbtns"><a class="pcbtn" href="tel:+${tel}">Appeler</a><a class="pcbtn wa" href="https://wa.me/${tel}" target="_blank" rel="noopener">WhatsApp</a><button class="pcbtn" data-copytel="${esc(telJoli(tel))}">Copier le numéro</button></div></section>
+        <section class="pccard"><h3>Adresse de livraison</h3><p>${esc(o.adresse || '—')}</p><p class="pcsoft">${esc(o.pays)}</p><a class="pclien" href="${carte}" target="_blank" rel="noopener">Voir sur la carte</a></section>
+        ${o.commentaire ? `<section class="pccard"><h3>Commentaire</h3><p>${esc(o.commentaire)}</p></section>` : ''}
+      </div></div>
+      <button id="close" hidden></button></div></div>`;
+  }
   function pageCommande(o, sens){
+    if (estOrdi()) return pageCommandePC(o);
     const tel = String(o.tel).replace(/\D/g, ''), SVG = SVGd;
     const i = listeDetail.indexOf(o.numero), prec = listeDetail[i - 1], suiv = listeDetail[i + 1];
     return `<div class="detail plein ${sens ? 'glisse-' + sens : ''}" role="dialog" aria-modal="true" aria-label="Commande ${esc(o.numero)}">
@@ -2902,7 +3059,7 @@ function nettoyerHtml(h){
       <select class="st" id="st">${D.statuts.map(s => `<option ${s === o.statut ? 'selected' : ''}>${esc(s)}</option>`).join('')}</select>
       <button class="btn blue" id="save" style="margin-top:12px">Enregistrer le statut</button>
       <button class="btn ghost" id="close" style="margin-top:10px">Fermer</button>
-      <button class="lnk dsuppr" id="dsup">🗑 Supprimer cette commande (test, erreur…)</button></div>`;
+      <button class="lnk dsuppr" id="dsup">🗑 Mettre à la corbeille (test, erreur…)</button></div>`;
   }
   function detail(num, sens, ovExistant){
     const o = D.commandes.find(x => x.numero === num); if (!o) return;
@@ -2912,12 +3069,20 @@ function nettoyerHtml(h){
     ov.innerHTML = pageCommande(o, sens);
     if (!ovExistant) document.body.appendChild(ov);
     bindCopy(ov);
-    const close = () => { ov.remove(); render(); };
+    const close = () => { if (ov._clav) document.removeEventListener('keydown', ov._clav); ov.remove(); render(); };
     ov.onclick = e => { if (e.target === ov) close(); };
     // Glissement comme Shopify : la page suit le doigt et la commande voisine arrive à côté
     const boite = ov.querySelector('.detail');
     const voisins = {};   // pages fantômes (affichage seul) de la précédente et de la suivante
-    [[prec, -1], [suiv, 1]].forEach(([n, c]) => { const ob = n && D.commandes.find(x => x.numero === n); if (!ob) return;
+    if (estOrdi()) { ov.classList.add('pcov'); boite.scrollTop = 0;
+      if (ov._clav) document.removeEventListener('keydown', ov._clav);
+      ov._clav = e => { if (!ov.isConnected) return document.removeEventListener('keydown', ov._clav);
+        if (e.target.closest && e.target.closest('input,select,textarea') || document.querySelector('.cfov,.overlay:not(.pcov)')) return;
+        if (e.key === 'Escape') { document.removeEventListener('keydown', ov._clav); close(); }
+        else if ((e.key === 'ArrowUp' || e.key === 'k') && prec) { e.preventDefault(); detail(prec, null, ov); }
+        else if ((e.key === 'ArrowDown' || e.key === 'j') && suiv) { e.preventDefault(); detail(suiv, null, ov); } };
+      document.addEventListener('keydown', ov._clav); }
+    else [[prec, -1], [suiv, 1]].forEach(([n, c]) => { const ob = n && D.commandes.find(x => x.numero === n); if (!ob) return;
       const t = document.createElement('div'); t.innerHTML = pageCommande(ob); const el = t.firstElementChild;
       el.classList.add('fantome'); el.setAttribute('aria-hidden', 'true'); el.inert = true; el.removeAttribute('role');
       el.querySelectorAll('[id]').forEach(x => x.removeAttribute('id'));
@@ -2954,25 +3119,75 @@ function nettoyerHtml(h){
       else placer(0, 160); };
     boite.addEventListener('touchend', finGeste, {passive: true});
     boite.addEventListener('touchcancel', finGeste, {passive: true});
-    ov.querySelector('#close').onclick = close;
+    const btFermer = ov.querySelector('#close'); if (btFermer) btFermer.onclick = close;
     ov.querySelector('#dsup').onclick = async e => {
       const b = e.currentTarget;   // à lire AVANT l'attente (après, le navigateur l'efface)
-      if (!(await confirmer({titre: 'Supprimer la commande n°' + esc(o.numero) + ' ?', texte: 'Elle disparaît de l’application, du Google Sheets et du fichier de l’agence. <b>Irréversible.</b><br><br>Si c’est la dernière commande, son numéro sera réutilisé par la prochaine commande.', ok: 'Oui, supprimer'}))) return;
-      b.disabled = true; b.textContent = 'Suppression…';
+      if (!(await confirmer({titre: 'Supprimer la commande n°' + esc(o.numero) + ' ?', texte: 'Elle part dans la <b>Corbeille</b> et disparaît de l’application, du Google Sheets et du fichier de l’agence.<br><br>Tu pourras la restaurer à tout moment, avec son numéro n°' + esc(o.numero) + '. Les autres commandes gardent leur numéro.', ok: 'Mettre à la corbeille'}))) return;
+      const txtB = b.innerHTML; b.disabled = true; b.textContent = 'Suppression…';
       try {
         const j = await call({type: 'statut', action: 'supprimer', numero: o.numero});
         D.commandes = D.commandes.filter(x => x.numero !== o.numero);
         if (D.dernier && D.dernier.numero === o.numero){ const n = D.commandes[0]; D.dernier = n || null; lastNum = n ? n.numero : ''; S.set('adm_last', lastNum); }
         try { S.set('adm_dash_' + periode, JSON.stringify(D)); } catch(x){}
-        toast(j.recule ? '🗑 Commande supprimée · la prochaine reprendra le n°' + o.numero : '🗑 Commande supprimée');
+        toast(j.corbeille ? 'Commande n°' + o.numero + ' mise à la corbeille' : (j.recule ? '🗑 Commande supprimée · la prochaine reprendra le n°' + o.numero : '🗑 Commande supprimée'));
         close(); refresh();
-      } catch(err){ b.disabled = false; b.textContent = '🗑 Supprimer cette commande (test, erreur…)'; alert('Suppression impossible : ' + (/inconnu|introuvable|^Erreur/i.test(err.message) && !/commande/i.test(err.message) ? 'ton serveur n’a pas encore la mise à jour. Colle le dernier Code.gs dans Apps Script puis « Nouvelle version ». Rien n’a été modifié.' : err.message)); }
+      } catch(err){ b.disabled = false; b.innerHTML = txtB; alert('Suppression impossible : ' + (/inconnu|introuvable|^Erreur/i.test(err.message) && !/commande/i.test(err.message) ? 'ton serveur n’a pas encore la mise à jour. Colle le dernier Code.gs dans Apps Script puis « Nouvelle version ». Rien n’a été modifié.' : err.message)); }
     };
     ov.querySelector('#save').onclick = async e => {
       const b = e.target, st = ov.querySelector('#st').value; b.textContent = 'Enregistrement…'; b.disabled = true;
-      try { await call({type:'statut', numero: o.numero, statut: st}); o.statut = st; b.textContent = 'Statut enregistré ✓'; setTimeout(close, 700); }
+      try { await call({type:'statut', numero: o.numero, statut: st}); o.statut = st; b.textContent = 'Statut enregistré ✓';
+        if (estOrdi()) { toast('Statut enregistré : ' + st); setTimeout(() => { if (ov.isConnected) detail(o.numero, null, ov); }, 500); } else setTimeout(close, 700); }
       catch(err){ b.disabled = false; b.textContent = 'Échec : réessayer'; }
     };
+  }
+
+
+  /* ---------- Corbeille des commandes : restaurer avec le même numéro, ou supprimer pour de bon ---------- */
+  async function corbeille(){
+    const o = feuille(`<div class="cbhd"><h2>Corbeille</h2><button class="lnk" id="cbVid" hidden>Vider la corbeille</button></div>
+      <p class="sub">Les commandes supprimées restent ici avec leur numéro. « Restaurer » les remet à leur place, dans l’application, le Google Sheets et le fichier de l’agence.</p>
+      <div id="cbL"><div class="empty">Chargement…</div></div><button class="btn ghost" id="cbX" style="margin-top:14px">Fermer</button>`);
+    o.querySelector('.detail').classList.add('cbsheet');
+    o.querySelector('#cbX').onclick = () => o.remove();
+    let L = [];
+    const quand = t => { if (!t) return ''; const d = new Date(t); return d.toLocaleDateString('fr-FR', {day: 'numeric', month: 'short'}) + ' à ' + d.toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'}); };
+    const dessiner = () => { const z = o.querySelector('#cbL'); if (!z) return;
+      o.querySelector('#cbVid').hidden = !L.length;
+      z.innerHTML = L.length ? `<div class="cbcount">${L.length} commande${L.length > 1 ? 's' : ''}</div>` + L.map(c => `<div class="cbrow"><div class="cbi"><b>#${esc(c.numero)} · ${esc(c.nom || 'Sans nom')}</b><small>${esc(c.produit)}</small><small>${esc(fmt(c.total, c.devise || 'FCFA'))}${c.pays ? ' · ' + esc(c.pays) : ''} · supprimée le ${esc(quand(c.le))}</small></div>
+        <button class="cbres" data-res="${esc(c.numero)}">Restaurer</button><button class="pmenu" data-cbm="${esc(c.numero)}" aria-label="Options de la commande ${esc(c.numero)}">⋮</button></div>`).join('')
+        : `<div class="cbvide">${ic('corbeille')}<b>La corbeille est vide</b><small>Les commandes que tu supprimes arrivent ici.</small></div>`;
+      z.querySelectorAll('[data-res]').forEach(b => b.onclick = () => restaurer([b.dataset.res], b));
+      z.querySelectorAll('[data-cbm]').forEach(b => b.onclick = () => menu(L.find(c => c.numero === b.dataset.cbm)));
+    };
+    const appel = async x => { const j = await call(Object.assign({type: 'corbeille'}, x)); L = j.commandes || []; dessiner(); return j; };
+    async function restaurer(nums, bt){
+      if (bt) { bt.disabled = true; bt.textContent = 'Restauration…'; }
+      try { await appel({action: 'restaurer', numeros: nums});
+        // une commande restaurée n'est pas une nouvelle commande : pas de son ni d'alerte
+        const nC = n => Number(String(n || '').replace(/\D/g, '')) || 0; const haut = nums.reduce((a, n) => nC(n) > nC(a) ? n : a, lastNum);
+        if (haut !== lastNum) { lastNum = haut; S.set('adm_last', lastNum); }
+        toast(nums.length > 1 ? nums.length + ' commandes restaurées' : 'Commande n°' + nums[0] + ' restaurée'); refresh(); }
+      catch(e){ if (bt) { bt.disabled = false; bt.textContent = 'Restaurer'; } alert('Restauration impossible : ' + e.message); }
+    }
+    async function effacer(c){
+      if (!(await confirmer({titre: 'Supprimer définitivement la n°' + esc(c.numero) + ' ?', texte: 'Elle ne pourra plus être restaurée.' , ok: 'Supprimer définitivement'}))) return;
+      try { const j = await appel({action: 'effacer', numero: c.numero}); toast(j.recule ? 'Supprimée · la prochaine commande reprendra ce numéro' : 'Commande supprimée définitivement'); } catch(e){ alert(e.message); }
+    }
+    function menu(c){ if (!c) return;
+      const m = document.createElement('div'); m.className = 'overlay';
+      m.innerHTML = `<div class="detail pmsheet" role="dialog" aria-modal="true" aria-label="Options"><div class="grab"></div><div class="pmtete"><b>Commande #${esc(c.numero)}<br><small style="font-weight:500;color:var(--muted)">${esc(c.nom)}</small></b></div>
+        <button data-x="res">Restaurer</button><button data-x="copier">Copier le numéro de téléphone</button><button data-x="eff" class="danger">Supprimer définitivement</button><button data-x="non" class="annul">Annuler</button></div>`;
+      m.onclick = async e => { if (e.target === m) return m.remove(); const t = e.target.closest('[data-x]'); if (!t) return; m.remove();
+        if (t.dataset.x === 'res') restaurer([c.numero]);
+        if (t.dataset.x === 'eff') effacer(c);
+        if (t.dataset.x === 'copier') { const v = telJoli(c.tel); try { await navigator.clipboard.writeText(v); toast('Numéro copié'); } catch(x){ prompt('Téléphone :', v); } } };
+      document.body.appendChild(m);
+    }
+    o.querySelector('#cbVid').onclick = async () => {
+      if (!(await confirmer({titre: 'Vider la corbeille ?', texte: 'Les ' + L.length + ' commande' + (L.length > 1 ? 's' : '') + ' seront supprimées définitivement.', ok: 'Vider'}))) return;
+      try { await appel({action: 'vider'}); toast('Corbeille vidée'); } catch(e){ alert(e.message); }
+    };
+    try { await appel({action: 'liste'}); } catch(e){ const z = o.querySelector('#cbL'); if (z) z.innerHTML = `<div class="empty">Impossible d’ouvrir la corbeille : ${esc(e.message)}</div>`; }
   }
 
   /* ---------- Bon de commande en PDF (à envoyer au client sur WhatsApp, comme Shopify) ---------- */
@@ -4564,13 +4779,13 @@ function nettoyerHtml(h){
     chevron: '<path d="M9 6l6 6-6 6"/>', retour: '<path d="M15 18l-6-6 6-6"/>', loupe: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>'
   };
   const ic = n => IC(ICONES[n] || '');
-  const VERSION_APP = '106';
+  const VERSION_APP = '107';
   function settings(){
     const proprio = D.vendoo && D.vendoo.statut === 'proprietaire', abonne = VENDOO && D.vendoo && D.vendoo.statut !== 'proprietaire';
     const m = (id, icone, titre) => `<button class="mrow" data-mn="${id}">${ic(icone)}<span>${titre}</span></button>`;
     app.innerHTML = `<div class="menu">
       ${m('home', 'accueil', 'Accueil')}${m('orders', 'commandes', 'Commandes')}${m('abandons', 'relances', 'Relances (paniers abandonnés)')}${m('products', 'produits', 'Produits')}
-      ${m('direct', 'direct', 'Vue en direct')}${m('tiktok', 'tiktok', 'Promotions TikTok')}${m('pubs', 'pubs', 'Analyse publicitaire')}${m('point', 'point', 'Point du jour et de la semaine')}
+      ${m('direct', 'direct', 'Vue en direct')}${m('tiktok', 'tiktok', 'Promotions TikTok')}${m('pubs', 'pubs', 'Analyse publicitaire')}${m('point', 'point', 'Point du jour et de la semaine')}${m('corbeille', 'corbeille', 'Corbeille des commandes')}
       <h3 class="mhd">Canaux de vente</h3>
       <a class="mrow" href="${esc(lienSite(''))}" target="_blank" rel="noopener">${ic('site')}<span>Boutique en ligne</span></a>
       ${m('apercu', 'apercu', 'Aperçu du site')}${m('lien', 'lien', 'Copier le lien du site')}
@@ -4585,6 +4800,7 @@ function nettoyerHtml(h){
       if (['home', 'orders', 'abandons', 'products', 'direct', 'tiktok', 'apercu'].includes(k)) return go(k);
       if (k === 'pubs') return analysePubUI();
       if (k === 'point') return pointHebdo();
+      if (k === 'corbeille') return corbeille();
       if (k === 'boutiques') return mesBoutiques();
       if (k === 'vendoo') return vendooAdmin();
       if (k === 'lien'){ const u = lienSite(''); try { await navigator.clipboard.writeText(u); toast('Lien du site copié'); } catch(x){ prompt('Lien du site :', u); } }
