@@ -976,6 +976,19 @@ body{font-size:15px}
 .cbi{flex:1;min-width:0}.cbi b{display:block;font-size:15px;font-weight:600}.cbi small{display:block;color:var(--soft);font-size:13px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cbres{flex:0 0 auto;height:34px;padding:0 12px;border-radius:9px;background:var(--surface);color:var(--ink);font-weight:600;font-size:13.5px}
 .cbres[disabled]{opacity:.5}
+.cbrow.on{background:var(--surface);margin:0 -10px;padding-left:10px;padding-right:10px;border-radius:10px}
+.cbck,.cbtout input{width:19px;height:19px;accent-color:var(--main);flex:0 0 auto}
+.cbtout{display:flex;align-items:center;gap:10px;font-size:13.5px;font-weight:600;color:var(--soft);margin:14px 0 4px}
+.cbch{display:block;font-size:12.5px;color:var(--soft);margin-top:4px}.cbch b{font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}.cbch b.urgent{color:var(--err)}
+.cbbar{position:sticky;bottom:0;display:flex;align-items:center;gap:8px;padding:10px 12px;margin:12px -4px 0;background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,.12)}
+.cbbar{flex-wrap:wrap}.cbbar[hidden]{display:none}.cbbar>span{flex:1 1 100%;white-space:nowrap;font-size:13.5px;font-weight:600}.cbdel{height:34px;padding:0 12px;border-radius:9px;background:var(--err);color:#fff;font-weight:600;font-size:13.5px}
+.vsg{border:1px solid var(--line);border-radius:12px;margin-top:10px;background:var(--card)}
+.vsg>summary{display:flex;align-items:center;gap:12px;padding:10px 12px;cursor:pointer;list-style:none}.vsg>summary::-webkit-details-marker{display:none}
+.vsg>summary img,.vsg>summary .vsico{width:40px;height:40px;border-radius:8px;object-fit:cover;flex:0 0 auto;background:var(--surface);display:grid;place-items:center}
+.vsico svg{width:20px;height:20px;color:var(--soft)}
+.vsn{flex:1;min-width:0}.vsn b{display:block;font-size:14.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.vsn small{color:var(--soft);font-size:12.5px}
+.vsit{padding:12px;border-top:1px solid var(--line)}.vsh{display:flex;align-items:center;justify-content:space-between;gap:8px}.vsh b{font-size:14px}.vsit>small{color:var(--soft);font-size:12.5px}
+.vsit .vot{margin-top:8px;white-space:pre-wrap;font-size:14px;line-height:1.5}
 .cbvide{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;padding:36px 10px;color:var(--soft)}
 .cbvide svg{width:34px;height:34px;color:var(--soft)}.cbvide b{color:var(--ink);font-size:15.5px}
 
@@ -1064,6 +1077,7 @@ html.ordi .overlay:not(.plein){background:rgba(0,0,0,.45)}
 html.ordi .detail{max-width:620px;border-radius:14px;padding:22px 26px 24px}
 html.ordi .detail h2{font-size:20px}
 html.ordi .detail.cbsheet{max-width:720px}
+html.ordi .cbbar>span{flex:1 1 auto}
 html.ordi .pmsheet{max-width:380px;padding:10px}
 html.ordi .pmsheet>button,html.ordi .pmsheet>a{font-size:14px;padding:10px 12px}
 html.ordi .btn{font-size:14px;padding:11px 14px;border-radius:9px}
@@ -2975,12 +2989,11 @@ function nettoyerHtml(h){
     (window.requestIdleCallback || setTimeout)(suite);
   }
   function orders(){
-    app.innerHTML = `<div class="page pcmd"><div class="phd"><h1>Commandes</h1><button class="phbtn" id="oCorb">${ic('corbeille')}<span>Corbeille</span></button></div>
+    app.innerHTML = `<div class="page pcmd"><div class="phd"><h1>Commandes</h1></div>
       <div class="otable"><div class="otools"><input class="search" id="q" type="search" placeholder="Rechercher un nom, un numéro, un téléphone…" value="${esc(q)}" aria-label="Rechercher">
       <div class="filters">${['Toutes','Nouvelle','À rappeler','Confirmée','En livraison','Livrée','Annulée','Injoignable'].map(f => `<button class="${f===filtre?'on':''}" data-f="${f}">${f === 'Nouvelle' ? 'À traiter' : f}</button>`).join('')}</div></div>
       <div class="ohead" aria-hidden="true"><span>Commande</span><span>Date</span><span>Client</span><span>Produit</span><span>Pays</span><span>Statut</span><span>Total</span></div>
       <div id="olist"></div></div></div>`;
-    document.getElementById('oCorb').onclick = () => corbeille();
     remplirCommandes();
     const qi = document.getElementById('q');
     let tq; qi.oninput = () => { clearTimeout(tq); tq = setTimeout(() => { q = qi.value; remplirCommandes(); }, 120); };
@@ -3142,52 +3155,128 @@ function nettoyerHtml(h){
   }
 
 
-  /* ---------- Corbeille des commandes : restaurer avec le même numéro, ou supprimer pour de bon ---------- */
+  /* ---------- Corbeille des commandes : 30 jours pour restaurer (même numéro), puis suppression définitive ---------- */
+  const dureeRestante = ms => { if (ms <= 0) return 'suppression en cours…'; const s = Math.floor(ms / 1000), j = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60), x = s % 60;
+    return (j ? j + ' j ' : '') + String(h).padStart(2, '0') + ' h ' + String(m).padStart(2, '0') + ' min ' + String(x).padStart(2, '0') + ' s'; };
   async function corbeille(){
     const o = feuille(`<div class="cbhd"><h2>Corbeille</h2><button class="lnk" id="cbVid" hidden>Vider la corbeille</button></div>
-      <p class="sub">Les commandes supprimées restent ici avec leur numéro. « Restaurer » les remet à leur place, dans l’application, le Google Sheets et le fichier de l’agence.</p>
-      <div id="cbL"><div class="empty">Chargement…</div></div><button class="btn ghost" id="cbX" style="margin-top:14px">Fermer</button>`);
+      <p class="sub">Chaque commande reste 30 jours ici, avec son numéro. « Restaurer » la remet à sa place (application, Google Sheets, fichier de l’agence). Au bout de 30 jours, elle est supprimée pour de bon.</p>
+      <div id="cbL"><div class="empty">Chargement…</div></div>
+      <div class="cbbar" id="cbBar" hidden><span id="cbN"></span><button class="cbres" id="cbRes">Restaurer</button><button class="cbdel" id="cbDel">Supprimer définitivement</button></div>
+      <button class="btn ghost" id="cbX" style="margin-top:14px">Fermer</button>`);
     o.querySelector('.detail').classList.add('cbsheet');
-    o.querySelector('#cbX').onclick = () => o.remove();
-    let L = [];
+    let L = [], ecart = 0, minuteur = null;
+    const sel = new Set();
+    const fermer = () => { clearInterval(minuteur); o.remove(); };
+    o.querySelector('#cbX').onclick = fermer;
+    o.addEventListener('click', e => { if (e.target === o) clearInterval(minuteur); });
     const quand = t => { if (!t) return ''; const d = new Date(t); return d.toLocaleDateString('fr-FR', {day: 'numeric', month: 'short'}) + ' à ' + d.toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'}); };
+    const barre = () => { const bar = o.querySelector('#cbBar'); if (!bar) return; bar.hidden = !sel.size; o.querySelector('#cbN').textContent = sel.size + ' sélectionnée' + (sel.size > 1 ? 's' : '');
+      const tout = o.querySelector('#cbTout'); if (tout) tout.checked = L.length > 0 && sel.size === L.length; };
+    const tic = () => { if (!o.isConnected) return clearInterval(minuteur); const now = Date.now() + ecart;
+      o.querySelectorAll('[data-fin]').forEach(e => { const r = +e.dataset.fin - now; e.textContent = dureeRestante(r); e.classList.toggle('urgent', r < 864e5); }); };
     const dessiner = () => { const z = o.querySelector('#cbL'); if (!z) return;
+      [...sel].forEach(n => { if (!L.some(c => c.numero === n)) sel.delete(n); });
       o.querySelector('#cbVid').hidden = !L.length;
-      z.innerHTML = L.length ? `<div class="cbcount">${L.length} commande${L.length > 1 ? 's' : ''}</div>` + L.map(c => `<div class="cbrow"><div class="cbi"><b>#${esc(c.numero)} · ${esc(c.nom || 'Sans nom')}</b><small>${esc(c.produit)}</small><small>${esc(fmt(c.total, c.devise || 'FCFA'))}${c.pays ? ' · ' + esc(c.pays) : ''} · supprimée le ${esc(quand(c.le))}</small></div>
+      z.innerHTML = L.length ? `<label class="cbtout"><input type="checkbox" id="cbTout"> <span>Tout sélectionner · ${L.length} commande${L.length > 1 ? 's' : ''}</span></label>` + L.map(c => `<div class="cbrow${sel.has(c.numero) ? ' on' : ''}">
+        <input type="checkbox" class="cbck" data-ck="${esc(c.numero)}" ${sel.has(c.numero) ? 'checked' : ''} aria-label="Sélectionner la commande ${esc(c.numero)}">
+        <div class="cbi"><b>#${esc(c.numero)} · ${esc(c.nom || 'Sans nom')}</b><small>${esc(c.produit)}</small><small>${esc(fmt(c.total, c.devise || 'FCFA'))}${c.pays ? ' · ' + esc(c.pays) : ''} · supprimée le ${esc(quand(c.le))}</small>
+          <span class="cbch">Supprimée définitivement dans <b data-fin="${c.fin}"></b></span></div>
         <button class="cbres" data-res="${esc(c.numero)}">Restaurer</button><button class="pmenu" data-cbm="${esc(c.numero)}" aria-label="Options de la commande ${esc(c.numero)}">⋮</button></div>`).join('')
-        : `<div class="cbvide">${ic('corbeille')}<b>La corbeille est vide</b><small>Les commandes que tu supprimes arrivent ici.</small></div>`;
+        : `<div class="cbvide">${ic('corbeille')}<b>La corbeille est vide</b><small>Les commandes que tu supprimes arrivent ici et y restent 30 jours.</small></div>`;
+      z.querySelectorAll('[data-ck]').forEach(c => c.onchange = () => { c.checked ? sel.add(c.dataset.ck) : sel.delete(c.dataset.ck); c.closest('.cbrow').classList.toggle('on', c.checked); barre(); });
+      const tout = z.querySelector('#cbTout'); if (tout) tout.onchange = () => { sel.clear(); if (tout.checked) L.forEach(c => sel.add(c.numero)); dessiner(); };
       z.querySelectorAll('[data-res]').forEach(b => b.onclick = () => restaurer([b.dataset.res], b));
       z.querySelectorAll('[data-cbm]').forEach(b => b.onclick = () => menu(L.find(c => c.numero === b.dataset.cbm)));
+      barre(); tic();
     };
-    const appel = async x => { const j = await call(Object.assign({type: 'corbeille'}, x)); L = j.commandes || []; dessiner(); return j; };
+    const appel = async x => { const j = await call(Object.assign({type: 'corbeille'}, x)); L = j.commandes || []; if (j.maintenant) ecart = j.maintenant - Date.now(); dessiner(); return j; };
     async function restaurer(nums, bt){
       if (bt) { bt.disabled = true; bt.textContent = 'Restauration…'; }
       try { await appel({action: 'restaurer', numeros: nums});
         // une commande restaurée n'est pas une nouvelle commande : pas de son ni d'alerte
         const nC = n => Number(String(n || '').replace(/\D/g, '')) || 0; const haut = nums.reduce((a, n) => nC(n) > nC(a) ? n : a, lastNum);
         if (haut !== lastNum) { lastNum = haut; S.set('adm_last', lastNum); }
+        nums.forEach(n => sel.delete(n)); barre();
         toast(nums.length > 1 ? nums.length + ' commandes restaurées' : 'Commande n°' + nums[0] + ' restaurée'); refresh(); }
       catch(e){ if (bt) { bt.disabled = false; bt.textContent = 'Restaurer'; } alert('Restauration impossible : ' + e.message); }
     }
-    async function effacer(c){
-      if (!(await confirmer({titre: 'Supprimer définitivement la n°' + esc(c.numero) + ' ?', texte: 'Elle ne pourra plus être restaurée.' , ok: 'Supprimer définitivement'}))) return;
-      try { const j = await appel({action: 'effacer', numero: c.numero}); toast(j.recule ? 'Supprimée · la prochaine commande reprendra ce numéro' : 'Commande supprimée définitivement'); } catch(e){ alert(e.message); }
+    async function effacer(nums){
+      if (!(await confirmer({titre: nums.length > 1 ? 'Supprimer définitivement ' + nums.length + ' commandes ?' : 'Supprimer définitivement la n°' + nums[0] + ' ?', texte: 'Elles ne pourront plus être restaurées.'.replace('Elles', nums.length > 1 ? 'Elles' : 'Elle').replace('restaurées', nums.length > 1 ? 'restaurées' : 'restaurée'), ok: 'Supprimer définitivement'}))) return;
+      try { const j = await appel({action: 'effacer', numeros: nums}); nums.forEach(n => sel.delete(n)); barre(); toast(j.recule ? 'Supprimée · la prochaine commande reprendra ce numéro' : (nums.length > 1 ? nums.length + ' commandes supprimées définitivement' : 'Commande supprimée définitivement')); } catch(e){ alert(e.message); }
     }
     function menu(c){ if (!c) return;
       const m = document.createElement('div'); m.className = 'overlay';
       m.innerHTML = `<div class="detail pmsheet" role="dialog" aria-modal="true" aria-label="Options"><div class="grab"></div><div class="pmtete"><b>Commande #${esc(c.numero)}<br><small style="font-weight:500;color:var(--muted)">${esc(c.nom)}</small></b></div>
-        <button data-x="res">Restaurer</button><button data-x="copier">Copier le numéro de téléphone</button><button data-x="eff" class="danger">Supprimer définitivement</button><button data-x="non" class="annul">Annuler</button></div>`;
+        <button data-x="res">Restaurer</button><button data-x="sel">${sel.has(c.numero) ? 'Retirer de la sélection' : 'Sélectionner'}</button><button data-x="copier">Copier le numéro de téléphone</button><button data-x="eff" class="danger">Supprimer définitivement</button><button data-x="non" class="annul">Annuler</button></div>`;
       m.onclick = async e => { if (e.target === m) return m.remove(); const t = e.target.closest('[data-x]'); if (!t) return; m.remove();
         if (t.dataset.x === 'res') restaurer([c.numero]);
-        if (t.dataset.x === 'eff') effacer(c);
+        if (t.dataset.x === 'eff') effacer([c.numero]);
+        if (t.dataset.x === 'sel') { sel.has(c.numero) ? sel.delete(c.numero) : sel.add(c.numero); dessiner(); }
         if (t.dataset.x === 'copier') { const v = telJoli(c.tel); try { await navigator.clipboard.writeText(v); toast('Numéro copié'); } catch(x){ prompt('Téléphone :', v); } } };
       document.body.appendChild(m);
     }
+    o.querySelector('#cbRes').onclick = e => restaurer([...sel], e.currentTarget);
+    o.querySelector('#cbDel').onclick = () => effacer([...sel]);
     o.querySelector('#cbVid').onclick = async () => {
       if (!(await confirmer({titre: 'Vider la corbeille ?', texte: 'Les ' + L.length + ' commande' + (L.length > 1 ? 's' : '') + ' seront supprimées définitivement.', ok: 'Vider'}))) return;
-      try { await appel({action: 'vider'}); toast('Corbeille vidée'); } catch(e){ alert(e.message); }
+      try { await appel({action: 'vider'}); sel.clear(); barre(); toast('Corbeille vidée'); } catch(e){ alert(e.message); }
     };
+    minuteur = setInterval(tic, 1000);
     try { await appel({action: 'liste'}); } catch(e){ const z = o.querySelector('#cbL'); if (z) z.innerHTML = `<div class="empty">Impossible d’ouvrir la corbeille : ${esc(e.message)}</div>`; }
+  }
+
+  /* ---------- Commandes de test : tes numéros, des commandes TEST1, TEST2… jamais comptées ---------- */
+  async function commandesTest(){
+    const o = feuille(`<h2>Commandes de test</h2><p class="sub">Quand tu commandes avec un de ces numéros, la commande s’appelle TEST1, TEST2… Tu reçois une notification, mais elle n’entre <b>jamais</b> dans tes commandes ni tes chiffres, ne part pas chez l’agence et n’est pas envoyée aux pixels. Valable pour toutes tes boutiques.</p>
+      <div class="rgc"><label for="tsN">Mes numéros de test<small>Avec l’indicatif, séparés par des virgules. Ex : +229 01 60 00 00 00, +225 07 00 00 00 00</small></label><textarea class="field" id="tsN" rows="2" placeholder="+229 01 …"></textarea></div>
+      <button class="btn blue" id="tsOk">Enregistrer les numéros</button>
+      <div class="cbhd" style="margin-top:20px"><h3 class="rgt" style="margin:0">Dernières commandes de test</h3><button class="lnk" id="tsVid" hidden>Tout effacer</button></div><div id="tsL"><div class="empty">Chargement…</div></div>
+      <button class="btn ghost" id="tsX" style="margin-top:14px">Fermer</button>`);
+    o.querySelector('#tsX').onclick = () => o.remove();
+    const dessiner = j => { const z = o.querySelector('#tsL'); if (!z) return; const L = j.commandes || [];
+      o.querySelector('#tsVid').hidden = !L.length;
+      z.innerHTML = L.length ? L.map(c => `<div class="cbrow"><div class="cbi"><b>${esc(c.numero)} · ${esc(c.nom || 'Sans nom')}</b><small>${esc(c.produit)} · ${esc(c.offre)}</small><small>${esc(c.date)} à ${esc(c.heure)} · ${esc(c.pays)} · ${esc(fmt(c.total, c.devise || 'FCFA'))}</small></div></div>`).join('')
+        : '<div class="empty" style="padding:16px 0">Aucune commande de test pour le moment.</div>'; };
+    const appel = async x => { const j = await call(Object.assign({type: 'tests'}, x)); const t = o.querySelector('#tsN'); if (t && x.action !== 'vider') t.value = j.numeros || ''; dessiner(j); return j; };
+    o.querySelector('#tsOk').onclick = async e => { const b = e.currentTarget; b.disabled = true; b.textContent = 'Enregistrement…';
+      try { await appel({action: 'numeros', numeros: o.querySelector('#tsN').value}); toast('Numéros de test enregistrés'); } catch(x){ alert(x.message); }
+      b.disabled = false; b.textContent = 'Enregistrer les numéros'; };
+    o.querySelector('#tsVid').onclick = async () => { if (!(await confirmer({titre: 'Effacer les commandes de test ?', texte: 'Elles ne comptent nulle part : c’est juste pour faire le ménage.', ok: 'Effacer'}))) return; try { await appel({action: 'vider'}); } catch(x){ alert(x.message); } };
+    try { await appel({}); } catch(e){ o.querySelector('#tsL').innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
+  }
+
+  /* ---------- Voix off enregistrées : classées par page produit ---------- */
+  async function voixStock(){
+    const o = feuille(`<h2>Voix off enregistrées</h2><p class="sub">Classées par page produit. Pour en ajouter : Produits → ⋮ → Générer des voix off → « Enregistrer ».</p>
+      <div class="pgsrch" style="margin:10px 0 4px">${ic('loupe')}<input id="vsQ" type="search" placeholder="Rechercher un produit ou un mot" aria-label="Rechercher"></div>
+      <div id="vsL"><div class="empty">Chargement…</div></div><button class="btn ghost" id="vsX" style="margin-top:14px">Fermer</button>`);
+    o.querySelector('.detail').classList.add('cbsheet');
+    o.querySelector('#vsX').onclick = () => o.remove();
+    let L = [], q = '';
+    const quand = t => t ? new Date(t).toLocaleDateString('fr-FR', {day: 'numeric', month: 'short', year: 'numeric'}) : '';
+    const dessiner = () => { const z = o.querySelector('#vsL'); if (!z) return;
+      const qq = q.toLowerCase(), V = L.filter(v => !qq || (v.nom + ' ' + v.titre + ' ' + v.texte + ' ' + v.type).toLowerCase().includes(qq));
+      const G = {}; V.forEach(v => { const k = v.produit || v.nom; (G[k] = G[k] || {nom: v.nom || v.produit, l: []}).l.push(v); });
+      const keys = Object.keys(G).sort((a, b) => G[a].nom.localeCompare(G[b].nom, 'fr'));
+      z.innerHTML = keys.length ? keys.map(k => { const P = PR && PR.produits ? PR.produits.find(p => p.id === k) : null;
+        return `<details class="vsg" ${keys.length === 1 || qq ? 'open' : ''}><summary>${P && P.photos && P.photos[0] ? `<img src="${esc(vignette(P.photos[0], 120))}" alt="" loading="lazy">` : `<span class="vsico">${ic('micro')}</span>`}<span class="vsn"><b>${esc(G[k].nom)}</b><small>${G[k].l.length} voix off${P ? '' : ' · page supprimée ou renommée'}</small></span></summary>
+          ${G[k].l.map(v => `<div class="vsit"><div class="vsh"><b>${esc(v.titre || 'Voix off')}</b><button class="pmenu" data-vm="${esc(v.id)}" aria-label="Options">⋮</button></div><small>${esc(v.type)}${v.sec ? ' · ≈ ' + v.sec + ' s' : ''} · ${esc(quand(v.le))}</small>
+            <div class="vot">${esc(v.texte)}</div><button class="btn blue2" data-vc="${esc(v.id)}" style="margin-top:8px">📋 Copier</button></div>`).join('')}</details>`; }).join('')
+        : `<div class="cbvide">${ic('micro')}<b>${q ? 'Aucun résultat' : 'Aucune voix off enregistrée'}</b><small>${q ? '' : 'Génère des voix off depuis un produit, puis appuie sur « Enregistrer ».'}</small></div>`;
+      const copier = async t => { try { await navigator.clipboard.writeText(t); toast('📋 Copié'); } catch(x){ prompt('Copie ce texte :', t); } };
+      z.querySelectorAll('[data-vc]').forEach(b => b.onclick = () => copier(L.find(v => v.id === b.dataset.vc).texte));
+      z.querySelectorAll('[data-vm]').forEach(b => b.onclick = () => { const v = L.find(x => x.id === b.dataset.vm); if (!v) return;
+        const m = document.createElement('div'); m.className = 'overlay';
+        m.innerHTML = `<div class="detail pmsheet" role="dialog" aria-modal="true" aria-label="Options"><div class="grab"></div><div class="pmtete"><b>${esc(v.titre || 'Voix off')}</b></div>
+          <button data-x="copier">Copier le texte</button><button data-x="eff" class="danger">Supprimer</button><button data-x="non" class="annul">Annuler</button></div>`;
+        m.onclick = async e => { if (e.target === m) return m.remove(); const t = e.target.closest('[data-x]'); if (!t) return; m.remove();
+          if (t.dataset.x === 'copier') copier(v.texte);
+          if (t.dataset.x === 'eff' && await confirmer({titre: 'Supprimer cette voix off ?', texte: '« ' + esc(v.titre) + ' » sera retirée du stockage.', ok: 'Supprimer'})) { try { L = (await call({type: 'voix', action: 'supprimer', id: v.id})).voix || []; dessiner(); toast('Voix off supprimée'); } catch(x){ alert(x.message); } } };
+        document.body.appendChild(m); });
+    };
+    o.querySelector('#vsQ').oninput = e => { q = e.target.value; dessiner(); };
+    try { L = (await call({type: 'voix'})).voix || []; dessiner(); } catch(e){ o.querySelector('#vsL').innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
   }
 
   /* ---------- Bon de commande en PDF (à envoyer au client sur WhatsApp, comme Shopify) ---------- */
@@ -3747,11 +3836,23 @@ function nettoyerHtml(h){
       Z.innerHTML = (etude ? `<details class="voetude"><summary>📊 Étude du produit (touche pour voir)</summary><div style="margin-top:8px">${esc(etude).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>')}</div></details>` : '') +
         cartes.map((c, i) => `<div class="vosc"><h4>Script ${i + 1} · ${esc(c.titre)}</h4><div class="vom">≈ ${c.sec} secondes · ${voMots(c.complet)} mots</div>
           <div class="vot">${esc(c.texte)}<span class="vofin">${esc(c.fin)}</span></div><button class="btn blue2" data-c="${i}">📋 Copier ce script</button></div>`).join('') +
-        `<button class="btn blue" id="voTout" style="margin-top:14px">📋 Copier les 3 scripts</button><button class="btn blue2" id="voRe" style="margin-top:8px">🔁 Générer 3 autres scripts</button>`;
+        `<button class="btn blue" id="voSv" style="margin-top:14px">💾 Enregistrer dans le stockage</button><button class="btn blue2" id="voTout" style="margin-top:8px">📋 Copier les ${cartes.length} scripts</button><button class="btn blue2" id="voRe" style="margin-top:8px">🔁 Générer 3 autres scripts</button>`;
       const copier = async t => { try { await navigator.clipboard.writeText(t); toast('📋 Copié'); } catch(x){ prompt('Copie ce texte :', t); } };
       Z.querySelectorAll('[data-c]').forEach(b => b.onclick = () => copier(cartes[+b.dataset.c].complet));
       Z.querySelector('#voTout').onclick = () => copier(cartes.map((c, i) => 'Script ' + (i + 1) + ' · ' + c.titre + '\n' + c.complet).join('\n\n'));
       Z.querySelector('#voRe').onclick = () => { o.remove(); voixOff(P, type, duree); };
+      const enregistres = new Set();
+      Z.querySelector('#voSv').onclick = async e => {
+        const bt = e.currentTarget;
+        const choix = await menuListe(vignette(P.photos[0]), 'Que veux-tu enregistrer ?', [['tous', 'Toutes les voix off (' + cartes.length + ')']].concat(cartes.map((c, i) => [String(i), 'Script ' + (i + 1) + ' · ' + c.titre + (enregistres.has(i) ? ' (déjà enregistré)' : '')])));
+        if (!choix) return;
+        const idx = choix === 'tous' ? cartes.map((_, i) => i) : [+choix];
+        bt.disabled = true; bt.textContent = 'Enregistrement…';
+        try { await call({type: 'voix', action: 'sauver', voix: idx.map(i => ({produit: P.id, nom: P.nom, type: T[1].replace(/^\S+\s/, ''), sec: cartes[i].sec, titre: cartes[i].titre, texte: cartes[i].complet}))});
+          idx.forEach(i => enregistres.add(i)); toast(idx.length > 1 ? idx.length + ' voix off enregistrées' : 'Voix off enregistrée'); bt.textContent = '✓ Enregistré · enregistrer encore'; }
+        catch(x){ alert('Enregistrement impossible : ' + x.message); bt.textContent = '💾 Enregistrer dans le stockage'; }
+        bt.disabled = false;
+      };
     } catch(e){ if (o.isConnected) Z.innerHTML = `<div class="iaerr">${esc(e.message || String(e))}</div>`; }
   }
 
@@ -4776,16 +4877,18 @@ function nettoyerHtml(h){
     sheets: '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 9h16M4 15h16M10 9v12"/>',
     sortie: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/>',
     corbeille: '<path d="M3 6h18M8 6V4h8v2M6 6l1 14a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-14M10 11v6M14 11v6"/>',
+    micro: '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M8 21h8"/>',
+    test: '<path d="M9 3h6M10 3v6L4.5 18.5A1.7 1.7 0 0 0 6 21h12a1.7 1.7 0 0 0 1.5-2.5L14 9V3"/><path d="M7.5 15h9"/>',
     chevron: '<path d="M9 6l6 6-6 6"/>', retour: '<path d="M15 18l-6-6 6-6"/>', loupe: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>'
   };
   const ic = n => IC(ICONES[n] || '');
-  const VERSION_APP = '107';
+  const VERSION_APP = '108';
   function settings(){
     const proprio = D.vendoo && D.vendoo.statut === 'proprietaire', abonne = VENDOO && D.vendoo && D.vendoo.statut !== 'proprietaire';
     const m = (id, icone, titre) => `<button class="mrow" data-mn="${id}">${ic(icone)}<span>${titre}</span></button>`;
     app.innerHTML = `<div class="menu">
       ${m('home', 'accueil', 'Accueil')}${m('orders', 'commandes', 'Commandes')}${m('abandons', 'relances', 'Relances (paniers abandonnés)')}${m('products', 'produits', 'Produits')}
-      ${m('direct', 'direct', 'Vue en direct')}${m('tiktok', 'tiktok', 'Promotions TikTok')}${m('pubs', 'pubs', 'Analyse publicitaire')}${m('point', 'point', 'Point du jour et de la semaine')}${m('corbeille', 'corbeille', 'Corbeille des commandes')}
+      ${m('direct', 'direct', 'Vue en direct')}${m('tiktok', 'tiktok', 'Promotions TikTok')}${m('pubs', 'pubs', 'Analyse publicitaire')}${m('point', 'point', 'Point du jour et de la semaine')}
       <h3 class="mhd">Canaux de vente</h3>
       <a class="mrow" href="${esc(lienSite(''))}" target="_blank" rel="noopener">${ic('site')}<span>Boutique en ligne</span></a>
       ${m('apercu', 'apercu', 'Aperçu du site')}${m('lien', 'lien', 'Copier le lien du site')}
@@ -4800,7 +4903,6 @@ function nettoyerHtml(h){
       if (['home', 'orders', 'abandons', 'products', 'direct', 'tiktok', 'apercu'].includes(k)) return go(k);
       if (k === 'pubs') return analysePubUI();
       if (k === 'point') return pointHebdo();
-      if (k === 'corbeille') return corbeille();
       if (k === 'boutiques') return mesBoutiques();
       if (k === 'vendoo') return vendooAdmin();
       if (k === 'lien'){ const u = lienSite(''); try { await navigator.clipboard.writeText(u); toast('Lien du site copié'); } catch(x){ prompt('Lien du site :', u); } }
@@ -4832,6 +4934,9 @@ function nettoyerHtml(h){
           ${b ? L('pixelsMeta', 'pixels', 'Pixels Meta', 'Plusieurs pixels, communs ou par pays') : ''}
           ${b ? L('reglages', 'reglages', 'Réglages de la boutique', 'TikTok, WhatsApp, commandes, apparence') : ''}
           ${L('agences', 'agences', 'Agences de livraison', 'L’e-mail de l’agence de chaque pays')}
+          ${L('corbeille', 'corbeille', 'Corbeille des commandes', 'Restaurer ou supprimer · 30 jours')}
+          ${L('tests', 'test', 'Commandes de test', 'Tes numéros de test, jamais comptés')}
+          ${L('voix', 'micro', 'Voix off enregistrées', 'Classées par page produit')}
           ${b ? L('produitsBq', 'copier', 'Produits entre boutiques', pp && pp.ids && pp.ids.length && (pp.source || '') !== (b.code || '') ? pp.ids.length + ' produit' + (pp.ids.length > 1 ? 's' : '') + ' prêt' + (pp.ids.length > 1 ? 's' : '') + ' à coller' : 'Copier, puis coller dans une autre boutique') : ''}
           ${L('ia', 'ia', 'Assistant IA', 'Clés gratuites Gemini et Groq')}
           ${abonne ? L('abo', 'carte', 'Abonnement Vendoo', D.vendoo.statut === 'essai' ? 'Essai gratuit jusqu’au ' + esc(D.vendoo.expire || '') : D.vendoo.statut === 'actif' ? 'Actif jusqu’au ' + esc(D.vendoo.expire || '') : '') : ''}
@@ -4878,6 +4983,9 @@ function nettoyerHtml(h){
       if (k === 'pays') return b && paysBq(b, ret);
       if (k === 'reglages') return b && reglagesBq(b);
       if (k === 'pixelsMeta') return b && pixelsMeta(b);
+      if (k === 'corbeille') return corbeille();
+      if (k === 'tests') return commandesTest();
+      if (k === 'voix') return voixStock();
       if (k === 'renommer') return b && renommerBq(b, ret);
       if (k === 'copier') return b && copierBq(b, ret);
       if (k === 'coller') return b && collerBq(b, ret);

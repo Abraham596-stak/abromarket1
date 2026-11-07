@@ -921,7 +921,8 @@ Heure de la livraison : ${r.livraison}`;
       const url = 'https://wa.me/' + r.whatsapp + '?text=' + encodeURIComponent(msg);
       const cur = pays.codeDevise || undefined;
       const evId = 'cmd-' + r.numero, digits = String(r.tel).replace(/\D/g, '');
-      try { if (window.fbq){
+      // Commande de test (tes numéros de test) : aucun pixel, aucune statistique
+      try { if (window.fbq && !r.test){
         // Correspondance avancée manuelle : Meta reconnaît mieux l'acheteur (données hachées par Meta dans le navigateur)
         const mots = String(r.nom || '').trim().toLowerCase().split(/\s+/), am = {ph: digits, fn: mots[0] || '', ln: mots.length > 1 ? mots[mots.length - 1] : '', country: String(pays.code || '').toLowerCase(), external_id: digits};
         Object.keys(am).forEach(k => { if (!am[k]) delete am[k]; });
@@ -929,12 +930,12 @@ Heure de la livraison : ${r.livraison}`;
         // Chaque pixel actif du pays de la commande reçoit l'achat (même eventID que l'envoi du serveur : pas de doublon)
         idsPixels().forEach(id => { pxInit[id] = 1; fbq('init', id, am); fbq('trackSingle', id, 'Purchase', {value: r.total, currency: cur, content_ids: [P.id], content_type: 'product', num_items: r.qte}, {eventID: evId}); });
       } } catch(x){}
-      try { if (window.ttq){
+      try { if (window.ttq && !r.test){
         sha256('+' + digits).then(h => { try { if (h) ttq.identify({phone_number: h}); } catch(e){}
           ttq.track('CompletePayment', {value: r.total, currency: cur, contents: [{content_id: P.id, quantity: r.qte}], content_type: 'product'}, {event_id: evId}); });
       } } catch(x){}
       memo(P.id, r.numero);
-      try { if (!APERCU){ etape = 'achat'; beacon('ping'); } } catch(x){}
+      try { if (!APERCU && !r.test){ etape = 'achat'; beacon('ping'); } } catch(x){}
       // Lance tout de suite les notifications (WhatsApp, email, application) et l'envoi aux agences
       try { const bd = avecB(JSON.stringify(r.b ? {type: 'apres', numero: r.numero, b: r.b} : {type: 'apres', numero: r.numero})); if (navigator.sendBeacon) navigator.sendBeacon(API, new Blob([bd], {type: 'text/plain'})); else fetch(API, {method: 'POST', body: bd, keepalive: true}); } catch(x){}
       if (modeMerci){ const n = $('numCmd'); if (n) n.textContent = r.numero; else merci(r, P); return; }
