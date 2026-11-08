@@ -387,20 +387,26 @@ input[type=tel],input[type=text],textarea,select.in,.country select{border-width
   const ATT_KEYS = ['utm_source','utm_campaign','utm_term','utm_content','fbclid','ttclid','tt'];
   (function saveAttribution(){
     const fresh = {}; ATT_KEYS.forEach(k => { const v = params.get(k); if (v) fresh[k] = v.slice(0, 200); });
-    if (Object.keys(fresh).length){ fresh.t = Date.now(); store.set('attrib', JSON.stringify(fresh)); }
+    if (Object.keys(fresh).length){ fresh.t = Date.now(); store.set('attrib', JSON.stringify(fresh));
+      // copie de secours dans un cookie (7 jours) : certains téléphones vident la mémoire du navigateur de Facebook ou TikTok
+      try { document.cookie = 'ab_att=' + encodeURIComponent(JSON.stringify(fresh)).slice(0, 3000) + '; path=/; max-age=' + (7*86400) + '; SameSite=Lax; Secure'; } catch(e){} }
   })();
+  function attribGardee(){
+    let a = null; try { a = JSON.parse(store.get('attrib') || 'null'); } catch(e){}
+    if (!a || !a.t){ try { const m = document.cookie.match(/(?:^|; )ab_att=([^;]*)/); if (m) a = JSON.parse(decodeURIComponent(m[1])); } catch(e){} }
+    return a || {};
+  }
   // Garde l'identifiant de clic Facebook (fbc) pour que le pixel relie l'ACHAT à la pub, même plus tard ou après rechargement
   (function cookieClicFacebook(){
     try {
-      const a = JSON.parse(store.get('attrib') || '{}') || {};
+      const a = attribGardee();
       const nouveau = !!params.get('fbclid'), present = /(?:^|; )_fbc=/.test(document.cookie);
       if (a.fbclid && a.t && Date.now() - a.t < 7*864e5 && (nouveau || !present))
         document.cookie = '_fbc=' + encodeURIComponent('fb.1.' + a.t + '.' + a.fbclid) + '; path=/; max-age=' + (90*86400) + '; SameSite=Lax; Secure';
     } catch(e){}
   })();
   function attribution(){
-    let a = {};
-    try { a = JSON.parse(store.get('attrib') || '{}') || {}; } catch(e){}
+    let a = Object.assign({}, attribGardee());
     if (a.t && Date.now() - a.t > 7*864e5) a = {};
     const ck = n => { const m = document.cookie.match('(?:^|; )' + n + '=([^;]*)'); return m ? decodeURIComponent(m[1]) : ''; };
     a.fbp = ck('_fbp'); a.fbc = ck('_fbc') || (a.fbclid ? 'fb.1.' + (a.t || Date.now()) + '.' + a.fbclid : '');
@@ -1059,7 +1065,7 @@ Heure de la livraison : ${r.livraison}`;
     } catch(e){ if (!sid) sid = Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
     const ttUrl = params.get('tt') || '';
     let ttCode = ttUrl;
-    if (!ttCode){ try { const a = JSON.parse(store.get('attrib') || '{}') || {}; if (a.tt && a.t && Date.now() - a.t < 7*864e5) ttCode = a.tt; } catch(e){} }
+    if (!ttCode){ try { const a = attribGardee(); if (a.tt && a.t && Date.now() - a.t < 7*864e5) ttCode = a.tt; } catch(e){} }
     const o = {type, sid, produit: pid, pays: country || '', tt: ttCode.slice(0, 20), ttNew: type === 'visite' && ttUrl ? 1 : 0, et: etape || (pid ? 'produit' : '')};
     // Analyse publicitaire : la visite qui arrive d'une pub dit de quelle campagne / quel ensemble / quelle publicité elle vient
     if (type === 'visite'){ const c = params.get('utm_campaign') || '', e = params.get('utm_term') || '', a = params.get('utm_content') || '';
