@@ -4568,6 +4568,9 @@ function nettoyerHtml(h){
   const ttMoney = v => (Math.abs(v) >= 100 ? Math.round(v).toLocaleString('fr-FR') : v.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})).replace(/[\u202f\u00a0]/g, ' ') + (ttDev === 'USD' ? ' $' : ' €');
   const F = n => ttDev === 'FCFA' ? fmt(Math.round(Number(n) || 0), 'FCFA') : ttMoney(ttConv(n));
   const K = n => ttDev !== 'FCFA' ? F(n) : (n = Math.round(Number(n) || 0)) >= 1e5 ? short(n) : fmt(n);
+  // Coûts des promotions : toujours en dollars (comme dans TikTok), sauf si l'affichage est en euros
+  const FD = n => { if (ttDev === 'EUR') return F(n); const v = (Number(n) || 0) / ((TT && TT.usd) || 600);
+    return (Math.abs(v) >= 100 ? Math.round(v).toLocaleString('fr-FR') : v.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})).replace(/[\u202f\u00a0]/g, ' ') + ' $'; };
   const ratio = (a, b) => b ? a / b : 0;
   const nomsPays = p => { const l = p.pays || []; if (!l.length) return ''; const n = l.map(c => { const x = pubData && pubData.pays.find(q => q.code === c); return x ? x.nom : c; }); return ' · ' + esc(n.length > 3 ? n.slice(0, 3).join(', ') + ' +' + (n.length - 3) : n.join(', ')); };
   function verdict(p){
@@ -4589,9 +4592,9 @@ function nettoyerHtml(h){
       <p class="sub">Combien chaque promotion t'a rapporté de commandes.</p>
       <div class="periods"><button class="chip on" id="ttPd">${CAL} ${esc(libelle(ttPer))} ▾</button><button class="chip on" id="ttDv">💱 ${ttDev === 'USD' ? 'Dollar $' : ttDev === 'EUR' ? 'Euro €' : 'FCFA'} ▾</button></div>
       <div class="ttsum">
-        <div><small>Dépensé</small><b>${F(dep)}</b></div>
+        <div><small>Dépensé</small><b>${FD(dep)}</b></div>
         <div><small>Commandes</small><b>${cmd}</b></div>
-        <div><small>Coût par commande</small><b>${cmd ? F(dep / cmd) : '–'}</b></div>
+        <div><small>Coût par commande</small><b>${cmd ? FD(dep / cmd) : '–'}</b></div>
         <div><small>Livrées</small><b>${liv}</b></div>
         <div><small>Encaissé (livré)</small><b>${F(caL)}</b></div>
         <div><small>Rentabilité</small><b>${dep ? 'x' + ratio(caL, dep).toFixed(1).replace('.', ',') : '–'}</b></div>
@@ -4603,9 +4606,9 @@ function nettoyerHtml(h){
   const promoCard = (p, i, autre) => `<button class="promo" data-tt="${i}" data-autre="${autre ? 1 : ''}">
       <div class="h"><div><b>${esc(p.nom)}</b><div class="meta">${autre ? 'Commandes TikTok sans lien de promo' : `${p.statut === 'Active' ? '<span class="st-on">● Active</span>' : p.statut === 'En attente' ? '<span class="st-wait">● En attente d’approbation</span>' : '<span class="st-off">● Terminée</span>'} · ${esc(p.produit || 'Boutique')}${nomsPays(p)} · n°${esc(p.code)}`}${p.live ? ` · <b style="color:#0B6B35">${p.live} en direct</b>` : ''}</div></div>${autre ? '' : verdict(p)}</div>
       <div class="pm">
-        <div><small>Dépensé${p.estimee ? ' (auto)' : ''}</small><b>${autre ? '–' : (p.estimee ? '≈ ' : '') + K(p.depense)}</b></div>
+        <div><small>Dépensé${p.estimee ? ' (auto)' : ''}</small><b>${autre ? '–' : (p.estimee ? '≈ ' : '') + FD(p.depense)}</b></div>
         <div><small>Commandes</small><b>${p.commandes}</b></div>
-        <div><small>Coût/cmd</small><b>${!autre && p.commandes && p.depense ? K(p.depense / p.commandes) : '–'}</b></div>
+        <div><small>Coût/cmd</small><b>${!autre && p.commandes && p.depense ? FD(p.depense / p.commandes) : '–'}</b></div>
         <div><small>Livrées</small><b>${p.livrees}</b></div>
       </div></button>`;
   function drawTT(){
@@ -4751,12 +4754,12 @@ function nettoyerHtml(h){
       <p class="sub">${autre ? 'Commandes venues de TikTok sans lien de promotion' : `n°${esc(p.code)} · ${esc(p.produit || 'Boutique')}${nomsPays(p)} · créée le ${esc(p.cree)} · ${esc(libelle(ttPer))}`}</p>
       ${autre ? '' : verdict(p)}
       <div class="mgrid">
-        ${autre ? '' : t(p.estimee ? 'Dépensé (calculé)' : 'Dépensé', (p.estimee ? '≈ ' : '') + F(p.depense))}
+        ${autre ? '' : t(p.estimee ? 'Dépensé (calculé)' : 'Dépensé', (p.estimee ? '≈ ' : '') + FD(p.depense))}
         ${autre ? '' : t('Visites', p.visites)}
         ${t('Commandes', p.commandes)}
         ${autre ? '' : t('Taux de commande', p.visites ? (p.commandes / p.visites * 100).toFixed(1).replace('.', ',') + ' %' : '–')}
-        ${autre ? '' : t('Coût par commande', p.commandes && p.depense ? F(cpa) : '–', TT.cible && p.commandes && cpa > TT.cible ? 'warn' : '')}
-        ${autre ? '' : t('Coût par livraison', p.livrees && p.depense ? F(cpl) : '–')}
+        ${autre ? '' : t('Coût par commande', p.commandes && p.depense ? FD(cpa) : '–', TT.cible && p.commandes && cpa > TT.cible ? 'warn' : '')}
+        ${autre ? '' : t('Coût par livraison', p.livrees && p.depense ? FD(cpl) : '–')}
         ${t('À confirmer', p.aConfirmer)}
         ${t('En cours', p.enCours)}
         ${t('Livrées', p.livrees, 'yes')}
@@ -4882,7 +4885,7 @@ function nettoyerHtml(h){
     chevron: '<path d="M9 6l6 6-6 6"/>', retour: '<path d="M15 18l-6-6 6-6"/>', loupe: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>'
   };
   const ic = n => IC(ICONES[n] || '');
-  const VERSION_APP = '108';
+  const VERSION_APP = '109';
   function settings(){
     const proprio = D.vendoo && D.vendoo.statut === 'proprietaire', abonne = VENDOO && D.vendoo && D.vendoo.statut !== 'proprietaire';
     const m = (id, icone, titre) => `<button class="mrow" data-mn="${id}">${ic(icone)}<span>${titre}</span></button>`;
