@@ -383,6 +383,23 @@ input[type=tel],input[type=text],textarea,select.in,.country select{border-width
   function barre40(d){ (d.produits || []).forEach(P => Object.values(P.prix || {}).forEach(px => (px.offres || []).forEach(o => { const p = Number(o.prix) || 0; if (p > 0) o.ancien = Math.ceil(p / 0.6 / 100) * 100; }))); }
   let D = null, country = null, touched = false, pixelsOn = false, checkoutSent = false;
 
+  /* ---------- Numéro de téléphone valide pour le pays (mêmes règles que le serveur) ---------- */
+  const FORMES_TEL = {BJ: /^01\d{8}$/, TG: /^[279]\d{7}$/, CI: /^(0[157]|2[157])\d{8}$/, SN: /^(7[05678]|3[03])\d{7}$/, CM: /^[26]\d{8}$/,
+    BF: /^[025-7]\d{7}$/, ML: /^[2-9]\d{7}$/, NE: /^[02-9]\d{7}$/, GN: /^[36]\d{8}$/, GA: /^0?[1-7]\d{6,7}$/, CG: /^0[4-6]\d{7}$/, CD: /^[89]\d{8}$/,
+    TD: /^[269]\d{7}$/, CF: /^[27]\d{7}$/, GH: /^[235]\d{8}$/, NG: /^[789]\d{9}$/};
+  const EX_TEL = {BJ: '01 97 00 00 00', TG: '90 00 00 00', CI: '07 00 00 00 00'};
+  function telValide(brut, pays){
+    if (!pays) return String(brut).replace(/\D/g, '').length >= 8;
+    const ind = String(pays.indicatif || '').replace(/\D/g, ''); let ch = String(brut || '').replace(/\D/g, '').replace(/^00/, '');
+    if (ind && ch.indexOf(ind) === 0 && ch.length >= ind.length + 7) ch = ch.slice(ind.length);
+    if (/^(\d)\1+$/.test(ch) || /^(0?123456789|0?12345678|98765432)/.test(ch)) return false;
+    const code = String(pays.code || '').toUpperCase();
+    if (code === 'BJ' && /^[2-9]\d{7}$/.test(ch)) ch = '01' + ch;
+    const f = FORMES_TEL[code];
+    if (f) return f.test(ch) || (/^0/.test(ch) && f.test(ch.slice(1)));
+    return ch.length >= 7 && ch.length <= 12;
+  }
+
   /* ---------- Origine du client (quelle pub) ---------- */
   const ATT_KEYS = ['utm_source','utm_campaign','utm_term','utm_content','fbclid','ttclid','tt'];
   (function saveAttribution(){
@@ -785,7 +802,7 @@ input[type=tel],input[type=text],textarea,select.in,.country select{border-width
       return {type:'abandon', produit: P.id, pays: pays.code, offre: s.o.key, nom: $('nom').value.trim(),
         tel: $('tel').value.trim(), ville: villeVal(), adresse: $('adr').value.trim(), page: location.href.split('#')[0], attrib: attribution()};
     };
-    const abReady = () => !ordered && !dejaPour(P.id) && $('tel').value.replace(/\D/g,'').length >= 8;
+    const abReady = () => !ordered && !dejaPour(P.id) && telValide($('tel').value, pays);
     const abSend = (beacon) => {
       if (!abReady()) return;
       const body = JSON.stringify(abData());
@@ -810,7 +827,7 @@ input[type=tel],input[type=text],textarea,select.in,.country select{border-width
     // Progression du formulaire : quand tout est rempli, le rappel passe au vert « Tout est prêt »
     const etapes = () => {
       const vl = $('ville') ? $('ville').value : '', autre = $('villeAutre') ? $('villeAutre').value.trim() : '';
-      return [$('nom').value.trim().length >= 2, $('tel').value.replace(/\D/g, '').length >= 8, !!vl && (vl !== '__autre' || autre.length >= 2), $('adr').value.trim().length >= 3, !!($('ok') && $('ok').checked)];
+      return [$('nom').value.trim().length >= 2, telValide($('tel').value, pays), !!vl && (vl !== '__autre' || autre.length >= 2), $('adr').value.trim().length >= 3, !!($('ok') && $('ok').checked)];
     };
     let vIdle = null, vDernier = 0;
     const rappel = () => {
@@ -879,7 +896,9 @@ input[type=tel],input[type=text],textarea,select.in,.country select{border-width
       if (sending) return;
       const nom = $('nom').value.trim(), tel = $('tel').value.trim(), adr = $('adr').value.trim();
       const ville = villeVal();
-      const b = [bad('fVille', ville.length < 2), bad('fAdr', adr.length < 3), bad('fNom', nom.length < 2), bad('fTel', tel.replace(/\D/g,'').length < 8), bad('fOk', !$('ok').checked)];
+      const telOk = telValide(tel, pays);
+      if (!telOk){ const er = document.querySelector('#fTel .error'); if (er) er.textContent = 'Ce numéro n’est pas valide. Vérifiez-le' + (EX_TEL[pays.code] ? ' (ex : ' + EX_TEL[pays.code] + ')' : '') + ' pour qu’on puisse vous appeler.'; }
+      const b = [bad('fVille', ville.length < 2), bad('fAdr', adr.length < 3), bad('fNom', nom.length < 2), bad('fTel', !telOk), bad('fOk', !$('ok').checked)];
       if (b.some(Boolean)){ document.querySelector('.field.bad').scrollIntoView({behavior:'smooth', block:'center'}); return; }
       const s = state();
       const btn = $('sendBtn'), err = $('sendErr');

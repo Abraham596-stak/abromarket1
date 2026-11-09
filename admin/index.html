@@ -1325,7 +1325,7 @@ function nettoyerHtml(h){
       chime('relance');
       const t = document.createElement('div'); t.className = 'toast relance'; t.setAttribute('role', 'status');
       t.innerHTML = `<div class="e">⏰</div><div><b>À relancer : ${esc(a.nom || 'Sans nom')}</b>${esc(a.produit)} · ${esc(a.prix)} · ${esc(a.pays)}</div>`;
-      t.onclick = () => { t.remove(); if (a.lien) open(a.lien, '_blank'); else go('abandons'); };
+      t.onclick = () => { t.remove(); if (a.lien) open(lienRelance(a.lien), '_blank'); else go('abandons'); };
       document.body.appendChild(t); setTimeout(() => t.remove(), 9000);
       try {
         if ('Notification' in window && Notification.permission === 'granted' && document.visibilityState !== 'visible')
@@ -3373,8 +3373,14 @@ function nettoyerHtml(h){
   /* ---------- Abandons ---------- */
   /* Relances : dès que tu touches « Relancer », l'abandon passe en « Relancé ✓ » et le compteur baisse */
   const aRelancer = a => !a.suivi || a.suivi === 'À relancer';
+  // Message de relance : « Bonjour » de minuit à midi, « Bonsoir » de midi à minuit (heure du téléphone, au moment d'envoyer)
+  const salut = () => new Date().getHours() < 12 ? 'Bonjour' : 'Bonsoir';
+  function lienRelance(l){
+    try { const u = new URL(l); const t = u.searchParams.get('text'); if (t) { u.searchParams.set('text', t.replace(/^(Bonjour|Bonsoir)\b/, salut())); return u.toString(); } } catch(e){}
+    return l;
+  }
   function majCompteurAb(){
-    const ar = D.abandons.filter(aRelancer).length, da = document.getElementById('dotAb');
+    const ar = D.abandons.filter(a => aRelancer(a) && a.suivi !== 'Numéro invalide').length, da = document.getElementById('dotAb');
     if (da){ da.textContent = ar > 99 ? '99+' : ar; da.classList.toggle('hidden', !ar); }
   }
   // Gardé sur le téléphone tant que le Google Sheets n'a pas confirmé
@@ -3398,9 +3404,9 @@ function nettoyerHtml(h){
         <div class="l1"><b>${esc(a.nom || 'Sans nom')}</b><span class="tag">${esc(dayName(a.date))} ${esc(a.heure)}</span></div>
         <p>${esc(a.produit)} · ${esc(a.offre)} · ${esc(a.prix)} · ${esc(a.pays)}${!aRelancer(a) ? ` · <b class="okrel">✓ ${esc(a.suivi)}</b>` : ''}</p>
         <div class="row"><a class="a-call" href="tel:+${esc(String(a.tel).replace(/\D/g,''))}">📞 Appeler</a><button data-copytel="${esc(telJoli(a.tel))}">📋 Copier</button>${
-          aRelancer(a) ? (a.lien ? `<a class="a-wa" href="${esc(a.lien)}" target="_blank" rel="noopener" data-rel="${i}">📲 Relancer</a>` : `<button class="a-wa" data-rel="${i}">✓ Fait</button>`)
+          aRelancer(a) ? (a.lien ? `<a class="a-wa" href="${esc(a.lien)}" target="_blank" rel="noopener" data-rel="${i}" data-wa="1">📲 Relancer</a>` : `<button class="a-wa" data-rel="${i}">✓ Fait</button>`)
                        : `<button data-annule="${i}">↩ Annuler</button>`}</div></div>`;
-    const tous = D.abandons.map((a, i) => [a, i]), afaire = tous.filter(([a]) => aRelancer(a)), faits = tous.filter(([a]) => !aRelancer(a));
+    const tous = D.abandons.map((a, i) => [a, i]).filter(([a]) => a.suivi !== 'Numéro invalide'), afaire = tous.filter(([a]) => aRelancer(a)), faits = tous.filter(([a]) => !aRelancer(a));
     app.innerHTML = `<div class="page"><h1>Abandons</h1>
       <p class="tag" style="margin:-6px 0 8px">Touche « Relancer » : le message s'ouvre dans WhatsApp et la personne passe automatiquement dans « Déjà relancés ».</p>
       <h3 class="absec">À relancer <span>${afaire.length}</span></h3>
@@ -3408,6 +3414,7 @@ function nettoyerHtml(h){
       ${faits.length ? `<h3 class="absec">Déjà relancés ✓ <span>${faits.length}</span></h3>${faits.map(([a, i]) => carte(a, i)).join('')}` : ''}</div>`;
     bindCopy(app);
     app.querySelectorAll('[data-rel]').forEach(b => b.addEventListener('click', () => {
+      if (b.dataset.wa) b.href = lienRelance(b.getAttribute('href'));
       const a = D.abandons[+b.dataset.rel]; marquerSuivi(a, 'Relancé'); setTimeout(() => { if (view === 'abandons') abandons(); }, 400);
     }));
     app.querySelectorAll('[data-annule]').forEach(b => b.onclick = () => { marquerSuivi(D.abandons[+b.dataset.annule], 'À relancer'); abandons(); });
@@ -4885,7 +4892,7 @@ function nettoyerHtml(h){
     chevron: '<path d="M9 6l6 6-6 6"/>', retour: '<path d="M15 18l-6-6 6-6"/>', loupe: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>'
   };
   const ic = n => IC(ICONES[n] || '');
-  const VERSION_APP = '109';
+  const VERSION_APP = '110';
   function settings(){
     const proprio = D.vendoo && D.vendoo.statut === 'proprietaire', abonne = VENDOO && D.vendoo && D.vendoo.statut !== 'proprietaire';
     const m = (id, icone, titre) => `<button class="mrow" data-mn="${id}">${ic(icone)}<span>${titre}</span></button>`;
