@@ -4892,7 +4892,7 @@ function nettoyerHtml(h){
     chevron: '<path d="M9 6l6 6-6 6"/>', retour: '<path d="M15 18l-6-6 6-6"/>', loupe: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>'
   };
   const ic = n => IC(ICONES[n] || '');
-  const VERSION_APP = '110';
+  const VERSION_APP = '111';
   function settings(){
     const proprio = D.vendoo && D.vendoo.statut === 'proprietaire', abonne = VENDOO && D.vendoo && D.vendoo.statut !== 'proprietaire';
     const m = (id, icone, titre) => `<button class="mrow" data-mn="${id}">${ic(icone)}<span>${titre}</span></button>`;
