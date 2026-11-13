@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Page introuvable</title><meta name="robots" content="noindex">
+<link rel="icon" href="/abromarket1/boutique/favicon.ico?v=6" sizes="any">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;color:#141A2E;background:#F3F5FB;min-height:100vh;display:grid;place-items:center;padding:24px}
+.c{background:#fff;border:1px solid #E3E6EF;border-radius:20px;max-width:440px;width:100%;padding:36px 28px;text-align:center;box-shadow:0 10px 30px rgba(20,26,46,.06)}
+.n{font-size:56px;font-weight:800;letter-spacing:-2px;color:#1736A6;line-height:1}
+h1{font-size:22px;margin:14px 0 8px}
+p{color:#5A6178;font-size:15.5px;line-height:1.55}
+.b{display:block;margin-top:22px;background:#1736A6;color:#fff;text-decoration:none;font-weight:700;padding:15px;border-radius:12px;font-size:16px}
+.l{display:inline-block;margin-top:14px;color:#5A6178;font-size:14.5px;background:none;border:0;cursor:pointer;text-decoration:underline;font:inherit}
+</style></head>
+<body><div class="c">
+<div class="n">404</div>
+<h1>Cette page n’existe plus</h1>
+<p>Le lien est peut-être incomplet ou le produit a été retiré. Nos autres produits sont toujours disponibles, avec paiement à la livraison.</p>
+<a class="b" id="go" href="/abromarket1/boutique/">Voir la boutique</a>
+<button class="l" id="back" type="button">Revenir à la page précédente</button>
+</div>
+<script>
+// Garde la boutique d'origine (?b=, ?v=) si elle est dans l'adresse
+(function(){ var q = new URLSearchParams(location.search), r = new URLSearchParams();
+  ['b','v','c'].forEach(function(k){ if (q.get(k)) r.set(k, q.get(k)); });
+  if (r.toString()) document.getElementById('go').href = '/abromarket1/boutique/?' + r.toString();
+  var bk = document.getElementById('back'); if (history.length < 2) bk.style.display = 'none'; bk.onclick = function(){ history.back(); }; })();
+</script>
+</body></html>
