@@ -255,6 +255,7 @@ details p{color:var(--soft);margin-top:8px}
 .field>label,.legend{display:block;font-weight:700;margin-bottom:8px}
 input[type=tel],input[type=text],textarea,select.in{width:100%;border:2px solid var(--line);border-radius:12px;padding:14px;font:500 17px "Figtree",sans-serif;background:#fff;color:var(--ink)}
 textarea{min-height:84px;resize:vertical}
+.field label .facu{font-weight:500;color:var(--soft)}
 input:focus,textarea:focus,select:focus{border-color:var(--main);outline:none}
 .phone{display:flex;align-items:stretch;border:2px solid var(--line);border-radius:12px;background:#fff;overflow:hidden}
 .phone span{display:flex;align-items:center;padding:0 12px;background:var(--surface);font-weight:700;border-right:2px solid var(--line)}
@@ -734,11 +735,8 @@ input[type=tel],input[type=text],textarea,select.in,.country select{border-width
             <select class="in" id="ville"><option value="">Choisissez votre ville</option>${((D.villes || {})[country] || []).map(v => `<option>${esc(v)}</option>`).join('')}<option value="__autre">Autre ville…</option></select>
             <div class="field hidden" id="fAutre" style="margin:10px 0 0"><input type="text" id="villeAutre" placeholder="Écrivez le nom de votre ville"></div>
             <div class="error">Choisissez votre ville.</div></div>
-          <div class="field" id="fAdr"><label for="adr">Lieu exact de livraison</label>
-            <textarea id="adr" placeholder="Quartier, rue, repère connu (ex : à côté de la pharmacie…)"></textarea>
-            <div class="error">Précisez où le livreur doit venir.</div></div>
-          <div class="field" id="fOk"><label class="confirm"><input type="checkbox" id="ok"><span>Je veux vraiment ce produit et je serai disponible à la livraison</span></label>
-            <div class="error">Cochez cette case pour confirmer votre commande.</div></div>
+          <div class="field" id="fAdr"><label for="adr">Quartier ou repère <span class="facu">(facultatif)</span></label>
+            <input type="text" id="adr" autocomplete="street-address" placeholder="Ex : à côté de la pharmacie"></div>
           <div class="ticket" aria-live="polite">
             <div class="row"><span>Offre</span><span id="tOff"></span></div>
             <div class="row"><span>Livraison</span><span id="tDay">${esc(LIVRAISON)}</span></div>
@@ -860,7 +858,7 @@ input[type=tel],input[type=text],textarea,select.in,.country select{border-width
     // Progression du formulaire : quand tout est rempli, le rappel passe au vert « Tout est prêt »
     const etapes = () => {
       const vl = $('ville') ? $('ville').value : '', autre = $('villeAutre') ? $('villeAutre').value.trim() : '';
-      return [$('nom').value.trim().length >= 2, telValide($('tel').value, pays), !!vl && (vl !== '__autre' || autre.length >= 2), $('adr').value.trim().length >= 3, !!($('ok') && $('ok').checked)];
+      return [$('nom').value.trim().length >= 2, telValide($('tel').value, pays), !!vl && (vl !== '__autre' || autre.length >= 2), ];
     };
     let vIdle = null, vDernier = 0;
     const rappel = () => {
@@ -931,7 +929,7 @@ input[type=tel],input[type=text],textarea,select.in,.country select{border-width
       const ville = villeVal();
       const telOk = telValide(tel, pays);
       if (!telOk){ const er = document.querySelector('#fTel .error'); if (er) er.textContent = 'Ce numéro n’est pas valide. Vérifiez-le' + (EX_TEL[pays.code] ? ' (ex : ' + EX_TEL[pays.code] + ')' : '') + ' pour qu’on puisse vous appeler.'; }
-      const b = [bad('fVille', ville.length < 2), bad('fAdr', adr.length < 3), bad('fNom', nom.length < 2), bad('fTel', !telOk), bad('fOk', !$('ok').checked)];
+      const b = [bad('fVille', ville.length < 2), bad('fNom', nom.length < 2), bad('fTel', !telOk)];
       if (b.some(Boolean)){ document.querySelector('.field.bad').scrollIntoView({behavior:'smooth', block:'center'}); return; }
       const s = state();
       const btn = $('sendBtn'), err = $('sendErr');
@@ -945,7 +943,7 @@ input[type=tel],input[type=text],textarea,select.in,.country select{border-width
       const modeMerci = !/whatsapp/i.test(R('Après la commande (MERCI = page de remerciement / WHATSAPP = le client envoie sur WhatsApp)'));
       const garde = saveForm();
       if (modeMerci) merci({numero: '', produit: P.nom, offre: s.o.label, livraison: LIVRAISON,
-        adresse: ville + ' – ' + adr, total: s.total, devise: dev, tel: '+' + pays.indicatif + ' ' + tel, nom}, P);
+        adresse: ville + (adr ? ' – ' + adr : ''), total: s.total, devise: dev, tel: '+' + pays.indicatif + ' ' + tel, nom}, P);
       const retour = () => { if (modeMerci){ render(); restoreForm(garde); const f = $('form'); if (f) f.__markOrdered && f.__unmarkOrdered && f.__unmarkOrdered(); $('commande').scrollIntoView({block:'start'}); } };
       let r = null;
       // Identifiant unique de cet envoi : si la connexion coupe et qu'on renvoie, le serveur rend la même commande (jamais deux)
@@ -966,7 +964,7 @@ input[type=tel],input[type=text],textarea,select.in,.country select{border-width
       if (!r || !r.ok){
         form.__unmarkOrdered(); retour();
         const err = $('sendErr');
-        const msg = `Nouvelle commande (non numérotée)\nPays : ${pays.nom}\nProduit : ${P.nom}\nOffre : ${s.o.label}\nNom : ${nom}\nNuméro : +${pays.indicatif} ${tel}\nAdresse de la livraison : ${ville} – ${adr}\nLe prix à payer : ${money(s.total, dev)}\nLivraison : ${LIVRAISON}`;
+        const msg = `Nouvelle commande (non numérotée)\nPays : ${pays.nom}\nProduit : ${P.nom}\nOffre : ${s.o.label}\nNom : ${nom}\nNuméro : +${pays.indicatif} ${tel}\nAdresse de la livraison : ${ville}${adr ? ' – ' + adr : ''}\nLe prix à payer : ${money(s.total, dev)}\nLivraison : ${LIVRAISON}`;
         const wa = (pays.whatsapp || R('WhatsApp des commandes')).replace(/\D/g,'');
         err.innerHTML = `${esc(r && r.erreur ? r.erreur : 'Connexion difficile.')} Réessayez.<a href="https://wa.me/${wa}?text=${encodeURIComponent(msg)}">Ou commandez directement sur WhatsApp →</a>`;
         err.style.display = 'block';
