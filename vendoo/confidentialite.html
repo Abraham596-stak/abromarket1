@@ -1,71 +1,21 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Vendoo – Règles de confidentialité</title>
-<link rel="icon" href="favicon-32.png" sizes="32x32">
-<style>
-body{margin:0;font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#14112B;background:#F6F4FF}
-main{max-width:720px;margin:0 auto;padding:28px 16px 48px}
-h1{font-size:28px;letter-spacing:-.02em;margin:0 0 4px}
-h2{font-size:19px;margin:28px 0 6px}
-p,li{color:#3b3756}
-a{color:#2350D8}
-.top{display:flex;align-items:center;gap:10px;font-weight:800;font-size:20px;text-decoration:none;color:#14112B;margin-bottom:22px}
-.top img{width:32px;height:32px}
-small{color:#5E5A78}
-</style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Vendoo</title>
+<link rel="canonical" href="https://livraison-gratuite.github.io/vendoo/confidentialite.html">
+<script>
+/* Nouvelle adresse : on y va, avec tes réglages de ce téléphone (connexion, boutique choisie…) */
+(function(){
+  var NEW = 'https://livraison-gratuite.github.io/vendoo/confidentialite.html', d = {}, h = '';
+  try { for (var i = 0; i < localStorage.length; i++){ var k = localStorage.key(i), v = localStorage.getItem(k); if (v !== null && v.length < 20000) d[k] = v; } } catch(e){}
+  try { if (Object.keys(d).length) h = '#migr=' + encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(d))))) + (location.hash ? '&ancre=' + encodeURIComponent(location.hash.slice(1)) : ''); } catch(e){}
+  location.replace(NEW + location.search + (h || location.hash));
+})();
+</script>
+<noscript><meta http-equiv="refresh" content="0;url=https://livraison-gratuite.github.io/vendoo/confidentialite.html"></noscript>
 </head>
-<body>
-<main>
-<a class="top" href="./"><img src="icon-192.png" alt="">Vendoo</a>
-<h1>Règles de confidentialité</h1>
-<small>Dernière mise à jour : 31 octobre 2026</small>
-
-<h2>Qui sommes-nous</h2>
-<p>Vendoo est un service qui permet de créer des boutiques en ligne avec paiement à la livraison et une application de gestion des commandes. Contact : WhatsApp <a href="https://wa.me/2290160422139">+229 01 60 42 21 39</a>.</p>
-
-<h2>Les informations que nous recueillons</h2>
-<ul>
-<li><b>Ton compte</b> : nom, adresse e-mail, numéro WhatsApp et mot de passe (enregistré sous forme chiffrée, jamais en clair).</li>
-<li><b>Connexion avec Google</b> : si tu choisis « Continuer avec Google », nous recevons seulement ton nom et ton adresse e-mail. Nous n’accédons à aucune autre donnée de ton compte Google.</li>
-<li><b>Paiements</b> : formule choisie, montant, numéro Mobile Money, identifiant de la transaction s’il est donné, et la capture d’écran du paiement que tu envoies (gardée uniquement pour vérifier le paiement).</li>
-<li><b>Essai gratuit</b> : pour qu’il ne soit utilisé qu’une fois par personne, nous gardons un identifiant technique de l’appareil, ton numéro WhatsApp et le numéro Mobile Money de la vérification.</li>
-<li><b>Ta boutique</b> : tes produits, prix, commandes et réglages sont enregistrés dans <b>ton propre Google Sheets</b>, que tu partages avec Vendoo pour que le service fonctionne.</li>
-</ul>
-
-<h2>Pourquoi nous les utilisons</h2>
-<ul>
-<li>Créer et sécuriser ton compte, et te connecter.</li>
-<li>Gérer ton abonnement : paiements, rappels avant la fin, activation et coupure.</li>
-<li>Faire fonctionner tes boutiques : commandes, notifications, relances, statistiques.</li>
-<li>Te contacter au sujet de ton compte (e-mail ou WhatsApp).</li>
-</ul>
-<p>Nous ne vendons jamais tes données et nous ne les utilisons pas pour de la publicité.</p>
-
-<h2>Envoi des e-mails depuis ton Gmail</h2>
-<p>Pour que les e-mails de ta boutique partent de ton propre compte, tu autorises une fois le script « Vendoo – Envoi des e-mails » avec ton compte Google. Il demande uniquement :</p>
-<ul>
-<li><b>Envoyer des e-mails en ton nom</b> : il envoie seulement les e-mails préparés par ta boutique Vendoo (nouvelles commandes, alertes et relances destinées à ton agence). Il ne lit pas, ne supprime pas et ne modifie pas tes e-mails ; il n’a pas accès à ta boîte de réception.</li>
-<li><b>Se connecter à un service externe</b> : pour récupérer auprès de Vendoo les e-mails à envoyer et confirmer leur envoi.</li>
-<li><b>S’exécuter en ton absence</b> : un passage automatique toutes les 5 minutes pour envoyer les e-mails en attente.</li>
-<li><b>Ton adresse e-mail</b> : pour indiquer dans ton application quel compte Gmail envoie tes e-mails.</li>
-</ul>
-<p>Le contenu de ces e-mails n’est utilisé que pour les envoyer à leurs destinataires. Il n’est ni vendu, ni utilisé pour de la publicité, ni transmis à des tiers, et personne chez Vendoo ne le lit, sauf si tu le demandes pour résoudre un problème. L’utilisation et le transfert des informations reçues des API Google respectent les <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noopener">règles relatives aux données utilisateur des services API Google</a>, y compris les exigences d’utilisation limitée (Limited Use).</p>
-<p>Tu peux retirer cette autorisation à tout moment sur <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener">myaccount.google.com/permissions</a> : plus aucun e-mail ne part alors de ton Gmail.</p>
-
-<h2>Les données de tes clients</h2>
-<p>Les commandes de tes clients (nom, téléphone, adresse) sont dans ton Google Sheets et servent uniquement à traiter leurs commandes. Sur le site de ta boutique, les notifications de ventes n’affichent que le prénom et l’initiale du nom, jamais le téléphone ni l’adresse. Tu peux les désactiver dans tes réglages.</p>
-
-<h2>Services utilisés</h2>
-<p>Google (Google Sheets, Apps Script, Gmail, connexion Google, assistant Gemini), GitHub Pages (hébergement du site), OneSignal (notifications de l’application) et CallMeBot (messages WhatsApp automatiques, si tu l’actives).</p>
-
-<h2>Combien de temps nous les gardons</h2>
-<p>Tant que ton compte existe. Les données de ta boutique restent dans ton Google Sheets : tu peux les supprimer à tout moment ou arrêter de partager le fichier avec Vendoo.</p>
-
-<h2>Tes droits</h2>
-<p>Tu peux demander à voir, corriger ou supprimer tes données en écrivant sur WhatsApp au <a href="https://wa.me/2290160422139">+229 01 60 42 21 39</a>.</p>
-</main>
-</body>
+<body style="font-family:system-ui,sans-serif;text-align:center;padding:48px 16px;color:#5A6178;background:#fff">Ouverture…<br><a href="https://livraison-gratuite.github.io/vendoo/confidentialite.html" style="color:#1736A6">Continuer</a></body>
 </html>
