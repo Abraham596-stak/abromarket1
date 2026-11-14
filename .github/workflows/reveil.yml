@@ -12,7 +12,12 @@ jobs:
       - run: |
           API="https://script.google.com/macros/s/AKfycbwgdtcXlXB9niD3hactnz4SLIrpY_q74iQQZwkr1vrUBjczfCCVWwamG69uqnUQZsba/exec"
           # Réveille le serveur et prépare les données de chaque boutique (le site les reçoit ensuite tout de suite)
+          OK=0
           for b in "" "abromarket-benin" "abromarket-togo"; do
             D=$(date +%s%N); curl -sL --max-time 60 "$API?${b:+b=$b&}t=$(date +%s)" -o r.txt || true
             echo "${b:-principale} : $(( ($(date +%s%N) - D) / 1000000 )) ms, $(wc -c < r.txt) octets"
+            grep -q '"produits"' r.txt && OK=$((OK+1))
           done
+          # Alerte : si le serveur ne rend plus les produits (2 essais), ce contrôle échoue et GitHub t'envoie un e-mail
+          if [ "$OK" -eq 0 ]; then sleep 20; curl -sL --max-time 60 "$API?t=$(date +%s)" -o r.txt || true
+            grep -q '"produits"' r.txt || { echo "::error::Le serveur de la boutique ne répond plus : $(head -c 200 r.txt)"; exit 1; }; fi

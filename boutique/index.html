@@ -31,6 +31,26 @@ var API = "https://script.google.com/macros/s/AKfycbwgdtcXlXB9niD3hactnz4SLIrpY_
 // Boutique d'un abonné Vendoo : ?v=<id> (même serveur, ses données à lui)
 var VID = (new URLSearchParams(location.search).get('v') || '').toLowerCase().replace(/[^a-f0-9]/g, '').slice(0, 16);
 if (VID) document.querySelectorAll('link[rel=icon]').forEach(l => l.remove());
+// Journal des erreurs : un bug sur le téléphone d'un client est noté (3 au plus par visite), pour être corrigé vite
+(function(){
+  var n = 0, vus = {};
+  function noter(msg, src, l){
+    try {
+      msg = String(msg || '').slice(0, 300);
+      if (!msg || n >= 3 || vus[msg] || /^Script error\.?$/i.test(msg) || /extension|ResizeObserver loop|Failed to fetch|Load failed|NetworkError|AbortError|aborted|fbq|ttq|tiktok|facebook|chrome-extension|moz-extension|safari-extension/i.test(msg + ' ' + (src || ''))) return;
+      if (src && src.indexOf(location.host) < 0) return;   // erreurs d'un autre site (pixels, extensions) : ignorées
+      vus[msg] = 1; n++;
+      var b = (new URLSearchParams(location.search).get('b') || '').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 40), sid = '';
+      try { sid = sessionStorage.getItem('sid') || ''; } catch(e){}
+      var o = {type: 'erreur', msg: msg, src: String(src || '').slice(0, 200), l: l || 0, page: location.href.split('#')[0].slice(0, 200), ua: navigator.userAgent.slice(0, 150), sid: sid};
+      if (b) o.b = b; if (VID) o.v = VID;
+      var corps = JSON.stringify(o);
+      if (navigator.sendBeacon) navigator.sendBeacon(API, new Blob([corps], {type: 'text/plain'})); else fetch(API, {method: 'POST', body: corps, keepalive: true});
+    } catch(e){}
+  }
+  window.addEventListener('error', function(e){ if (e && e.message) noter(e.message, e.filename, e.lineno); });
+  window.addEventListener('unhandledrejection', function(e){ var r = e && e.reason; noter('Promesse : ' + (r && r.message || r), r && r.stack && (String(r.stack).match(/https?:\/\/[^\s)]+/) || [''])[0]); });
+})();
 </script>
 <style>
 :root{--main:#1736A6;--sun:#FFC93C;--ink:#141A2E;--soft:#5A6178;--line:#E3E6EF;--bg:#FFFFFF;--surface:#F3F5FB;--ok:#128C4A;--err:#C62828}
@@ -928,11 +948,17 @@ input[type=tel],input[type=text],textarea,select.in,.country select{border-width
         adresse: ville + ' – ' + adr, total: s.total, devise: dev, tel: '+' + pays.indicatif + ' ' + tel, nom}, P);
       const retour = () => { if (modeMerci){ render(); restoreForm(garde); const f = $('form'); if (f) f.__markOrdered && f.__unmarkOrdered && f.__unmarkOrdered(); $('commande').scrollIntoView({block:'start'}); } };
       let r = null;
-      for (let tries = 0; tries < 2 && !(r && r.ok); tries++){
+      // Identifiant unique de cet envoi : si la connexion coupe et qu'on renvoie, le serveur rend la même commande (jamais deux)
+      payload.rid = Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+      for (let tries = 0; tries < 3 && !(r && (r.ok || r.doublon || r.bloque)); tries++){
+        if (tries) await new Promise(ok => setTimeout(ok, 1500 * tries));
+        const ctl = window.AbortController ? new AbortController() : null, minuteur = ctl ? setTimeout(() => ctl.abort(), 35000) : 0;
         try {
-          const res = await fetch(API, {method:'POST', body: avecB(JSON.stringify(payload))});
+          const res = await fetch(API, {method:'POST', body: avecB(JSON.stringify(payload)), signal: ctl ? ctl.signal : undefined});
           r = await res.json();
         } catch(x){ r = null; }
+        clearTimeout(minuteur);
+        if (r && !r.ok && r.erreur && !r.doublon && !r.bloque && !/connexion|réseau|timeout|service/i.test(r.erreur)) break;   // vraie erreur (ex. numéro invalide) : inutile de renvoyer
       }
       sending = false; btn.disabled = false; btn.textContent = 'Je commande maintenant';
       if (r && r.doublon){ memo(P.id, r.numero); retour(); dejaCommande(r.numero, r.whatsapp); return; }

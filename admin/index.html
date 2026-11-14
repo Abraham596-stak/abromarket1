@@ -30,6 +30,21 @@ const VID = (() => { let v = ''; try { const u = new URLSearchParams(location.se
   else if (u && /^[a-f0-9]{10,16}$/.test(u)) localStorage.setItem('vendoo_v', u);
   v = localStorage.getItem('vendoo_v') || ''; } catch(e){} return v; })();
 const VENDOO = !!VID;
+// Journal des erreurs de l'application (3 au plus par ouverture) : noté sur le serveur pour être corrigé vite
+(function(){
+  let n = 0; const vus = {};
+  const noter = (msg, src, l) => { try {
+    msg = String(msg || '').slice(0, 300);
+    if (!msg || n >= 3 || vus[msg] || /^Script error\.?$/i.test(msg) || /extension|ResizeObserver loop|Failed to fetch|Load failed|NetworkError|AbortError|aborted|OneSignal/i.test(msg + ' ' + (src || ''))) return;
+    if (src && src.indexOf(location.host) < 0) return;
+    vus[msg] = 1; n++;
+    const o = {type: 'erreur', msg: 'Application : ' + msg, src: String(src || '').slice(0, 200), l: l || 0, page: location.pathname, ua: navigator.userAgent.slice(0, 150)};
+    if (VID) o.v = VID;
+    navigator.sendBeacon ? navigator.sendBeacon(API, new Blob([JSON.stringify(o)], {type: 'text/plain'})) : fetch(API, {method: 'POST', body: JSON.stringify(o), keepalive: true});
+  } catch(e){} };
+  window.addEventListener('error', e => { if (e && e.message) noter(e.message, e.filename, e.lineno); });
+  window.addEventListener('unhandledrejection', e => { const r = e && e.reason; noter('Promesse : ' + (r && r.message || r), r && r.stack && (String(r.stack).match(/https?:\/\/[^\s)]+/) || [''])[0]); });
+})();
 const SITE = "https://abraham596-stak.github.io/abromarket1/boutique/";
 if (VENDOO){
   document.title = 'Vendoo';
@@ -4893,7 +4908,7 @@ function nettoyerHtml(h){
     chevron: '<path d="M9 6l6 6-6 6"/>', retour: '<path d="M15 18l-6-6 6-6"/>', loupe: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>'
   };
   const ic = n => IC(ICONES[n] || '');
-  const VERSION_APP = '112';
+  const VERSION_APP = '113';
   function settings(){
     const proprio = D.vendoo && D.vendoo.statut === 'proprietaire', abonne = VENDOO && D.vendoo && D.vendoo.statut !== 'proprietaire';
     const m = (id, icone, titre) => `<button class="mrow" data-mn="${id}">${ic(icone)}<span>${titre}</span></button>`;
