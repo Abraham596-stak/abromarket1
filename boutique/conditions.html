@@ -1,56 +1,18 @@
-<!doctype html>
-<html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Conditions de vente</title><meta name="description" content="Commande, paiement à la livraison, livraison, annulation : nos conditions de vente.">
-<link rel="icon" href="favicon.ico?v=6" sizes="any"><meta name="theme-color" content="#1736A6">
-<style>
-:root{--main:#1736A6;--ink:#141A2E;--soft:#5A6178;--line:#E3E6EF;--surface:#F3F5FB}
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:#fff;line-height:1.6;font-size:16px}
-header{border-bottom:1px solid var(--line);padding:16px 20px;display:flex;align-items:center;gap:12px}
-header a{color:var(--main);font-weight:700;text-decoration:none;font-size:15px}
-main{max-width:760px;margin:0 auto;padding:28px 20px 60px}
-h1{font-size:28px;line-height:1.2;letter-spacing:-.5px;margin-bottom:6px}
-.maj{color:var(--soft);font-size:14px;margin-bottom:26px}
-h2{font-size:19px;margin:28px 0 8px}
-p,li{color:#2B3145;font-size:16px}
-ul{padding-left:20px;margin:6px 0} li{margin:4px 0}
-.encart{background:var(--surface);border-radius:14px;padding:16px 18px;margin:18px 0}
-footer{text-align:center;color:var(--soft);font-size:13px;padding:24px 18px 30px;border-top:1px solid var(--line)}
-footer a{color:var(--main);font-weight:600;margin:0 8px}
-</style></head>
-<body>
-<header><a href="./" id="retour">← Retour à la boutique</a></header>
-<main>
-<h1>Conditions de vente</h1><p class="maj">Dernière mise à jour : 13 novembre 2026</p>
-<p>Ces conditions s’appliquent à toute commande passée sur le site de <b class="nom">la boutique</b>.</p>
-<h2>1. Commande</h2>
-<p>Vous choisissez un produit et une offre, puis vous remplissez le formulaire avec votre nom, votre numéro et votre adresse. La commande est enregistrée dès que vous appuyez sur « Je commande ». Notre équipe vous appelle ou vous écrit pour la confirmer avant de l’envoyer.</p>
-<h2>2. Prix</h2>
-<p>Le prix à payer est celui affiché sur la page au moment de votre commande, livraison comprise sauf mention contraire.</p>
-<h2>3. Paiement à la livraison</h2>
-<p>Vous payez uniquement quand le livreur vous remet le produit. Aucun paiement n’est demandé sur le site.</p>
-<h2>4. Livraison</h2>
-<p>Le moment de livraison se fixe avec vous lors de l’appel de confirmation. Merci de garder votre téléphone joignable : sans réponse, la commande ne peut pas partir.</p>
-<h2>5. À la réception</h2>
-<p>Vérifiez le produit devant le livreur avant de payer. En cas de problème (produit abîmé, mauvais produit), signalez-le tout de suite au livreur ou à notre équipe sur WhatsApp : nous cherchons une solution avec vous.</p>
-<h2>6. Annulation</h2>
-<p>Vous pouvez annuler votre commande gratuitement avant son départ en livraison, par simple appel ou message.</p>
-<h2>7. Utilisation des produits</h2>
-<p>Suivez les conseils d’utilisation indiqués sur la page et sur l’emballage. Pour les compléments alimentaires : ils ne remplacent pas un traitement ; en cas de grossesse, de maladie ou de traitement en cours, demandez l’avis d’un professionnel de santé.</p>
-<h2>8. Vos informations</h2>
-<p>Voir notre <a href="confidentialite.html" class="lk">politique de confidentialité et cookies</a>.</p>
-<h2>9. Contact</h2>
-<p>Pour toute question : sur WhatsApp, au numéro indiqué après votre commande.</p>
-</main>
-<footer><a href="conditions.html" class="lk">Conditions de vente</a><a href="confidentialite.html" class="lk">Confidentialité et cookies</a><br><br>© <span id="an"></span> <span class="nom">la boutique</span></footer>
-<script>
-(function(){
-  var q = new URLSearchParams(location.search), n = (q.get('n') || '').slice(0, 80);
-  document.getElementById('an').textContent = new Date().getFullYear();
-  if (n) document.querySelectorAll('.nom').forEach(function(e){ e.textContent = n; });
-  var r = new URLSearchParams(location.search); r.delete('n'); var rs = r.toString();
-  document.getElementById('retour').href = './' + (rs ? '?' + rs : '');
-  document.querySelectorAll('.lk').forEach(function(a){ a.href = a.getAttribute('href').split('?')[0] + location.search; });
-})();
-</script>
-</body></html>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Commandez maintenant · Paiement à la livraison</title>
+<meta property="og:type" content="website">
+<meta property="og:title" content="Commandez maintenant · Paiement à la livraison">
+<meta property="og:description" content="Livraison gratuite. Vous payez seulement quand le livreur vous remet le produit.">
+<meta property="og:image" content="https://livraison-gratuite.github.io/boutique/partage.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://livraison-gratuite.github.io/boutique/conditions.html">
+<script>location.replace('https://livraison-gratuite.github.io/boutique/conditions.html' + location.search + location.hash);</script>
+<noscript><meta http-equiv="refresh" content="0;url=https://livraison-gratuite.github.io/boutique/conditions.html"></noscript>
+</head>
+<body style="font-family:system-ui,sans-serif;text-align:center;padding:48px 16px;color:#5A6178;background:#fff">Ouverture de la boutique…<br><a href="https://livraison-gratuite.github.io/boutique/conditions.html" style="color:#1736A6">Continuer</a></body>
+</html>

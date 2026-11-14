@@ -1,61 +1,18 @@
-<!doctype html>
-<html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Confidentialité et cookies</title><meta name="description" content="Comment vos informations sont utilisées quand vous commandez : paiement à la livraison, aucune donnée vendue.">
-<link rel="icon" href="favicon.ico?v=6" sizes="any"><meta name="theme-color" content="#1736A6">
-<style>
-:root{--main:#1736A6;--ink:#141A2E;--soft:#5A6178;--line:#E3E6EF;--surface:#F3F5FB}
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:#fff;line-height:1.6;font-size:16px}
-header{border-bottom:1px solid var(--line);padding:16px 20px;display:flex;align-items:center;gap:12px}
-header a{color:var(--main);font-weight:700;text-decoration:none;font-size:15px}
-main{max-width:760px;margin:0 auto;padding:28px 20px 60px}
-h1{font-size:28px;line-height:1.2;letter-spacing:-.5px;margin-bottom:6px}
-.maj{color:var(--soft);font-size:14px;margin-bottom:26px}
-h2{font-size:19px;margin:28px 0 8px}
-p,li{color:#2B3145;font-size:16px}
-ul{padding-left:20px;margin:6px 0} li{margin:4px 0}
-.encart{background:var(--surface);border-radius:14px;padding:16px 18px;margin:18px 0}
-footer{text-align:center;color:var(--soft);font-size:13px;padding:24px 18px 30px;border-top:1px solid var(--line)}
-footer a{color:var(--main);font-weight:600;margin:0 8px}
-</style></head>
-<body>
-<header><a href="./" id="retour">← Retour à la boutique</a></header>
-<main>
-<h1>Confidentialité et cookies</h1><p class="maj">Dernière mise à jour : 13 novembre 2026</p>
-<p>Cette page explique quelles informations <b class="nom">la boutique</b> recueille quand vous passez une commande, pourquoi, et ce que vous pouvez demander.</p>
-<h2>Les informations que nous recueillons</h2>
-<ul><li>Votre nom, votre numéro de téléphone et votre adresse de livraison, que vous écrivez dans le formulaire de commande.</li>
-<li>Le produit, l’offre et le moment de livraison que vous choisissez.</li>
-<li>La publicité ou le lien qui vous a amené sur la page (par exemple une publicité Facebook ou TikTok).</li></ul>
-<p>Nous ne demandons jamais de paiement en ligne ni de numéro de carte : vous payez uniquement à la livraison.</p>
-<h2>Pourquoi nous les utilisons</h2>
-<ul><li>Pour confirmer votre commande par téléphone ou par WhatsApp et vous livrer.</li>
-<li>Pour vous recontacter si vous avez commencé une commande sans la terminer.</li>
-<li>Pour savoir quelles publicités fonctionnent et en montrer moins à ceux qu’elles n’intéressent pas.</li></ul>
-<h2>Avec qui elles sont partagées</h2>
-<p>Vos coordonnées sont transmises uniquement à l’agence chargée de votre livraison. Nous ne vendons jamais vos informations.</p>
-<p>Des informations de mesure (par exemple le fait qu’une commande a été passée) sont envoyées à Meta (Facebook, Instagram) et TikTok sous une forme chiffrée, pour mesurer nos publicités.</p>
-<h2 id="cookies">Cookies et mesure d’audience</h2>
-<p>Le site utilise :</p>
-<ul><li>des cookies et une mémoire du navigateur pour garder votre panier, votre pays et la publicité d’origine pendant 7 jours ;</li>
-<li>le pixel Meta et le pixel TikTok, qui déposent leurs propres cookies pour mesurer les publicités ;</li>
-<li>un comptage anonyme des visites, sans cookie publicitaire.</li></ul>
-<p>Vous pouvez à tout moment effacer les cookies dans les réglages de votre navigateur, ou utiliser la navigation privée.</p>
-<h2>Combien de temps nous les gardons</h2>
-<p>Les commandes sont conservées le temps nécessaire au suivi de la livraison et à la comptabilité. Une commande commencée sans être terminée est gardée au plus quelques semaines.</p>
-<h2>Vos droits</h2>
-<p>Vous pouvez demander à voir, corriger ou supprimer les informations qui vous concernent. Écrivez-nous sur WhatsApp au numéro indiqué après votre commande, ou répondez au message de confirmation que vous avez reçu.</p>
-<div class="encart">Vos informations servent uniquement à traiter votre commande et à améliorer nos publicités. Elles ne sont jamais vendues.</div>
-</main>
-<footer><a href="conditions.html" class="lk">Conditions de vente</a><a href="confidentialite.html" class="lk">Confidentialité et cookies</a><br><br>© <span id="an"></span> <span class="nom">la boutique</span></footer>
-<script>
-(function(){
-  var q = new URLSearchParams(location.search), n = (q.get('n') || '').slice(0, 80);
-  document.getElementById('an').textContent = new Date().getFullYear();
-  if (n) document.querySelectorAll('.nom').forEach(function(e){ e.textContent = n; });
-  var r = new URLSearchParams(location.search); r.delete('n'); var rs = r.toString();
-  document.getElementById('retour').href = './' + (rs ? '?' + rs : '');
-  document.querySelectorAll('.lk').forEach(function(a){ a.href = a.getAttribute('href').split('?')[0] + location.search; });
-})();
-</script>
-</body></html>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Commandez maintenant · Paiement à la livraison</title>
+<meta property="og:type" content="website">
+<meta property="og:title" content="Commandez maintenant · Paiement à la livraison">
+<meta property="og:description" content="Livraison gratuite. Vous payez seulement quand le livreur vous remet le produit.">
+<meta property="og:image" content="https://livraison-gratuite.github.io/boutique/partage.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://livraison-gratuite.github.io/boutique/confidentialite.html">
+<script>location.replace('https://livraison-gratuite.github.io/boutique/confidentialite.html' + location.search + location.hash);</script>
+<noscript><meta http-equiv="refresh" content="0;url=https://livraison-gratuite.github.io/boutique/confidentialite.html"></noscript>
+</head>
+<body style="font-family:system-ui,sans-serif;text-align:center;padding:48px 16px;color:#5A6178;background:#fff">Ouverture de la boutique…<br><a href="https://livraison-gratuite.github.io/boutique/confidentialite.html" style="color:#1736A6">Continuer</a></body>
+</html>
