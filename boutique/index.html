@@ -98,6 +98,8 @@ header{display:flex;align-items:center;justify-content:center;gap:10px;padding:1
 .slides::-webkit-scrollbar{display:none}
 .slides{align-items:center;background:#fff}
 .slides img{flex:0 0 100%;width:100%;height:auto;max-height:82vh;object-fit:contain;scroll-snap-align:center;background:#fff}
+/* Toutes les photos dans le même cadre carré : plus de bandes blanches au-dessus et au-dessous */
+.slides img{aspect-ratio:1/1;height:auto}
 .dots{display:flex;gap:6px;justify-content:center;padding:10px 0 0}
 .dots span{width:8px;height:8px;border-radius:50%;background:var(--line);transition:background .2s}
 .dots span.on{background:var(--main)}
@@ -174,7 +176,7 @@ body.has-sticky:has(.sticky.brou){padding-bottom:116px}
 .nbt{background:var(--main);color:#fff;font:800 18px "Bricolage Grotesque",sans-serif;border-radius:8px;padding:5px 11px;letter-spacing:.04em}
 .nbh h2{font-size:22px;font-weight:800;margin:0;color:var(--ink)}
 .nbi{display:flex;gap:12px;align-items:flex-start;padding:13px 0;border-top:1px solid var(--line)}
-.nbe{flex:0 0 40px;height:40px;border-radius:10px;background:var(--surface);display:grid;place-items:center;font-size:19px}
+.nbe{flex:0 0 40px;height:40px;border-radius:10px;background:#EEF2FD;color:var(--main);display:grid;place-items:center;font-size:19px}.nbe svg{width:21px;height:21px}
 .nbi b{font-size:16.5px;font-weight:800;line-height:1.3;display:block;color:var(--ink)}
 .nbi p{color:var(--soft);font-size:15px;line-height:1.5;margin-top:4px}
 .nbi p b{display:inline;font-size:inherit}
@@ -242,8 +244,32 @@ details p{color:var(--soft);margin-top:8px}
 
 /* Garanties */
 .trust{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.trust div{background:var(--surface);border-radius:14px;padding:14px;text-align:center}
+.trust>div{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 14px;text-align:center}
 .trust .e{font-size:30px;line-height:1}
+.trust .e.ic{display:inline-flex;width:46px;height:46px;border-radius:50%;background:#EEF2FD;color:var(--main);align-items:center;justify-content:center}
+.ic svg,.assur svg,.secu svg,.nbe svg,.fbadges svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.trust .e.ic svg{width:24px;height:24px}
+
+/* Engagements (sous le prix et sur l'accueil) : livraison gratuite, paiement à la livraison, satisfait ou remboursé */
+.assur{list-style:none;display:grid;grid-template-columns:repeat(3,1fr);margin:14px 18px 0;border:1px solid var(--line);border-radius:16px;background:#fff;overflow:hidden}
+.assur li{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;padding:13px 6px 12px;min-width:0}
+.assur li+li{border-left:1px solid var(--line)}
+.assur svg{width:26px;height:26px;color:var(--ok)}
+.assur b{font-size:13px;line-height:1.2;font-weight:800;color:var(--ink)}
+.assur small{display:block;font-size:11.5px;line-height:1.25;color:var(--soft);margin-top:2px}
+.home .assur{margin:16px 16px 4px}
+
+/* Paiement sécurisé : aucun paiement en ligne, 3 étapes claires */
+.secu{margin-top:14px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.secu-h{display:flex;align-items:center;gap:9px;font-weight:800;font-size:15px;color:#0B6B37}
+.secu-h svg{width:20px;height:20px;flex:0 0 20px}
+.secu ol{list-style:none;margin:12px 0 0;display:grid;gap:9px}
+.secu li{display:flex;align-items:center;gap:11px;font-size:14.5px;line-height:1.3;color:var(--ink)}
+.secu li i{flex:0 0 24px;height:24px;border-radius:50%;background:#EEF2FD;color:var(--main);font:800 12.5px/24px "Figtree",sans-serif;text-align:center;font-style:normal}
+.ticket .row .gratuit{color:#0B6B37;font-weight:800}
+.fbadges{display:flex;justify-content:center;flex-wrap:wrap;gap:8px 18px;margin:0 0 14px;font-size:12.5px;font-weight:700;color:var(--ink)}
+.fbadges span{display:inline-flex;align-items:center;gap:6px}
+.fbadges svg{width:17px;height:17px;color:var(--ok)}
 .trust b{display:block;margin:8px 0 4px;font-size:15px;line-height:1.25}
 .trust small{color:var(--soft);font-size:12.5px;line-height:1.4;display:block}
 
@@ -277,11 +303,11 @@ input:focus,textarea:focus,select:focus{border-color:var(--main);outline:none}
 .field.bad .error{display:block}
 .field.bad input,.field.bad textarea,.field.bad .confirm,.field.bad .phone,.field.bad select{border-color:var(--err)}
 .etape{font-size:18px;margin:22px 0 10px;padding-top:16px;border-top:1px solid var(--line)}
-.ticket{background:#fff;border:2px dashed var(--main);border-radius:14px;padding:16px;margin:6px 0 16px}
+.ticket{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;margin:6px 0 16px;box-shadow:0 4px 18px rgba(18,48,143,.06)}
 .ticket .row{display:flex;justify-content:space-between;gap:12px;padding:4px 0}
 .ticket .row span:first-child{color:var(--soft)}
 .ticket .row span:last-child{text-align:right;font-weight:600}
-.ticket .total{border-top:2px dashed var(--line);margin-top:8px;padding-top:10px;align-items:center}
+.ticket .total{border-top:1px solid var(--line);margin-top:8px;padding-top:12px;align-items:center}
 .ticket .total span:last-child{font-family:"Bricolage Grotesque",sans-serif;font-size:24px;font-weight:800;color:var(--main)}
 .cta{display:block;width:100%;background:var(--main);color:#fff;border:0;border-radius:14px;padding:18px;font:700 19px "Figtree",sans-serif;text-align:center;text-decoration:none;cursor:pointer}
 .cta[disabled]{opacity:.7;cursor:wait}
@@ -353,7 +379,7 @@ footer .legal{display:flex;justify-content:center;flex-wrap:wrap;gap:4px 18px;ma
   .thumbs img{width:100%;height:100%;object-fit:contain;background:#fff}
   .intro{padding:0}
   .intro h1{font-size:36px}
-  .pricetag,.stock,.stk,.retour,.unavail{margin-left:0;margin-right:0}
+  .pricetag,.stock,.stk,.retour,.unavail,.prod .assur{margin-left:0;margin-right:0}
   #commande{border-radius:22px;margin-top:22px;padding:26px 24px}
   .pbelow{max-width:860px;margin:0 auto;padding:10px 32px 0}
   .pbelow section{padding:36px 0}
@@ -541,7 +567,7 @@ input[type=tel],input[type=text],textarea,select.in,.country select{border-width
   const R = k => (D && D.reglages && D.reglages[k]) || '';
   // Nom affiché : celui de la boutique du pays du client (pub multi-pays sur la boutique principale)
   let T_FORM = Date.now();   // anti-robot : un humain met plus de 3 secondes à remplir le formulaire
-  const LEGAL = () => { const q = PV + 'n=' + encodeURIComponent(NOM()); return `<nav class="legal"><a href="conditions.html?${q}">Conditions de vente</a><a href="confidentialite.html?${q}">Confidentialité et cookies</a></nav>`; };
+  const LEGAL = () => { const q = PV + 'n=' + encodeURIComponent(NOM()); return `<div class="fbadges"><span>${ico('camion')}Livraison gratuite</span><span>${ico('billet')}Paiement à la livraison</span><span>${ico('cadenas')}Aucun paiement en ligne</span></div><nav class="legal"><a href="conditions.html?${q}">Conditions de vente</a><a href="confidentialite.html?${q}">Confidentialité et cookies</a></nav>`; };
   const NOM = () => { const p = D && country && (D.pays || []).find(x => x.code === country); return (p && p.nomBoutique) || R('Nom de la boutique') || 'Boutique'; };
   // Le jour et l'heure de livraison sont fixés avec le client au téléphone
   const LIVRAISON = 'Fixée avec vous au téléphone';
@@ -598,11 +624,36 @@ input[type=tel],input[type=text],textarea,select.in,.country select{border-width
     return `<div class="topbar" role="marquee" aria-label="${esc(msgs.join(' – '))}"><div class="defile" aria-hidden="true">${tour + tour + tour + tour}</div></div>
       <header><a class="brand" href="${ACCUEIL}">${logo || !VID ? `<img src="${esc(logo ? img(logo) : 'logo.png')}" alt="">` : ''}<span>${esc(name)}</span></a></header>`;
   }
+  // Icônes au trait (plus sérieuses que les emojis)
+  const ICO = {
+    camion: '<path d="M1 4h14v12H1z"/><path d="M15 8h4.5L23 11.5V16h-8"/><circle cx="5.5" cy="18" r="2"/><circle cx="18.5" cy="18" r="2"/>',
+    billet: '<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/><path d="M6 12h.01M18 12h.01"/>',
+    bouclier: '<path d="M12 22s8-3.6 8-10V5.2L12 2 4 5.2V12c0 6.4 8 10 8 10z"/><path d="M8.8 12.2l2.2 2.2 4.4-4.6"/>',
+    rembourse: '<path d="M3 12a9 9 0 0 1 15.4-6.4L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15.4 6.4L3 16"/><path d="M3 21v-5h5"/>',
+    casque: '<path d="M4 15v-3a8 8 0 0 1 16 0v3"/><path d="M20 15v2a2 2 0 0 1-2 2h-2v-6h4zM4 15v2a2 2 0 0 0 2 2h2v-6H4z"/><path d="M16 19c0 1.5-1.5 2.5-4 2.5"/>',
+    cadenas: '<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+    calendrier: '<rect x="3" y="4.5" width="18" height="17" rx="2"/><path d="M16 2.5v4M8 2.5v4M3 10h18"/>',
+    bulle: '<path d="M21 11.5a8.4 8.4 0 0 1-12.3 7.4L3 20.5l1.6-5.2A8.4 8.4 0 1 1 21 11.5z"/>'
+  };
+  const ico = (n, cls) => `<svg viewBox="0 0 24 24" aria-hidden="true"${cls ? ` class="${cls}"` : ''}>${ICO[n] || ''}</svg>`;
+  // L'icône d'une garantie est choisie selon son titre (l'emoji du Sheet reste en secours)
+  const icoGarantie = t => /livr|exp[ée]di|colis/i.test(t) ? 'camion' : /paie|pay|cash|esp[eè]ce/i.test(t) ? 'billet' : /rembours|[ée]change|retour/i.test(t) ? 'rembourse'
+    : /service|client|assist|whats|appel|24/i.test(t) ? 'casque' : /garant|qualit|origin|authent|s[ée]cur/i.test(t) ? 'bouclier' : '';
+  // Les 3 engagements, visibles dès le haut de la page
+  function engagements(){
+    const rb = [1, 2, 3, 4].map(i => R(`Garantie ${i} – titre`)).find(t => /rembours/i.test(t || ''));
+    return `<ul class="assur" aria-label="Nos engagements">
+      <li>${ico('camion')}<span><b>Livraison gratuite</b><small>Livrée chez vous</small></span></li>
+      <li>${ico('billet')}<span><b>Paiement à la livraison</b><small>Rien à payer avant</small></span></li>
+      ${rb ? `<li>${ico('rembourse')}<span><b>${esc(rb)}</b><small>Vous êtes protégé</small></span></li>`
+        : `<li>${ico('cadenas')}<span><b>Zéro paiement en ligne</b><small>Aucune carte demandée</small></span></li>`}</ul>`;
+  }
   function trust(){
     let h = '';
     for (let i = 1; i <= 4; i++){
       const t = R(`Garantie ${i} – titre`); if (!t) continue;
-      h += `<div><div class="e">${esc(R(`Garantie ${i} – emoji`))}</div><b>${esc(t)}</b><small>${esc(R(`Garantie ${i} – texte`))}</small></div>`;
+      const n = icoGarantie(t);
+      h += `<div>${n ? `<div class="e ic">${ico(n)}</div>` : `<div class="e">${esc(R(`Garantie ${i} – emoji`))}</div>`}<b>${esc(t)}</b><small>${esc(R(`Garantie ${i} – texte`))}</small></div>`;
     }
     return (h ? `<section><h2>Nos garanties</h2><div class="trust">${h}</div></section>` : '') + nb();
   }
@@ -615,10 +666,10 @@ input[type=tel],input[type=text],textarea,select.in,.country select{border-width
     const waAff = wa ? '+' + wa.slice(0, 3) + ' ' + wa.slice(3).replace(/(\d{2})(?=\d)/g, '$1 ') : '';
     return `<section class="nbz" aria-label="Note importante"><div class="nbc">
       <div class="nbh"><span class="nbt">NB</span><h2>À lire avant de commander</h2></div>
-      <div class="nbi"><span class="nbe">📅</span><div><b>Nous livrons du lundi au samedi.</b><p>Mais vous pouvez commander <b>tous les jours</b>, même le dimanche.</p></div></div>
-      ${wa ? `<div class="nbi"><span class="nbe">💬</span><div><b>Vous avez une question&nbsp;?</b><p>Écrivez-nous sur WhatsApp au <b class="nbnum">${esc(waAff)}</b>. Laissez-nous un message, nous allons vous répondre.</p>
+      <div class="nbi"><span class="nbe">${ico('calendrier')}</span><div><b>Nous livrons du lundi au samedi.</b><p>Mais vous pouvez commander <b>tous les jours</b>, même le dimanche.</p></div></div>
+      ${wa ? `<div class="nbi"><span class="nbe">${ico('bulle')}</span><div><b>Vous avez une question&nbsp;?</b><p>Écrivez-nous sur WhatsApp au <b class="nbnum">${esc(waAff)}</b>. Laissez-nous un message, nous allons vous répondre.</p>
         <a class="nbwa" href="https://wa.me/${wa}?text=${encodeURIComponent('Bonjour, j\'ai une question sur un produit.')}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.3-.5.1-1 .1-1.7-.1-.4-.1-.9-.3-1.5-.6-2.7-1.2-4.4-3.9-4.6-4.1-.1-.2-1.1-1.4-1.1-2.7s.7-1.9.9-2.2c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.1.1.3 0 .5l-.3.5-.4.4c-.1.1-.3.3-.1.6.2.3.7 1.2 1.6 1.9 1.1.9 2 1.2 2.3 1.4.3.1.5.1.6-.1l.9-1c.2-.3.4-.2.6-.1l1.9.9c.3.1.5.2.5.3.1.1.1.6-.1 1.2Z"/></svg>Écrire sur WhatsApp</a></div></div>` : ''}
-      <div class="nbi"><span class="nbe">🚚</span><div><b>La livraison est gratuite pour tout le monde.</b>
+      <div class="nbi"><span class="nbe">${ico('camion')}</span><div><b>La livraison est gratuite pour tout le monde.</b>
         <div class="nbcas"><b>Vous êtes dans une grande ville&nbsp;?</b><p>Vous payez <b>seulement quand le livreur vous donne le colis</b>. Vous n'envoyez rien avant.</p></div>
         <div class="nbcas"><b>Vous êtes dans une autre ville du pays&nbsp;?</b><p>Nous vous envoyons le colis par expédition. <b>Avant l'envoi, vous devez payer les frais d'envoi et les frais de paiement.</b> Nous vous disons le montant au téléphone.</p></div>
         <div class="nbw"><b>⚠️ Si vous êtes dans une autre ville et que vous ne voulez pas payer ces frais avant l'envoi, merci de ne pas nous contacter. Il n'y a pas d'autre solution.</b><span>Merci pour votre compréhension 🙏</span></div>
@@ -637,7 +688,7 @@ input[type=tel],input[type=text],textarea,select.in,.country select{border-width
     document.title = NOM();
     const pays = D.pays.find(p => p.code === country) || {};
     app.innerHTML = `<div class="wrap">${header(avail)}
-      <div class="hero"><h1>Nos produits</h1><p>Livraison et paiement à la réception.</p></div>
+      <div class="hero"><h1>Nos produits</h1><p>Livraison gratuite. Vous payez seulement à la réception.</p></div>${engagements()}
       ${prods.length ? `<div class="grid">${prods.map(x => {
         const o = x.prix[country].offres[0];
         const off = o.ancien > o.prix ? Math.round((1 - o.prix/o.ancien)*100) : 0;
@@ -711,6 +762,7 @@ input[type=tel],input[type=text],textarea,select.in,.country select{border-width
       const off = o1.ancien > o1.prix ? Math.round((1 - o1.prix/o1.ancien)*100) : 0;
       priceBlock = `<div class="pricetag"><div><div class="now">${money(o1.prix, dev)}</div>${off?`<div class="old">${money(o1.ancien, dev)}</div>`:''}</div>${off?`<div class="off"><b>−${off} %</b><small>Aujourd’hui<br>seulement</small></div>`:''}</div>
         ${P.stock === 'non' ? '' : `<div class="stk" id="stk" aria-live="polite"><div class="sl"><span class="st">🔥 Forte demande</span><span class="sn"><span id="stkTxt">Plus que <b id="stkN">${STK.n}</b> en stock</span></span></div><div class="bar"><i id="stkBar" style="width:${STK.n / 3 * 100}%"></i></div><small id="stkSub">Stock très limité : ${esc(P.nom.length > 40 ? P.nom.slice(0, 38).trim() + '…' : P.nom)} part très vite.</small></div>`}`;
+      priceBlock += engagements();
       const promo = Number(px.promoJour) || 0;
       form = `<section id="commande"><h2>Passer ma commande</h2><p class="sub">Remplissez ce formulaire, ça prend moins d'une minute.</p>
         <form id="form" novalidate>
@@ -742,6 +794,7 @@ input[type=tel],input[type=text],textarea,select.in,.country select{border-width
           <div class="ticket" aria-live="polite">
             <div class="row"><span>Offre</span><span id="tOff"></span></div>
             <div class="row"><span>Livraison</span><span id="tDay">${esc(LIVRAISON)}</span></div>
+            <div class="row"><span>Frais de livraison</span><span class="gratuit">Gratuit</span></div>
             <div class="row total"><span>À payer à la livraison</span><span id="tTotal"></span></div></div>
           <div class="valider" id="valider" hidden role="status" aria-live="polite">
             <div class="vtop"><span class="vdot" aria-hidden="true"></span><span class="vlab" id="vLab">Dernière étape</span><span class="vprog" aria-hidden="true"><i></i></span></div>
@@ -749,7 +802,8 @@ input[type=tel],input[type=text],textarea,select.in,.country select{border-width
             <div class="vfl" aria-hidden="true"><svg viewBox="0 0 24 14"><path d="M3 3l9 8 9-8"/></svg><svg viewBox="0 0 24 14"><path d="M3 3l9 8 9-8"/></svg><svg viewBox="0 0 24 14"><path d="M3 3l9 8 9-8"/></svg></div>
           </div>
           <button type="submit" class="cta attn" id="sendBtn">Je commande maintenant</button>
-          <p class="reassure">Aucun paiement en ligne. Vous payez au livreur.</p>
+          <div class="secu"><div class="secu-h">${ico('cadenas')}Aucun paiement maintenant</div>
+            <ol><li><i>1</i>Vous validez ce formulaire (moins d'une minute)</li><li><i>2</i>Nous vous appelons pour confirmer votre commande</li><li><i>3</i>Vous payez au livreur en recevant votre produit</li></ol></div>
           <div class="senderr" id="sendErr"></div>
         </form></section>`;
     } else {
