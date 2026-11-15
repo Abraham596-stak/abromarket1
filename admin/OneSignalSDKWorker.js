@@ -1,26 +1,11 @@
-// Notifications (OneSignal) + ouverture rapide de l'application
-importScripts('https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js');
-const CACHE = 'abro-admin-v114';
-const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './commande.mp3', './relance.mp3', './icon-relance.png', './icon-commande.png', './icon-info.png'];
-self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
-self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k.startsWith('abro-') && k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
-self.addEventListener('fetch', e => {
-  const u = new URL(e.request.url);
-  if (e.request.method !== 'GET' || u.origin !== location.origin) return;
-  // L'application elle-même (la page) : toujours la dernière version si internet répond en moins de 3 s, sinon la version gardée
-  if (e.request.mode === 'navigate' || u.pathname.endsWith('/') || u.pathname.endsWith('index.html')) {
-    e.respondWith(caches.open(CACHE).then(async c => {
-      const hit = () => c.match(e.request, {ignoreSearch: true}).then(h => h || c.match('./index.html'));
-      const net = fetch(e.request, {cache: 'no-cache'}).then(r => { if (r.ok) c.put(e.request, r.clone()); return r; });
-      try { return await Promise.race([net, new Promise((_, ko) => setTimeout(() => ko(new Error('lent')), 3000))]); }
-      catch (x) { const h = await hit(); return h || net; }
-    }));
-    return;
-  }
-  // Le reste (icônes, sons) : tout de suite depuis le téléphone, puis mise à jour en arrière-plan
-  e.respondWith(caches.open(CACHE).then(async c => {
-    const hit = await c.match(e.request, {ignoreSearch: u.pathname.endsWith('/') || u.pathname.endsWith('index.html')});
-    const net = fetch(e.request).then(r => { if (r.ok) c.put(e.request, r.clone()); return r; }).catch(() => hit);
-    return hit || net;
-  }));
-});
+// Ancienne adresse de l'application : ce service se désactive tout seul.
+// Il retire l'abonnement aux notifications de cette adresse (sinon chaque notification arrivait en double)
+// et laisse uniquement la nouvelle adresse : https://livraison-gratuite.github.io/admin/
+async function arreter(){
+  try { const s = await self.registration.pushManager.getSubscription(); if (s) await s.unsubscribe(); } catch(e){}
+  try { const k = await caches.keys(); await Promise.all(k.map(x => caches.delete(x))); } catch(e){}
+  try { await self.registration.unregister(); } catch(e){}
+}
+self.addEventListener('install', () => self.skipWaiting());
+self.addEventListener('activate', e => e.waitUntil(arreter()));
+self.addEventListener('push', e => e.waitUntil(arreter()));
